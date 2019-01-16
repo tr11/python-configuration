@@ -1,5 +1,5 @@
 # python-configuration
-> A library to load configuration parameters
+> A library to load configuration parameters from multiple sources and formats
 
 This library is intended as a helper mechanism to load configuration files
 hierarchically.  Current format types are:
@@ -226,7 +226,7 @@ branch. Pull requests are welcome.
 ## Links
 
 - Repository: https://github.com/tr11/python-configuration
-- Issue tracker: https://github.com/tr11/python-configuration
+- Issue tracker: https://github.com/tr11/python-configuration/issues
 
 ## Licensing
 
