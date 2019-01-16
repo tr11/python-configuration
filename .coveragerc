@@ -1,0 +1,6 @@
+[run]
+branch = True
+include = config/*
+
+[html]
+directory = cover
