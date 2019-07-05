@@ -216,7 +216,7 @@ class ConfigurationSet(Configuration):
         return "<ConfigurationSet %r>" % self.as_dict()
 
 
-def config(*configs: Iterable, prefix: str = '') -> ConfigurationSet:
+def config(*configs: Iterable, prefix: str = '', remove_level: int = 1) -> ConfigurationSet:
     instances = []
     for config_ in configs:
         if isinstance(config_, dict):
@@ -266,7 +266,7 @@ def config(*configs: Iterable, prefix: str = '') -> ConfigurationSet:
         elif type_ == 'ini':
             instances.append(config_from_ini(*config_[1:]))
         elif type_ == 'path':
-            instances.append(config_from_path(*config_[1:]))
+            instances.append(config_from_path(*config_[1:], remove_level))
         else:
             raise ValueError('Unknown configuration type "%s"' % type_)
 
