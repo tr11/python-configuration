@@ -284,6 +284,7 @@ def config_from_env(prefix: str, separator: str = '__') -> Configuration:
 
 
 def config_from_path(path: str, remove_level: int = 1) -> Configuration:
+    path = os.path.normpath(path)
     dotted_path_levels = len(path.split('/'))
     files_keys = (
         (os.path.join(x[0], y), '.'.join((x[0].split('/') + [y])[(dotted_path_levels + remove_level):]))
