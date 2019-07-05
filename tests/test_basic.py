@@ -1,5 +1,6 @@
 from config import config_from_dict
 from pytest import raises
+import pytest
 
 
 DICT = {
@@ -86,14 +87,17 @@ def test_reserved():  # type: ignore
 
 def test_fails():  # type: ignore
     cfg = config_from_dict(DICT)
-    with raises(KeyError, message="a1.b2.c3.d4"):
+    with raises(KeyError):
         assert cfg["a1.b2.c3.d4"] is Exception
+        pytest.fail("a1.b2.c3.d4")
 
-    with raises(KeyError, message="'c4'"):
+    with raises(KeyError):
         assert cfg.a1.b2.c4 is Exception
+        pytest.fail("'c4'")
 
-    with raises(ValueError, message="Expected a valid True or False expression."):
+    with raises(ValueError):
         assert cfg["a1.b2"].get_bool("c3") is Exception
+        pytest.fail("Expected a valid True or False expression.")
 
 
 def test_type_conversions():  # type: ignore

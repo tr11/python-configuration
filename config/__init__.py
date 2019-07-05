@@ -191,10 +191,10 @@ class ConfigurationSet(Configuration):
         else:
             return values[0]
 
-    def __getitem__(self, item: str)-> Union[Configuration, Any]:
+    def __getitem__(self, item: str) -> Union[Configuration, Any]:
         return self._from_configs('__getitem__', item)
 
-    def __getattr__(self, item: str)-> Union[Configuration, Any]:
+    def __getattr__(self, item: str) -> Union[Configuration, Any]:
         return self._from_configs('__getattr__', item)
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
@@ -234,7 +234,7 @@ def config(*configs: Iterable, prefix: str = '', remove_level: int = 1) -> Confi
             elif config_.endswith('.ini'):
                 config_ = ('ini', config_, True)
             elif os.path.isdir(config_):
-                config_ = ('path', config_)
+                config_ = ('path', config_, remove_level)
             elif config_ in ('env', 'environment'):
                 config_ = ('env', prefix)
             elif all(s and s.isidentifier() for s in config_.split('.')):
@@ -266,7 +266,7 @@ def config(*configs: Iterable, prefix: str = '', remove_level: int = 1) -> Confi
         elif type_ == 'ini':
             instances.append(config_from_ini(*config_[1:]))
         elif type_ == 'path':
-            instances.append(config_from_path(*config_[1:], remove_level))
+            instances.append(config_from_path(*config_[1:]))
         else:
             raise ValueError('Unknown configuration type "%s"' % type_)
 
@@ -363,9 +363,9 @@ def create_path_from_config(path: str, cfg: Configuration, remove_level: int = 1
 if yaml is not None:  # pragma: no branch
     def config_from_yaml(data: Union[str, IO[str]], read_from_file: bool = False) -> Configuration:
         if read_from_file and isinstance(data, str):
-            loaded = yaml.load(open(data, 'rt'))
+            loaded = yaml.load(open(data, 'rt'), Loader=yaml.FullLoader)
         else:
-            loaded = yaml.load(data)
+            loaded = yaml.load(data, Loader=yaml.FullLoader)
         if not isinstance(loaded, dict):
             raise ValueError('Data should be a dictionary')
         return Configuration(loaded)

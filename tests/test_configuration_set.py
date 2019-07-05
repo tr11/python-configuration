@@ -17,6 +17,7 @@ try:
     import toml
 except ImportError:
     toml = None  # type: ignore
+import pytest
 
 
 DICT1 = {
@@ -180,14 +181,17 @@ def test_fails():  # type: ignore
         config_from_env(prefix=PREFIX)
     )
 
-    with raises(KeyError, message="a1.b2.c3.d4"):
+    with raises(KeyError):
         assert cfg["a1.b2.c3.d4"] is Exception
+        pytest.fail("a1.b2.c3.d4")
 
-    with raises(KeyError, message="'c4'"):
+    with raises(KeyError):
         assert cfg.a1.b2.c4 is Exception
+        pytest.fail("'c4'")
 
-    with raises(ValueError, message="Expected a valid True or False expression."):
+    with raises(ValueError):
         assert cfg["a1.b2"].get_bool("c3") is Exception
+        pytest.fail("Expected a valid True or False expression.")
 
 
 def test_get():  # type: ignore
@@ -449,8 +453,9 @@ def test_alternate_set_loader_strings_python_module():  # type: ignore
 
 
 def test_alternate_set_loader_fails():  # type: ignore
-    with raises(ValueError, message="configs should be a non-empty iterable of Configuration objects"):
+    with raises(ValueError):
         assert config() is Exception
+        pytest.fail("configs should be a non-empty iterable of Configuration objects")
 
     with raises(ValueError):
         assert config(('no type', '')) is Exception
