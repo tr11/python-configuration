@@ -1,9 +1,11 @@
-import os
-import json
+"""python-configuration module."""
+
 import base64
+import json
+import os
 from importlib.abc import InspectLoader
 from types import ModuleType
-from typing import Any, IO, Union, List, Iterable, cast, KeysView, ItemsView, ValuesView
+from typing import Any, Dict, IO, ItemsView, Iterable, KeysView, List, Mapping, Union, ValuesView, cast
 
 try:
     import yaml
@@ -20,9 +22,13 @@ FALSE_TEXT = frozenset(('f', 'false', 'n', 'no', 'off', '0', ''))
 
 
 def as_bool(s: Any) -> bool:
-    """ Return the boolean value ``True`` if the case-lowered value of string
-    input ``s`` is a :term:`truthy string`. If ``s`` is already one of the
-    boolean values ``True`` or ``False``, return it."""
+    """
+    Boolean value from an object.
+
+    Return the boolean value ``True`` if the case-lowered value of string
+    input ``s`` is a `truthy string`. If ``s`` is already one of the
+    boolean values ``True`` or ``False``, return it.
+    """
     if s is None:
         return False
     if isinstance(s, bool):
@@ -35,45 +41,63 @@ def as_bool(s: Any) -> bool:
 
 class Configuration:
     """
+    Configuration class.
+
     The Configuration class takes a dictionary input with keys such as
-    a1.b1.c1
-    a1.b1.c2
-    a1.b2.c1
-    a1.b2.c2
-    a2.b1.c1
-    a2.b1.c2
-    a2.b2.c1
-    a2.b2.c2
+
+        - ``a1.b1.c1``
+        - ``a1.b1.c2``
+        - ``a1.b2.c1``
+        - ``a1.b2.c2``
+        - ``a2.b1.c1``
+        - ``a2.b1.c2``
+        - ``a2.b2.c1``
+        - ``a2.b2.c2``
     """
 
-    def __init__(self, config_: dict):
-        self._config: dict = self._flatten_dict(config_)
+    def __init__(self, config_: Mapping[str, Any]):
+        """
+        Constructor.
+
+        :param config_: a mapping of configuration values. Keys need to be strings.
+        """
+        self._config: Dict[str, Any] = self._flatten_dict(config_)
 
     def __eq__(self, other):  # type: ignore
+        """Equality operator."""
         return self.as_dict() == other.as_dict()
 
-    def _merge_dict(self, d: dict, prefix: str) -> dict:
-        result: dict = {}
-        d = dict((k.lower(), v) for k, v in d.items())
-        inner = dict((k[(len(prefix) + 1):].lower(), v) for k, v in d.items() if k.startswith(prefix + '.'))
-        result.update(inner)
-        return result
+    def _filter_dict(self, d: Dict[str, Any], prefix: str) -> Dict[str, Any]:
+        """
+        Filter a dictionary and return the items that are prefixed by :attr:`prefix`.
 
-    def _flatten_dict(self, d: dict) -> dict:
-        nested = set(k for k, v in d.items() if isinstance(v, dict))
-        result = dict((k.lower() + '.' + ki, vi)
-                      for k in nested
-                      for ki, vi in self._flatten_dict(d[k]).items())
+        :param d: dictionary
+        :param prefix: prefix to filter on
+        """
+        return {k[(len(prefix) + 1):].lower(): v for k, v in d.items() if k.startswith(prefix + '.')}
+
+    def _flatten_dict(self, d: Mapping[str, Any]) -> Dict[str, Any]:
+        """
+        Flatten one level of a dictionary.
+
+        :param d: dict
+        :return: a flattened dict
+        """
+        nested = {k for k, v in d.items() if isinstance(v, dict)}
+        result = {k.lower() + '.' + ki: vi
+                  for k in nested
+                  for ki, vi in self._flatten_dict(d[k]).items()}
         result.update((k.lower(), v) for k, v in d.items() if not isinstance(v, dict))
         return result
 
-    def _get_subset(self, prefix: str) -> Union[dict, Any]:
+    def _get_subset(self, prefix: str) -> Union[Dict[str, Any], Any]:
         """
-        Returns the subset of the config dictionary whose keys start with :prefix:
+        Return the subset of the config dictionary whose keys start with :attr:`prefix`.
+
         :param prefix: string
         :return: dict
         """
-        d = dict((k[(len(prefix) + 1):], v) for k, v in self._config.items() if k.startswith(prefix + '.'))
+        d = {k[(len(prefix) + 1):]: v for k, v in self._config.items() if k.startswith(prefix + '.')}
         if not d:
             prefixes = prefix.split('.')
             if len(prefixes) == 1:
@@ -81,80 +105,133 @@ class Configuration:
             d = self._config
             while prefixes:  # pragma: no branches
                 p = prefixes[0]
-                new_d = self._merge_dict(d, p)
+                new_d = self._filter_dict(d, p)
                 if new_d == {}:
                     return d.get(p, {}) if len(prefixes) == 1 else {}
                 d = new_d
                 prefixes = prefixes[1:]
         return d
 
-    def __getitem__(self, item: str) -> Union['Configuration', Any]:
+    def __getitem__(self, item: str) -> Union['Configuration', Any]:                                        # noqa: D105
         v = self._get_subset(item)
         if v == {}:
             raise KeyError(item)
         return Configuration(v) if isinstance(v, dict) else v
 
-    def __getattr__(self, item: str) -> Any:
+    def __getattr__(self, item: str) -> Any:                                                                # noqa: D105
         v = self._get_subset(item)
         if v == {}:
             raise KeyError(item)
         return Configuration(v) if isinstance(v, dict) else v
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
+        """
+        Get the configuration values corresponding to :attr:`key`.
+
+        :param key: key to retrieve
+        :param default: default value in case the key is missing
+        :return: the value found or a default
+        """
         return self.as_dict().get(key, default)
 
     def as_dict(self) -> dict:
+        """Return the representation as a dictionary."""
         return self._config
 
     def get_bool(self, item: str) -> bool:
+        """
+        Get the item value as a bool.
+
+        :param item: key
+        """
         return as_bool(self[item])
 
     def get_str(self, item: str, fmt: str = '{}') -> str:
+        """
+        Get the item value as an int.
+
+        :param item: key
+        :param fmt: format to use
+        """
         return fmt.format(self[item])
 
     def get_int(self, item: str) -> int:
+        """
+        Get the item value as an int.
+
+        :param item: key
+        """
         return int(self[item])
 
     def get_float(self, item: str) -> float:
+        """
+        Get the item value as a float.
+
+        :param item: key
+        """
         return float(self[item])
 
     def get_dict(self, item: str) -> dict:
+        """
+        Get the item values as a dictionary.
+
+        :param item: key
+        """
         return dict(self._get_subset(item))
 
     def base64encode(self, item: str) -> bytes:
+        """
+        Get the item value as a Base64 encoded bytes instance.
+
+        :param item: key
+        """
         b = self[item]
         b = b if isinstance(b, bytes) else b.encode()
         return base64.b64encode(b)
 
     def base64decode(self, item: str) -> bytes:
+        """
+        Get the item value as a Base64 decoded bytes instance.
+
+        :param item:
+        """
         b = self[item]
         b = b if isinstance(b, bytes) else b.encode()
         return base64.b64decode(b, validate=True)
 
     def keys(self) -> Union['Configuration', Any, KeysView[str]]:
+        """Return a set-like object providing a view on the configuration keys."""
         try:
             return self['keys']
         except KeyError:
             return self.as_dict().keys()
 
     def values(self) -> Union['Configuration', Any, ValuesView[Any]]:
+        """Return a set-like object providing a view on the configuration values."""
         try:
             return self['values']
         except KeyError:
             return self.as_dict().values()
 
     def items(self) -> Union['Configuration', Any, ItemsView[str, Any]]:
+        """Return a set-like object providing a view on the configuration items."""
         try:
             return self['items']
         except KeyError:
             return self.as_dict().items()
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:                                                                              # noqa: D105
         return "<Configuration: %r>" % self._config
 
 
 class ConfigurationSet(Configuration):
-    def __init__(self, *configs: Configuration):
+    """
+    Configuration Sets.
+
+    A class that combines multiple :class:`Configuration` instances in a hierarchical manner.
+    """
+
+    def __init__(self, *configs: Configuration):                                                            # noqa: D107
         try:
             self._configs: List[Configuration] = list(configs)
         except Exception:  # pragma: no cover
@@ -191,32 +268,52 @@ class ConfigurationSet(Configuration):
         else:
             return values[0]
 
-    def __getitem__(self, item: str) -> Union[Configuration, Any]:
+    def __getitem__(self, item: str) -> Union[Configuration, Any]:                                          # noqa: D105
         return self._from_configs('__getitem__', item)
 
-    def __getattr__(self, item: str) -> Union[Configuration, Any]:
+    def __getattr__(self, item: str) -> Union[Configuration, Any]:                                          # noqa: D105
         return self._from_configs('__getattr__', item)
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
+        """
+        Get the configuration values corresponding to :attr:`key`.
+
+        :param key: key to retrieve
+        :param default: default value in case the key is missing
+        :return: the value found or a default
+        """
         try:
             return self[key]
         except Exception:
             return default
 
     def as_dict(self) -> dict:
+        """Return the representation as a dictionary."""
         result = {}
         for config_ in self._configs[::-1]:
             result.update(config_.as_dict())
         return result
 
     def get_dict(self, item: str) -> dict:
+        """
+        Get the item values as a dictionary.
+
+        :param item: key
+        """
         return dict(self[item])
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:                                                                              # noqa: D105
         return "<ConfigurationSet %r>" % self.as_dict()
 
 
 def config(*configs: Iterable, prefix: str = '', remove_level: int = 1) -> ConfigurationSet:
+    """
+    Create a :class:`ConfigurationSet` instance from an iterable of configs.
+
+    :param configs: iterable of configurations
+    :param prefix: prefix to filter environment variables with
+    :param remove_level: how many levels to remove from the resulting config
+    """
     instances = []
     for config_ in configs:
         if isinstance(config_, dict):
@@ -274,6 +371,13 @@ def config(*configs: Iterable, prefix: str = '', remove_level: int = 1) -> Confi
 
 
 def config_from_env(prefix: str, separator: str = '__') -> Configuration:
+    """
+    Create a :class:`Configuration` instance from environment variables.
+
+    :param prefix: prefix to filter environment variables with
+    :param separator: separator to replace by dots
+    :return: a :class:`Configuration` instance
+    """
     result = {}
     for key, value in os.environ.items():
         if not key.startswith(prefix + separator):
@@ -284,6 +388,13 @@ def config_from_env(prefix: str, separator: str = '__') -> Configuration:
 
 
 def config_from_path(path: str, remove_level: int = 1) -> Configuration:
+    """
+    Create a :class:`Configuration` instance from filesystem path.
+
+    :param path: path to read from
+    :param remove_level: how many levels to remove from the resulting config
+    :return: a :class:`Configuration` instance
+    """
     path = os.path.normpath(path)
     dotted_path_levels = len(path.split('/'))
     files_keys = (
@@ -300,6 +411,14 @@ def config_from_path(path: str, remove_level: int = 1) -> Configuration:
 
 
 def config_from_json(data: Union[str, IO[str]], read_from_file: bool = False) -> Configuration:
+    """
+    Create a :class:`Configuration` instance from a JSON file.
+
+    :param data: path to a JSON file or contents
+    :param read_from_file: whether to read from a file path or to interpret the :attr:`data` as the contents of the
+           INI file.
+    :return: a :class:`Configuration` instance
+    """
     if read_from_file:
         if isinstance(data, str):
             return Configuration(json.load(open(data, 'rt')))
@@ -311,6 +430,14 @@ def config_from_json(data: Union[str, IO[str]], read_from_file: bool = False) ->
 
 
 def config_from_ini(data: Union[str, IO[str]], read_from_file: bool = False) -> Configuration:
+    """
+    Create a :class:`Configuration` instance from an INI file.
+
+    :param data: path to an INI file or contents
+    :param read_from_file: whether to read from a file path or to interpret the :attr:`data` as the contents of the
+           INI file.
+    :return: a :class:`Configuration` instance
+    """
     import configparser
     if read_from_file:
         if isinstance(data, str):
@@ -320,11 +447,19 @@ def config_from_ini(data: Union[str, IO[str]], read_from_file: bool = False) -> 
     data = cast(str, data)
     cfg = configparser.RawConfigParser()
     cfg.read_string(data)
-    d = dict((section + "." + k, v) for section, values in cfg.items() for k, v in values.items())
+    d = {section + "." + k: v for section, values in cfg.items() for k, v in values.items()}
     return Configuration(d)
 
 
 def config_from_python(module: Union[str, ModuleType], prefix: str = '', separator: str = '_') -> Configuration:
+    """
+    Create a :class:`Configuration` instance from the objects in a Python module.
+
+    :param module: a module or path string
+    :param prefix: prefix to use to filter object names
+    :param separator: separator to replace by dots
+    :return: a :class:`Configuration` instance
+    """
     if isinstance(module, str):
         if module.endswith('.py'):
             import importlib.util
@@ -336,19 +471,32 @@ def config_from_python(module: Union[str, ModuleType], prefix: str = '', separat
             import importlib
             module = importlib.import_module(module)
 
-    variables = list(x for x in dir(module) if not x.startswith('__') and x.startswith(prefix))
-    dict_ = dict(
-        (k[len(prefix):].replace(separator, '.').strip('.'), getattr(module, k))
+    variables = [x for x in dir(module) if not x.startswith('__') and x.startswith(prefix)]
+    dict_ = {
+        k[len(prefix):].replace(separator, '.').strip('.'): getattr(module, k)
         for k in variables
-    )
+    }
     return Configuration(dict_)
 
 
 def config_from_dict(data: dict) -> Configuration:
+    """
+    Create a :class:`Configuration` instance from a dictionary.
+
+    :param data: dictionary with string keys
+    :return: a :class:`Configuration` instance
+    """
     return Configuration(data)
 
 
 def create_path_from_config(path: str, cfg: Configuration, remove_level: int = 1) -> Configuration:
+    """
+    Auxiliary method to output a path configuration from a :class:`Configuration` instance.
+
+    :param path: path to create the config files in
+    :param cfg: :class:`Configuration` instance
+    :param remove_level: how many levels to remove
+    """
     import os.path
     assert os.path.isdir(path)
 
@@ -363,6 +511,13 @@ def create_path_from_config(path: str, cfg: Configuration, remove_level: int = 1
 
 if yaml is not None:  # pragma: no branch
     def config_from_yaml(data: Union[str, IO[str]], read_from_file: bool = False) -> Configuration:
+        """
+        Return a Configuration instance from YAML files.
+
+        :param data: string or file
+        :param read_from_file: whether `data` is a file or a YAML formatted string
+        :return: a Configuration instance
+        """
         if read_from_file and isinstance(data, str):
             loaded = yaml.load(open(data, 'rt'), Loader=yaml.FullLoader)
         else:
@@ -374,6 +529,13 @@ if yaml is not None:  # pragma: no branch
 
 if toml is not None:  # pragma: no branch
     def config_from_toml(data: Union[str, IO[str]], read_from_file: bool = False) -> Configuration:
+        """
+        Return a Configuration instance from TOML files.
+
+        :param data: string or file
+        :param read_from_file: whether `data` is a file or a TOML formatted string
+        :return: a Configuration instance
+        """
         if read_from_file:
             if isinstance(data, str):
                 loaded = toml.load(open(data, 'rt'))
