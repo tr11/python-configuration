@@ -193,7 +193,7 @@ class Configuration:
         """
         Get the item value as a Base64 decoded bytes instance.
 
-        :param item:
+        :param item: key
         """
         b = self[item]
         b = b if isinstance(b, bytes) else b.encode()
