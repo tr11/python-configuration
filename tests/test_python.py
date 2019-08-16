@@ -22,32 +22,32 @@ DICT = {
 
 def test_load_from_module():  # type: ignore
     import python_config
-    cfg = config_from_python(python_config, prefix='CONFIG')
+    cfg = config_from_python(python_config, prefix='CONFIG', lowercase_keys=True)
     assert cfg["a1.b2"].as_dict() == {"c1": "a", "c2": True, "c3": 1.1}
     assert cfg['sys.version'] == sys.hexversion
 
 
 def test_load_from_path():  # type: ignore
     path = os.path.join(os.path.dirname(__file__), 'python_config.py')
-    cfg = config_from_python(path, prefix='CONFIG')
+    cfg = config_from_python(path, prefix='CONFIG', lowercase_keys=True)
     assert cfg["a1.b2"].as_dict() == {"c1": "a", "c2": True, "c3": 1.1}
     assert cfg['sys.version'] == sys.hexversion
 
 
 def test_load_from_module_string():  # type: ignore
     path = 'tests.python_config'
-    cfg = config_from_python(path, prefix='CONFIG')
+    cfg = config_from_python(path, prefix='CONFIG', lowercase_keys=True)
     assert cfg["a1.b2"].as_dict() == {"c1": "a", "c2": True, "c3": 1.1}
     assert cfg['sys.version'] == sys.hexversion
 
 
 def test_equality():  # type: ignore
     import python_config
-    cfg = config_from_python(python_config, prefix='CONFIG')
-    assert cfg == config_from_dict(DICT)
+    cfg = config_from_python(python_config, prefix='CONFIG', lowercase_keys=True)
+    assert cfg == config_from_dict(DICT, lowercase_keys=True)
 
 
 def test_equality_from_path():  # type: ignore
     path = os.path.join(os.path.dirname(__file__), 'python_config.py')
-    cfg = config_from_python(path, prefix='CONFIG')
-    assert cfg == config_from_dict(DICT)
+    cfg = config_from_python(path, prefix='CONFIG', lowercase_keys=True)
+    assert cfg == config_from_dict(DICT, lowercase_keys=True)

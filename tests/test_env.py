@@ -26,7 +26,7 @@ os.environ.update(
 
 
 def test_load_env():  # type: ignore
-    cfg = config_from_env(PREFIX)
+    cfg = config_from_env(PREFIX, lowercase_keys=True)
     assert cfg["a1.b1.c1"] == '1'
     assert cfg["a1.b1"].get_int('c1') == 1
     assert cfg["a1.b1"].as_dict() == {"c1": '1', "c2": '2', "c3": '3'}
@@ -34,5 +34,5 @@ def test_load_env():  # type: ignore
 
 
 def test_equality():  # type: ignore
-    cfg = config_from_env(PREFIX)
+    cfg = config_from_env(PREFIX, lowercase_keys=True)
     assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))

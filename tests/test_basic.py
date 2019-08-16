@@ -41,14 +41,14 @@ NESTED = {
 
 
 def test_load_dict():  # type: ignore
-    cfg = config_from_dict(DICT)
+    cfg = config_from_dict(DICT, lowercase_keys=True)
     assert cfg["a1.b1.c1"] == 1
     assert cfg["a1.b1"].as_dict() == {"c1": 1, "c2": 2, "c3": 3}
     assert cfg["a1.b2"].as_dict() == {"c1": "a", "c2": True, "c3": 1.1}
 
 
 def test_load_nested():  # type: ignore
-    cfg = config_from_dict(NESTED)
+    cfg = config_from_dict(NESTED, lowercase_keys=True)
     assert cfg["a1.b1.c1"] == 1
     assert cfg["a1.b1"].as_dict() == {"c1": 1, "c2": 2, "c3": 3}
     assert cfg["a1.b2"].as_dict() == {"c1": "a", "c2": True, "c3": 1.1}
@@ -101,7 +101,7 @@ def test_fails():  # type: ignore
 
 
 def test_type_conversions():  # type: ignore
-    cfg = config_from_dict(DICT)
+    cfg = config_from_dict(DICT, lowercase_keys=True)
     assert cfg["a1.b2"].get_float("c3") == 1.1
     assert cfg["a1.b2"].get_int("c3") == 1
     assert cfg["a1.b2"].get_str("c3") == "1.1"
@@ -117,5 +117,5 @@ def test_type_conversions():  # type: ignore
 
 
 def test_repr():  # type: ignore
-    cfg = config_from_dict(DICT)
+    cfg = config_from_dict(DICT, lowercase_keys=True)
     assert str(dict((k.lower(), v) for k, v in DICT.items())) in repr(cfg)

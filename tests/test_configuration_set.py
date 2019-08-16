@@ -160,9 +160,9 @@ os.environ.update(
 
 def test_load_env():  # type: ignore
     cfg = ConfigurationSet(
-        config_from_dict(DICT2_1),
-        config_from_dict(DICT2_2),
-        config_from_env(prefix=PREFIX)
+        config_from_dict(DICT2_1, lowercase_keys=True),
+        config_from_dict(DICT2_2, lowercase_keys=True),
+        config_from_env(prefix=PREFIX, lowercase_keys=True)
     )
     # from env
     assert cfg["a1.b1.c1"] == '1'
@@ -176,9 +176,9 @@ def test_load_env():  # type: ignore
 
 def test_fails():  # type: ignore
     cfg = ConfigurationSet(
-        config_from_dict(DICT2_1),
-        config_from_dict(DICT2_2),
-        config_from_env(prefix=PREFIX)
+        config_from_dict(DICT2_1, lowercase_keys=True),
+        config_from_dict(DICT2_2, lowercase_keys=True),
+        config_from_env(prefix=PREFIX, lowercase_keys=True)
     )
 
     with raises(KeyError):
@@ -196,9 +196,9 @@ def test_fails():  # type: ignore
 
 def test_get():  # type: ignore
     cfg = ConfigurationSet(
-        config_from_dict(DICT2_1),
-        config_from_dict(DICT2_2),
-        config_from_env(prefix=PREFIX)
+        config_from_dict(DICT2_1, lowercase_keys=True),
+        config_from_dict(DICT2_2, lowercase_keys=True),
+        config_from_env(prefix=PREFIX, lowercase_keys=True)
     )
 
     assert cfg.get("a2.b2") == config_from_dict({'c1': 10, 'c2': 'YWJjZGVmZ2g=', 'c3': 'abcdefgh'})
@@ -207,9 +207,9 @@ def test_get():  # type: ignore
 
 def test_get_dict():  # type: ignore
     cfg = ConfigurationSet(
-        config_from_dict(DICT2_1),
-        config_from_dict(DICT2_2),
-        config_from_env(prefix=PREFIX)
+        config_from_dict(DICT2_1, lowercase_keys=True),
+        config_from_dict(DICT2_2, lowercase_keys=True),
+        config_from_env(prefix=PREFIX, lowercase_keys=True)
     )
 
     assert cfg.get_dict("a2") == {'b1.c1': 'f', 'b1.c2': False, 'b1.c3': None, 'b2.c1': 10,
@@ -227,9 +227,9 @@ def test_get_dict():  # type: ignore
 
 def test_get_dict_different_types():  # type: ignore
     cfg = ConfigurationSet(
-        config_from_dict(DICT3_1),
-        config_from_dict(DICT3_2),  # a2 is ignored here
-        config_from_dict(DICT3_3),
+        config_from_dict(DICT3_1, lowercase_keys=True),
+        config_from_dict(DICT3_2, lowercase_keys=True),  # a2 is ignored here
+        config_from_dict(DICT3_3, lowercase_keys=True),
     )
 
     assert cfg.get_dict("a2") == {'b2.c1': 10, 'b2.c2': 'YWJjZGVmZ2g=', 'b2.c3': 'abcdefgh',
@@ -248,10 +248,10 @@ def test_repr():  # type: ignore
     import sys
     path = os.path.join(os.path.dirname(__file__), 'python_config.py')
     cfg = ConfigurationSet(
-        config_from_dict(DICT2_1),
-        config_from_dict(DICT2_2),
-        config_from_env(prefix=PREFIX),
-        config_from_python(path, prefix='CONFIG')
+        config_from_dict(DICT2_1, lowercase_keys=True),
+        config_from_dict(DICT2_2, lowercase_keys=True),
+        config_from_env(prefix=PREFIX, lowercase_keys=True),
+        config_from_python(path, prefix='CONFIG', lowercase_keys=True)
     )
 
     joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
@@ -281,7 +281,7 @@ def test_alternate_set_loader():  # type: ignore
             entries.append(('yaml', YAML))
         if toml:
             entries.append(('toml', TOML))
-        cfg = config(*entries)
+        cfg = config(*entries, lowercase_keys=True)
 
     joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
     joined_dicts.update(DICT2_1)
@@ -294,8 +294,8 @@ def test_alternate_set_loader():  # type: ignore
         joined_dicts.update(DICT_TOML)
     joined_dicts.update((k, str(v)) for k, v in PATH_DICT.items())
     joined_dicts['sys.version'] = sys.hexversion
-    assert config_from_dict(joined_dicts).as_dict() == cfg.as_dict()
-    assert config_from_dict(joined_dicts) == cfg
+    assert config_from_dict(joined_dicts, lowercase_keys=True).as_dict() == cfg.as_dict()
+    assert config_from_dict(joined_dicts, lowercase_keys=True) == cfg
 
 
 def test_alternate_set_loader_prefix():  # type: ignore
@@ -313,7 +313,8 @@ def test_alternate_set_loader_prefix():  # type: ignore
             ('json', JSON),
             ('ini', INI),
             ('path', folder, 0),
-            prefix='CONFIG'
+            prefix='CONFIG',
+            lowercase_keys=True
         )
 
     joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
@@ -323,8 +324,8 @@ def test_alternate_set_loader_prefix():  # type: ignore
     joined_dicts.update(DICT_INI)
     joined_dicts.update((k, str(v)) for k, v in PATH_DICT.items())
     joined_dicts['sys.version'] = sys.hexversion
-    assert config_from_dict(joined_dicts).as_dict() == cfg.as_dict()
-    assert config_from_dict(joined_dicts) == cfg
+    assert config_from_dict(joined_dicts, lowercase_keys=True).as_dict() == cfg.as_dict()
+    assert config_from_dict(joined_dicts, lowercase_keys=True) == cfg
 
 
 def test_alternate_set_loader_strings():  # type: ignore
@@ -372,7 +373,8 @@ def test_alternate_set_loader_strings():  # type: ignore
 
         cfg = config(
             *entries,
-            prefix='CONFIG'
+            prefix='CONFIG',
+            lowercase_keys=True
         )
 
     joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
@@ -386,8 +388,8 @@ def test_alternate_set_loader_strings():  # type: ignore
         joined_dicts.update(DICT_TOML)
     joined_dicts.update((k, str(v)) for k, v in PATH_DICT.items())
     joined_dicts['sys.version'] = sys.hexversion
-    assert config_from_dict(joined_dicts).as_dict() == cfg.as_dict()
-    assert config_from_dict(joined_dicts) == cfg
+    assert config_from_dict(joined_dicts, lowercase_keys=True).as_dict() == cfg.as_dict()
+    assert config_from_dict(joined_dicts, lowercase_keys=True) == cfg
 
 
 def test_alternate_set_loader_strings_python_module():  # type: ignore
@@ -434,7 +436,8 @@ def test_alternate_set_loader_strings_python_module():  # type: ignore
 
         cfg = config(
             *entries,
-            prefix='CONFIG'
+            prefix='CONFIG',
+            lowercase_keys=True
         )
 
     joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
@@ -448,8 +451,8 @@ def test_alternate_set_loader_strings_python_module():  # type: ignore
         joined_dicts.update(DICT_TOML)
     joined_dicts.update((k, str(v)) for k, v in PATH_DICT.items())
     joined_dicts['sys.version'] = sys.hexversion
-    assert config_from_dict(joined_dicts).as_dict() == cfg.as_dict()
-    assert config_from_dict(joined_dicts) == cfg
+    assert config_from_dict(joined_dicts, lowercase_keys=True).as_dict() == cfg.as_dict()
+    assert config_from_dict(joined_dicts, lowercase_keys=True) == cfg
 
 
 def test_alternate_set_loader_fails():  # type: ignore
