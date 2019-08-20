@@ -1,6 +1,14 @@
 # python-configuration
 > A library to load configuration parameters from multiple sources and formats
 
+[![version](https://img.shields.io/pypi/v/python-configuration)](https://pypi.org/project/python-configuration/)
+![python](https://img.shields.io/pypi/pyversions/python-configuration)
+![wheel](https://img.shields.io/pypi/wheel/python-configuration)
+![license](https://img.shields.io/pypi/l/python-configuration)
+[![build](https://img.shields.io/travis/tr11/python-configuration)](https://travis-ci.org/tr11/python-configuration)
+[![codecov](https://codecov.io/gh/tr11/python-configuration/branch/master/graph/badge.svg)](https://codecov.io/gh/tr11/python-configuration)
+[![Documentation Status](https://readthedocs.org/projects/python-configuration/badge/?version=latest)](https://python-configuration.readthedocs.io/en/latest/?badge=latest)
+
 This library is intended as a helper mechanism to load configuration files
 hierarchically.  Current format types are:
 * Python files
@@ -227,6 +235,7 @@ branch. Pull requests are welcome.
 
 - Repository: https://github.com/tr11/python-configuration
 - Issue tracker: https://github.com/tr11/python-configuration/issues
+- Documentation: https://python-configuration.readthedocs.io
 
 ## Licensing
 
