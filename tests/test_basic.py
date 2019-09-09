@@ -10,33 +10,18 @@ DICT = {
     "a1.b2.c1": "a",
     "a1.b2.c2": True,
     "a1.b2.c3": 1.1,
-    "a2.b1.c1": 'f',
+    "a2.b1.c1": "f",
     "a2.b1.c2": False,
     "a2.b1.c3": None,
     "a2.b2.c1": 10,
-    "a2.b2.c2": 'YWJjZGVmZ2g=',
+    "a2.b2.c2": "YWJjZGVmZ2g=",
     "a2.b2.c3": "abcdefgh",
 }
 
-RESERVED = {
-    "keys": [1, 2, 3],
-    "values": ["a", "b", "c"],
-    "items": [1.1, 2.1, 3.1],
-}
+RESERVED = {"keys": [1, 2, 3], "values": ["a", "b", "c"], "items": [1.1, 2.1, 3.1]}
 
 NESTED = {
-    'a1': {
-        'b1': {
-            "c1": 1,
-            "C2": 2,
-            "c3": 3,
-        },
-        'b2': {
-            "c1": "a",
-            "c2": True,
-            "c3": 1.1,
-        }
-    }
+    "a1": {"b1": {"c1": 1, "C2": 2, "c3": 3}, "b2": {"c1": "a", "c2": True, "c3": 1.1}}
 }
 
 
@@ -70,18 +55,18 @@ def test_attr_gets():  # type: ignore
 
 def test_base64():  # type: ignore
     cfg = config_from_dict(DICT)
-    assert cfg.base64encode("a2.b2.c3") == b'YWJjZGVmZ2g='
-    assert cfg.base64decode("a2.b2.c2") == b'abcdefgh'
+    assert cfg.base64encode("a2.b2.c3") == b"YWJjZGVmZ2g="
+    assert cfg.base64decode("a2.b2.c2") == b"abcdefgh"
 
 
 def test_reserved():  # type: ignore
     cfg = config_from_dict(RESERVED)
-    assert cfg['keys'] == [1, 2, 3]
+    assert cfg["keys"] == [1, 2, 3]
     assert cfg["values"] == ["a", "b", "c"]
     assert cfg["items"] == [1.1, 2.1, 3.1]
 
     assert cfg.as_dict() == RESERVED
-    with raises(TypeError):     # fails as the config has an entry for keys
+    with raises(TypeError):  # fails as the config has an entry for keys
         dict(cfg)
 
 
@@ -105,9 +90,9 @@ def test_type_conversions():  # type: ignore
     assert cfg["a1.b2"].get_float("c3") == 1.1
     assert cfg["a1.b2"].get_int("c3") == 1
     assert cfg["a1.b2"].get_str("c3") == "1.1"
-    assert cfg["a1.b2"].get_str("c3", '{:0.3f}') == "1.100"
+    assert cfg["a1.b2"].get_str("c3", "{:0.3f}") == "1.100"
     assert cfg.a1.b2.c3 == 1.1
-    assert dict(cfg.a1.b2) == {'c1': 'a', 'c2': True, 'c3': 1.1}
+    assert dict(cfg.a1.b2) == {"c1": "a", "c2": True, "c3": 1.1}
 
     assert cfg["a1.b2"].get_bool("c2") is True  # True
     assert cfg["a1.b1"].get_bool("c1") is True  # 1

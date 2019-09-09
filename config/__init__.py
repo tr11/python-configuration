@@ -5,7 +5,19 @@ import json
 import os
 from importlib.abc import InspectLoader
 from types import ModuleType
-from typing import Any, Dict, IO, ItemsView, Iterable, KeysView, List, Mapping, Union, ValuesView, cast
+from typing import (
+    Any,
+    Dict,
+    IO,
+    ItemsView,
+    Iterable,
+    KeysView,
+    List,
+    Mapping,
+    Union,
+    ValuesView,
+    cast,
+)
 
 try:
     import yaml
@@ -17,8 +29,8 @@ except ImportError:  # pragma: no cover
     toml = None  # type: ignore
 
 
-TRUTH_TEXT = frozenset(('t', 'true', 'y', 'yes', 'on', '1'))
-FALSE_TEXT = frozenset(('f', 'false', 'n', 'no', 'off', '0', ''))
+TRUTH_TEXT = frozenset(("t", "true", "y", "yes", "on", "1"))
+FALSE_TEXT = frozenset(("f", "false", "n", "no", "off", "0", ""))
 
 
 def as_bool(s: Any) -> bool:
@@ -77,9 +89,17 @@ class Configuration:
         :param prefix: prefix to filter on
         """
         if self._lowercase:
-            return {k[(len(prefix) + 1):].lower(): v for k, v in d.items() if k.startswith(prefix + '.')}
+            return {
+                k[(len(prefix) + 1) :].lower(): v
+                for k, v in d.items()
+                if k.startswith(prefix + ".")
+            }
         else:
-            return {k[(len(prefix) + 1):]: v for k, v in d.items() if k.startswith(prefix + '.')}
+            return {
+                k[(len(prefix) + 1) :]: v
+                for k, v in d.items()
+                if k.startswith(prefix + ".")
+            }
 
     def _flatten_dict(self, d: Mapping[str, Any]) -> Dict[str, Any]:
         """
@@ -90,14 +110,20 @@ class Configuration:
         """
         nested = {k for k, v in d.items() if isinstance(v, dict)}
         if self._lowercase:
-            result = {k.lower() + '.' + ki: vi
-                      for k in nested
-                      for ki, vi in self._flatten_dict(d[k]).items()}
-            result.update((k.lower(), v) for k, v in d.items() if not isinstance(v, dict))
+            result = {
+                k.lower() + "." + ki: vi
+                for k in nested
+                for ki, vi in self._flatten_dict(d[k]).items()
+            }
+            result.update(
+                (k.lower(), v) for k, v in d.items() if not isinstance(v, dict)
+            )
         else:
-            result = {k + '.' + ki: vi
-                      for k in nested
-                      for ki, vi in self._flatten_dict(d[k]).items()}
+            result = {
+                k + "." + ki: vi
+                for k in nested
+                for ki, vi in self._flatten_dict(d[k]).items()
+            }
             result.update((k, v) for k, v in d.items() if not isinstance(v, dict))
         return result
 
@@ -108,9 +134,13 @@ class Configuration:
         :param prefix: string
         :return: dict
         """
-        d = {k[(len(prefix) + 1):]: v for k, v in self._config.items() if k.startswith(prefix + '.')}
+        d = {
+            k[(len(prefix) + 1) :]: v
+            for k, v in self._config.items()
+            if k.startswith(prefix + ".")
+        }
         if not d:
-            prefixes = prefix.split('.')
+            prefixes = prefix.split(".")
             if len(prefixes) == 1:
                 return self._config.get(prefix, {})
             d = self._config
@@ -123,13 +153,13 @@ class Configuration:
                 prefixes = prefixes[1:]
         return d
 
-    def __getitem__(self, item: str) -> Union['Configuration', Any]:                                        # noqa: D105
+    def __getitem__(self, item: str) -> Union["Configuration", Any]:  # noqa: D105
         v = self._get_subset(item)
         if v == {}:
             raise KeyError(item)
         return Configuration(v) if isinstance(v, dict) else v
 
-    def __getattr__(self, item: str) -> Any:                                                                # noqa: D105
+    def __getattr__(self, item: str) -> Any:  # noqa: D105
         v = self._get_subset(item)
         if v == {}:
             raise KeyError(item)
@@ -157,7 +187,7 @@ class Configuration:
         """
         return as_bool(self[item])
 
-    def get_str(self, item: str, fmt: str = '{}') -> str:
+    def get_str(self, item: str, fmt: str = "{}") -> str:
         """
         Get the item value as an int.
 
@@ -210,28 +240,28 @@ class Configuration:
         b = b if isinstance(b, bytes) else b.encode()
         return base64.b64decode(b, validate=True)
 
-    def keys(self) -> Union['Configuration', Any, KeysView[str]]:
+    def keys(self) -> Union["Configuration", Any, KeysView[str]]:
         """Return a set-like object providing a view on the configuration keys."""
         try:
-            return self['keys']
+            return self["keys"]
         except KeyError:
             return self.as_dict().keys()
 
-    def values(self) -> Union['Configuration', Any, ValuesView[Any]]:
+    def values(self) -> Union["Configuration", Any, ValuesView[Any]]:
         """Return a set-like object providing a view on the configuration values."""
         try:
-            return self['values']
+            return self["values"]
         except KeyError:
             return self.as_dict().values()
 
-    def items(self) -> Union['Configuration', Any, ItemsView[str, Any]]:
+    def items(self) -> Union["Configuration", Any, ItemsView[str, Any]]:
         """Return a set-like object providing a view on the configuration items."""
         try:
-            return self['items']
+            return self["items"]
         except KeyError:
             return self.as_dict().items()
 
-    def __repr__(self) -> str:                                                                              # noqa: D105
+    def __repr__(self) -> str:  # noqa: D105
         return "<Configuration: %r>" % self._config
 
 
@@ -239,18 +269,27 @@ class ConfigurationSet(Configuration):
     """
     Configuration Sets.
 
-    A class that combines multiple :class:`Configuration` instances in a hierarchical manner.
+    A class that combines multiple :class:`Configuration` instances
+    in a hierarchical manner.
     """
 
-    def __init__(self, *configs: Configuration):                                                            # noqa: D107
+    def __init__(self, *configs: Configuration):  # noqa: D107
         try:
             self._configs: List[Configuration] = list(configs)
         except Exception:  # pragma: no cover
-            raise ValueError('configs should be a non-empty iterable of Configuration objects')
+            raise ValueError(
+                "configs should be a non-empty iterable of Configuration objects"
+            )
         if not self._configs:  # pragma: no cover
-            raise ValueError('configs should be a non-empty iterable of Configuration objects')
-        if not all(isinstance(x, Configuration) for x in self._configs):   # pragma: no cover
-            raise ValueError('configs should be a non-empty iterable of Configuration objects')
+            raise ValueError(
+                "configs should be a non-empty iterable of Configuration objects"
+            )
+        if not all(
+            isinstance(x, Configuration) for x in self._configs
+        ):  # pragma: no cover
+            raise ValueError(
+                "configs should be a non-empty iterable of Configuration objects"
+            )
 
     def _from_configs(self, attr: str, *args: Any, **kwargs: dict) -> Any:
         last_err = Exception()
@@ -279,11 +318,11 @@ class ConfigurationSet(Configuration):
         else:
             return values[0]
 
-    def __getitem__(self, item: str) -> Union[Configuration, Any]:                                          # noqa: D105
-        return self._from_configs('__getitem__', item)
+    def __getitem__(self, item: str) -> Union[Configuration, Any]:  # noqa: D105
+        return self._from_configs("__getitem__", item)
 
-    def __getattr__(self, item: str) -> Union[Configuration, Any]:                                          # noqa: D105
-        return self._from_configs('__getattr__', item)
+    def __getattr__(self, item: str) -> Union[Configuration, Any]:  # noqa: D105
+        return self._from_configs("__getattr__", item)
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
         """
@@ -313,12 +352,16 @@ class ConfigurationSet(Configuration):
         """
         return dict(self[item])
 
-    def __repr__(self) -> str:                                                                              # noqa: D105
+    def __repr__(self) -> str:  # noqa: D105
         return "<ConfigurationSet %r>" % self.as_dict()
 
 
-def config(*configs: Iterable, prefix: str = '', remove_level: int = 1,
-           lowercase_keys: bool = False) -> ConfigurationSet:
+def config(
+    *configs: Iterable,
+    prefix: str = "",
+    remove_level: int = 1,
+    lowercase_keys: bool = False
+) -> ConfigurationSet:
     """
     Create a :class:`ConfigurationSet` instance from an iterable of configs.
 
@@ -333,57 +376,72 @@ def config(*configs: Iterable, prefix: str = '', remove_level: int = 1,
             instances.append(config_from_dict(config_, lowercase_keys=lowercase_keys))
             continue
         elif isinstance(config_, str):
-            if config_.endswith('.py'):
-                config_ = ('python', config_, prefix)
-            elif config_.endswith('.json'):
-                config_ = ('json', config_, True)
-            elif yaml and config_.endswith('.yaml'):
-                config_ = ('yaml', config_, True)
-            elif toml and config_.endswith('.toml'):
-                config_ = ('toml', config_, True)
-            elif config_.endswith('.ini'):
-                config_ = ('ini', config_, True)
+            if config_.endswith(".py"):
+                config_ = ("python", config_, prefix)
+            elif config_.endswith(".json"):
+                config_ = ("json", config_, True)
+            elif yaml and config_.endswith(".yaml"):
+                config_ = ("yaml", config_, True)
+            elif toml and config_.endswith(".toml"):
+                config_ = ("toml", config_, True)
+            elif config_.endswith(".ini"):
+                config_ = ("ini", config_, True)
             elif os.path.isdir(config_):
-                config_ = ('path', config_, remove_level)
-            elif config_ in ('env', 'environment'):
-                config_ = ('env', prefix)
-            elif all(s and s.isidentifier() for s in config_.split('.')):
-                config_ = ('python', config_, prefix)
+                config_ = ("path", config_, remove_level)
+            elif config_ in ("env", "environment"):
+                config_ = ("env", prefix)
+            elif all(s and s.isidentifier() for s in config_.split(".")):
+                config_ = ("python", config_, prefix)
             else:
                 raise ValueError('Cannot determine config type from "%s"' % config_)
 
         if not isinstance(config_, (tuple, list)) or len(config_) == 0:
             raise ValueError(
-                'configuration parameters must be a list of dictionaries, strings, or non-empty tuples/lists'
+                "configuration parameters must be a list of dictionaries,"
+                " strings, or non-empty tuples/lists"
             )
         type_ = config_[0]
-        if type_ == 'dict':
-            instances.append(config_from_dict(*config_[1:], lowercase_keys=lowercase_keys))
-        elif type_ in ('env', 'environment'):
+        if type_ == "dict":
+            instances.append(
+                config_from_dict(*config_[1:], lowercase_keys=lowercase_keys)
+            )
+        elif type_ in ("env", "environment"):
             params = config_[1:] if len(config_) > 1 else [prefix]
             instances.append(config_from_env(*params, lowercase_keys=lowercase_keys))
-        elif type_ == 'python':
+        elif type_ == "python":
             if len(config_) < 2:
                 raise ValueError("No path specified for python module")
             params = config_[1:] if len(config_) > 2 else [config_[1], prefix]
             instances.append(config_from_python(*params, lowercase_keys=lowercase_keys))
-        elif type_ == 'json':
-            instances.append(config_from_json(*config_[1:], lowercase_keys=lowercase_keys))
-        elif yaml and type_ == 'yaml':
-            instances.append(config_from_yaml(*config_[1:], lowercase_keys=lowercase_keys))
-        elif toml and type_ == 'toml':
-            instances.append(config_from_toml(*config_[1:], lowercase_keys=lowercase_keys))
-        elif type_ == 'ini':
-            instances.append(config_from_ini(*config_[1:], lowercase_keys=lowercase_keys))
-        elif type_ == 'path':
-            instances.append(config_from_path(*config_[1:], lowercase_keys=lowercase_keys))
+        elif type_ == "json":
+            instances.append(
+                config_from_json(*config_[1:], lowercase_keys=lowercase_keys)
+            )
+        elif yaml and type_ == "yaml":
+            instances.append(
+                config_from_yaml(*config_[1:], lowercase_keys=lowercase_keys)
+            )
+        elif toml and type_ == "toml":
+            instances.append(
+                config_from_toml(*config_[1:], lowercase_keys=lowercase_keys)
+            )
+        elif type_ == "ini":
+            instances.append(
+                config_from_ini(*config_[1:], lowercase_keys=lowercase_keys)
+            )
+        elif type_ == "path":
+            instances.append(
+                config_from_path(*config_[1:], lowercase_keys=lowercase_keys)
+            )
         else:
             raise ValueError('Unknown configuration type "%s"' % type_)
 
     return ConfigurationSet(*instances)
 
 
-def config_from_env(prefix: str, separator: str = '__', *, lowercase_keys: bool = False) -> Configuration:
+def config_from_env(
+    prefix: str, separator: str = "__", *, lowercase_keys: bool = False
+) -> Configuration:
     """
     Create a :class:`Configuration` instance from environment variables.
 
@@ -396,12 +454,14 @@ def config_from_env(prefix: str, separator: str = '__', *, lowercase_keys: bool 
     for key, value in os.environ.items():
         if not key.startswith(prefix + separator):
             continue
-        result[key[len(prefix):].replace(separator, '.').strip('.')] = value
+        result[key[len(prefix) :].replace(separator, ".").strip(".")] = value
 
     return Configuration(result, lowercase_keys=lowercase_keys)
 
 
-def config_from_path(path: str, remove_level: int = 1, *, lowercase_keys: bool = False) -> Configuration:
+def config_from_path(
+    path: str, remove_level: int = 1, *, lowercase_keys: bool = False
+) -> Configuration:
     """
     Create a :class:`Configuration` instance from filesystem path.
 
@@ -411,12 +471,16 @@ def config_from_path(path: str, remove_level: int = 1, *, lowercase_keys: bool =
     :return: a :class:`Configuration` instance
     """
     path = os.path.normpath(path)
-    dotted_path_levels = len(path.split('/'))
+    dotted_path_levels = len(path.split("/"))
     files_keys = (
-        (os.path.join(x[0], y), '.'.join((x[0].split('/') + [y])[(dotted_path_levels + remove_level):]))
+        (
+            os.path.join(x[0], y),
+            ".".join((x[0].split("/") + [y])[(dotted_path_levels + remove_level) :]),
+        )
         for x in os.walk(path)
         for y in x[2]
-        if not x[0].split('/')[-1].startswith('..'))
+        if not x[0].split("/")[-1].startswith("..")
+    )
 
     result = {}
     for filename, key in files_keys:
@@ -425,20 +489,24 @@ def config_from_path(path: str, remove_level: int = 1, *, lowercase_keys: bool =
     return Configuration(result, lowercase_keys=lowercase_keys)
 
 
-def config_from_json(data: Union[str, IO[str]], read_from_file: bool = False, *,
-                     lowercase_keys: bool = False) -> Configuration:
+def config_from_json(
+    data: Union[str, IO[str]],
+    read_from_file: bool = False,
+    *,
+    lowercase_keys: bool = False
+) -> Configuration:
     """
     Create a :class:`Configuration` instance from a JSON file.
 
     :param data: path to a JSON file or contents
-    :param read_from_file: whether to read from a file path or to interpret the :attr:`data` as the contents of the
-           INI file.
+    :param read_from_file: whether to read from a file path or to interpret
+           the :attr:`data` as the contents of the INI file.
     :param lowercase_keys: whether to convert every key to lower case.
     :return: a :class:`Configuration` instance
     """
     if read_from_file:
         if isinstance(data, str):
-            return Configuration(json.load(open(data, 'rt')))
+            return Configuration(json.load(open(data, "rt")))
         else:
             return Configuration(json.load(data), lowercase_keys=lowercase_keys)
     else:
@@ -446,32 +514,46 @@ def config_from_json(data: Union[str, IO[str]], read_from_file: bool = False, *,
         return Configuration(json.loads(data), lowercase_keys=lowercase_keys)
 
 
-def config_from_ini(data: Union[str, IO[str]], read_from_file: bool = False, *,
-                    lowercase_keys: bool = False) -> Configuration:
+def config_from_ini(
+    data: Union[str, IO[str]],
+    read_from_file: bool = False,
+    *,
+    lowercase_keys: bool = False
+) -> Configuration:
     """
     Create a :class:`Configuration` instance from an INI file.
 
     :param data: path to an INI file or contents
-    :param read_from_file: whether to read from a file path or to interpret the :attr:`data` as the contents of the
-           INI file.
+    :param read_from_file: whether to read from a file path or to interpret
+           the :attr:`data` as the contents of the INI file.
     :param lowercase_keys: whether to convert every key to lower case.
     :return: a :class:`Configuration` instance
     """
     import configparser
+
     if read_from_file:
         if isinstance(data, str):
-            data = open(data, 'rt').read()
+            data = open(data, "rt").read()
         else:
             data = data.read()
     data = cast(str, data)
     cfg = configparser.RawConfigParser()
     cfg.read_string(data)
-    d = {section + "." + k: v for section, values in cfg.items() for k, v in values.items()}
+    d = {
+        section + "." + k: v
+        for section, values in cfg.items()
+        for k, v in values.items()
+    }
     return Configuration(d, lowercase_keys=lowercase_keys)
 
 
-def config_from_python(module: Union[str, ModuleType], prefix: str = '', separator: str = '_', *,
-                       lowercase_keys: bool = False) -> Configuration:
+def config_from_python(
+    module: Union[str, ModuleType],
+    prefix: str = "",
+    separator: str = "_",
+    *,
+    lowercase_keys: bool = False
+) -> Configuration:
     """
     Create a :class:`Configuration` instance from the objects in a Python module.
 
@@ -482,19 +564,23 @@ def config_from_python(module: Union[str, ModuleType], prefix: str = '', separat
     :return: a :class:`Configuration` instance
     """
     if isinstance(module, str):
-        if module.endswith('.py'):
+        if module.endswith(".py"):
             import importlib.util
+
             spec = importlib.util.spec_from_file_location(module, module)
             module = importlib.util.module_from_spec(spec)
             spec.loader = cast(InspectLoader, spec.loader)
             spec.loader.exec_module(module)
         else:
             import importlib
+
             module = importlib.import_module(module)
 
-    variables = [x for x in dir(module) if not x.startswith('__') and x.startswith(prefix)]
+    variables = [
+        x for x in dir(module) if not x.startswith("__") and x.startswith(prefix)
+    ]
     dict_ = {
-        k[len(prefix):].replace(separator, '.').strip('.'): getattr(module, k)
+        k[len(prefix) :].replace(separator, ".").strip("."): getattr(module, k)
         for k in variables
     }
     return Configuration(dict_, lowercase_keys=lowercase_keys)
@@ -511,20 +597,23 @@ def config_from_dict(data: dict, *, lowercase_keys: bool = False) -> Configurati
     return Configuration(data, lowercase_keys=lowercase_keys)
 
 
-def create_path_from_config(path: str, cfg: Configuration, remove_level: int = 1) -> Configuration:
+def create_path_from_config(
+    path: str, cfg: Configuration, remove_level: int = 1
+) -> Configuration:
     """
-    Auxiliary method to output a path configuration from a :class:`Configuration` instance.
+    Output a path configuration from a :class:`Configuration` instance.
 
     :param path: path to create the config files in
     :param cfg: :class:`Configuration` instance
     :param remove_level: how many levels to remove
     """
     import os.path
+
     assert os.path.isdir(path)
 
     d = cfg.as_dict()
     for k, v in d.items():
-        with open(os.path.join(path, k), 'wb') as f:
+        with open(os.path.join(path, k), "wb") as f:
             f.write(str(v).encode())
 
         cfg = config_from_path(path, remove_level=remove_level)
@@ -532,8 +621,13 @@ def create_path_from_config(path: str, cfg: Configuration, remove_level: int = 1
 
 
 if yaml is not None:  # pragma: no branch
-    def config_from_yaml(data: Union[str, IO[str]], read_from_file: bool = False, *,
-                         lowercase_keys: bool = False) -> Configuration:
+
+    def config_from_yaml(
+        data: Union[str, IO[str]],
+        read_from_file: bool = False,
+        *,
+        lowercase_keys: bool = False
+    ) -> Configuration:
         """
         Return a Configuration instance from YAML files.
 
@@ -543,17 +637,22 @@ if yaml is not None:  # pragma: no branch
         :return: a Configuration instance
         """
         if read_from_file and isinstance(data, str):
-            loaded = yaml.load(open(data, 'rt'), Loader=yaml.FullLoader)
+            loaded = yaml.load(open(data, "rt"), Loader=yaml.FullLoader)
         else:
             loaded = yaml.load(data, Loader=yaml.FullLoader)
         if not isinstance(loaded, dict):
-            raise ValueError('Data should be a dictionary')
+            raise ValueError("Data should be a dictionary")
         return Configuration(loaded, lowercase_keys=lowercase_keys)
 
 
 if toml is not None:  # pragma: no branch
-    def config_from_toml(data: Union[str, IO[str]], read_from_file: bool = False, *,
-                         lowercase_keys: bool = False) -> Configuration:
+
+    def config_from_toml(
+        data: Union[str, IO[str]],
+        read_from_file: bool = False,
+        *,
+        lowercase_keys: bool = False
+    ) -> Configuration:
         """
         Return a Configuration instance from TOML files.
 
@@ -564,7 +663,7 @@ if toml is not None:  # pragma: no branch
         """
         if read_from_file:
             if isinstance(data, str):
-                loaded = toml.load(open(data, 'rt'))
+                loaded = toml.load(open(data, "rt"))
             else:
                 loaded = toml.load(data)
         else:

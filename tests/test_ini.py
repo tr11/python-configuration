@@ -34,7 +34,7 @@ def test_load_ini_file():  # type: ignore
     with tempfile.NamedTemporaryFile() as f:
         f.file.write(INI.encode())
         f.file.flush()
-        cfg = config_from_ini(open(f.name, 'rt'), read_from_file=True)
+        cfg = config_from_ini(open(f.name, "rt"), read_from_file=True)
 
     assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
 
