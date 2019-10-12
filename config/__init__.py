@@ -374,7 +374,8 @@ def config(
     *configs: Iterable,
     prefix: str = "",
     remove_level: int = 1,
-    lowercase_keys: bool = False
+    lowercase_keys: bool = False,
+    ignore_missing_paths: bool = False
 ) -> ConfigurationSet:
     """
     Create a :class:`ConfigurationSet` instance from an iterable of configs.
@@ -383,6 +384,7 @@ def config(
     :param prefix: prefix to filter environment variables with
     :param remove_level: how many levels to remove from the resulting config
     :param lowercase_keys: whether to convert every key to lower case.
+    :param ignore_missing_paths: whether to ignore failures from missing files/folders.
     """
     instances = []
     for config_ in configs:
@@ -428,25 +430,45 @@ def config(
             params = config_[1:] if len(config_) > 2 else [config_[1], prefix]
             instances.append(config_from_python(*params, lowercase_keys=lowercase_keys))
         elif type_ == "json":
-            instances.append(
-                config_from_json(*config_[1:], lowercase_keys=lowercase_keys)
-            )
+            try:
+                instances.append(
+                    config_from_json(*config_[1:], lowercase_keys=lowercase_keys)
+                )
+            except FileNotFoundError:
+                if not ignore_missing_paths:
+                    raise
         elif yaml and type_ == "yaml":
-            instances.append(
-                config_from_yaml(*config_[1:], lowercase_keys=lowercase_keys)
-            )
+            try:
+                instances.append(
+                    config_from_yaml(*config_[1:], lowercase_keys=lowercase_keys)
+                )
+            except FileNotFoundError:
+                if not ignore_missing_paths:
+                    raise
         elif toml and type_ == "toml":
-            instances.append(
-                config_from_toml(*config_[1:], lowercase_keys=lowercase_keys)
-            )
+            try:
+                instances.append(
+                    config_from_toml(*config_[1:], lowercase_keys=lowercase_keys)
+                )
+            except FileNotFoundError:
+                if not ignore_missing_paths:
+                    raise
         elif type_ == "ini":
-            instances.append(
-                config_from_ini(*config_[1:], lowercase_keys=lowercase_keys)
-            )
+            try:
+                instances.append(
+                    config_from_ini(*config_[1:], lowercase_keys=lowercase_keys)
+                )
+            except FileNotFoundError:
+                if not ignore_missing_paths:
+                    raise
         elif type_ == "path":
-            instances.append(
-                config_from_path(*config_[1:], lowercase_keys=lowercase_keys)
-            )
+            try:
+                instances.append(
+                    config_from_path(*config_[1:], lowercase_keys=lowercase_keys)
+                )
+            except FileNotFoundError:
+                if not ignore_missing_paths:
+                    raise
         else:
             raise ValueError('Unknown configuration type "%s"' % type_)
 
@@ -485,6 +507,9 @@ def config_from_path(
     :return: a :class:`Configuration` instance
     """
     path = os.path.normpath(path)
+    if not os.path.exists(path) or not os.path.isdir(path):
+        raise FileNotFoundError()
+
     dotted_path_levels = len(path.split("/"))
     files_keys = (
         (

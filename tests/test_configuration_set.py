@@ -509,3 +509,35 @@ def test_alternate_set_loader_fails():  # type: ignore
 
     with raises(ValueError):
         assert config(("python",)) is Exception
+
+
+def test_allow_missing_paths():  # type: ignore
+    import os
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as folder:
+        with pytest.raises(FileNotFoundError):
+            config(("path", os.path.join(folder, "sub")))
+        with pytest.raises(FileNotFoundError):
+            config(os.path.join(folder, "file.json"))
+        with pytest.raises(FileNotFoundError):
+            config(os.path.join(folder, "file.ini"))
+        if yaml:
+            with pytest.raises(FileNotFoundError):
+                config(os.path.join(folder, "file.yaml"))
+        if toml:
+            with pytest.raises(FileNotFoundError):
+                config(os.path.join(folder, "file.toml"))
+
+        entries = [
+            "env",
+            os.path.join(folder, "file.json"),
+            os.path.join(folder, "file.ini"),
+            ("path", os.path.join(folder, "sub")),
+        ]
+        if yaml:
+            entries.append(os.path.join(folder, "file.yaml"))
+        if toml:
+            entries.append(os.path.join(folder, "file.toml"))
+
+        c = config(*entries, ignore_missing_paths=True)
