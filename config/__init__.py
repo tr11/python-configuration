@@ -14,6 +14,7 @@ from typing import (
     KeysView,
     List,
     Mapping,
+    Optional,
     Union,
     ValuesView,
     cast,
@@ -240,26 +241,39 @@ class Configuration:
         b = b if isinstance(b, bytes) else b.encode()
         return base64.b64decode(b, validate=True)
 
-    def keys(self) -> Union["Configuration", Any, KeysView[str]]:
+    def keys(
+        self, levels: Optional[int] = None
+    ) -> Union["Configuration", Any, KeysView[str]]:
         """Return a set-like object providing a view on the configuration keys."""
+        assert levels is None or levels > 0
         try:
-            return self["keys"]
+            return self["keys"]  # don't filter levels, existing attribute
         except KeyError:
-            return self.as_dict().keys()
+            return cast(
+                KeysView[str],
+                [".".join(x.split(".")[:levels]) for x in set(self.as_dict().keys())],
+            )
 
-    def values(self) -> Union["Configuration", Any, ValuesView[Any]]:
+    def values(
+        self, levels: Optional[int] = None
+    ) -> Union["Configuration", Any, ValuesView[Any]]:
         """Return a set-like object providing a view on the configuration values."""
+        assert levels is None or levels > 0
         try:
             return self["values"]
         except KeyError:
-            return self.as_dict().values()
+            return dict(self.items(levels=levels)).values()
 
-    def items(self) -> Union["Configuration", Any, ItemsView[str, Any]]:
+    def items(
+        self, levels: Optional[int] = None
+    ) -> Union["Configuration", Any, ItemsView[str, Any]]:
         """Return a set-like object providing a view on the configuration items."""
+        assert levels is None or levels > 0
         try:
             return self["items"]
         except KeyError:
-            return self.as_dict().items()
+            keys = cast(KeysView[str], self.keys(levels=levels))
+            return {k: self._get_subset(k) for k in keys}.items()
 
     def __repr__(self) -> str:  # noqa: D105
         return "<Configuration: %r>" % self._config

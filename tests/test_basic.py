@@ -1,6 +1,7 @@
 from config import config_from_dict
 from pytest import raises
 import pytest
+import json
 
 
 DICT = {
@@ -104,3 +105,174 @@ def test_type_conversions():  # type: ignore
 def test_repr():  # type: ignore
     cfg = config_from_dict(DICT, lowercase_keys=True)
     assert str(dict((k.lower(), v) for k, v in DICT.items())) in repr(cfg)
+
+
+def test_dict_methods_keys():  # type: ignore
+    cfg = config_from_dict(DICT, lowercase_keys=True)
+
+    assert set(cfg.keys()) == {
+        "a1.b2.c3",
+        "a2.b1.c3",
+        "a2.b2.c2",
+        "a2.b2.c3",
+        "a1.b2.c2",
+        "a2.b1.c2",
+        "a1.b2.c1",
+        "a1.b1.c3",
+        "a2.b1.c1",
+        "a1.b1.c1",
+        "a1.b1.c2",
+        "a2.b2.c1",
+    }
+    assert set(cfg.keys(levels=1)) == {"a1", "a2"}
+    assert set(cfg.keys(levels=2)) == {"a1.b2", "a2.b2", "a2.b1", "a1.b1"}
+    assert set(cfg.keys(levels=3)) == {
+        "a1.b2.c3",
+        "a2.b1.c3",
+        "a2.b2.c2",
+        "a2.b2.c3",
+        "a1.b2.c2",
+        "a2.b1.c2",
+        "a1.b2.c1",
+        "a1.b1.c3",
+        "a2.b1.c1",
+        "a1.b1.c1",
+        "a1.b1.c2",
+        "a2.b2.c1",
+    }
+    assert set(cfg.keys(levels=100)) == {
+        "a1.b2.c3",
+        "a2.b1.c3",
+        "a2.b2.c2",
+        "a2.b2.c3",
+        "a1.b2.c2",
+        "a2.b1.c2",
+        "a1.b2.c1",
+        "a1.b1.c3",
+        "a2.b1.c1",
+        "a1.b1.c1",
+        "a1.b1.c2",
+        "a2.b2.c1",
+    }
+    with pytest.raises(AssertionError):
+        set(cfg.keys(levels=0))
+
+
+def test_dict_methods_items():  # type: ignore
+    cfg = config_from_dict(DICT, lowercase_keys=True)
+
+    assert set(cfg.items()) == {
+        ("a1.b1.c3", 3),
+        ("a2.b1.c3", None),
+        ("a1.b2.c1", "a"),
+        ("a2.b2.c2", "YWJjZGVmZ2g="),
+        ("a2.b1.c1", "f"),
+        ("a1.b1.c1", 1),
+        ("a2.b2.c3", "abcdefgh"),
+        ("a1.b2.c2", True),
+        ("a1.b2.c3", 1.1),
+        ("a2.b2.c1", 10),
+        ("a1.b1.c2", 2),
+        ("a2.b1.c2", False),
+    }
+    assert dict(cfg.items(levels=1)) == {
+        "a1": {
+            "b1.c1": 1,
+            "b1.c2": 2,
+            "b1.c3": 3,
+            "b2.c1": "a",
+            "b2.c2": True,
+            "b2.c3": 1.1,
+        },
+        "a2": {
+            "b1.c1": "f",
+            "b1.c2": False,
+            "b1.c3": None,
+            "b2.c1": 10,
+            "b2.c2": "YWJjZGVmZ2g=",
+            "b2.c3": "abcdefgh",
+        },
+    }
+    assert dict(cfg.items(levels=2)) == {
+        "a1.b1": {"c1": 1, "c2": 2, "c3": 3},
+        "a1.b2": {"c1": "a", "c2": True, "c3": 1.1},
+        "a2.b1": {"c1": "f", "c2": False, "c3": None},
+        "a2.b2": {"c1": 10, "c2": "YWJjZGVmZ2g=", "c3": "abcdefgh"},
+    }
+    assert set(cfg.items(levels=3)) == {
+        ("a1.b1.c3", 3),
+        ("a2.b1.c3", None),
+        ("a1.b2.c1", "a"),
+        ("a2.b2.c2", "YWJjZGVmZ2g="),
+        ("a2.b1.c1", "f"),
+        ("a1.b1.c1", 1),
+        ("a2.b2.c3", "abcdefgh"),
+        ("a1.b2.c2", True),
+        ("a1.b2.c3", 1.1),
+        ("a2.b2.c1", 10),
+        ("a1.b1.c2", 2),
+        ("a2.b1.c2", False),
+    }
+    assert set(cfg.items(levels=100)) == {
+        ("a1.b1.c3", 3),
+        ("a2.b1.c3", None),
+        ("a1.b2.c1", "a"),
+        ("a2.b2.c2", "YWJjZGVmZ2g="),
+        ("a2.b1.c1", "f"),
+        ("a1.b1.c1", 1),
+        ("a2.b2.c3", "abcdefgh"),
+        ("a1.b2.c2", True),
+        ("a1.b2.c3", 1.1),
+        ("a2.b2.c1", 10),
+        ("a1.b1.c2", 2),
+        ("a2.b1.c2", False),
+    }
+    with pytest.raises(AssertionError):
+        set(cfg.items(levels=0))
+
+
+def test_dict_methods_values():  # type: ignore
+    cfg = config_from_dict(DICT, lowercase_keys=True)
+
+    assert set(cfg.values()) == {
+        False,
+        True,
+        2,
+        3,
+        "f",
+        1.1,
+        10,
+        None,
+        "abcdefgh",
+        "a",
+        "YWJjZGVmZ2g=",
+    }
+
+    assert sorted(
+        json.dumps(x, sort_keys=True) for x in cfg.values(levels=1)
+    ) == sorted(
+        [
+            json.dumps(
+                {
+                    "b1.c1": "f",
+                    "b1.c2": False,
+                    "b1.c3": None,
+                    "b2.c1": 10,
+                    "b2.c2": "YWJjZGVmZ2g=",
+                    "b2.c3": "abcdefgh",
+                },
+                sort_keys=True,
+            ),
+            json.dumps(
+                {
+                    "b1.c1": 1,
+                    "b1.c2": 2,
+                    "b1.c3": 3,
+                    "b2.c1": "a",
+                    "b2.c2": True,
+                    "b2.c3": 1.1,
+                },
+                sort_keys=True,
+            ),
+        ]
+    )
