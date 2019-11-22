@@ -13,6 +13,7 @@ keywords = ['configuration', 'settings', 'json', 'yaml', 'toml', 'ini']
 packages = [
     { include = "config" },
 ]
+include = ["config/py.typed"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
