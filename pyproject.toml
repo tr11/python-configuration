@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-configuration"
-version = "0.4.0"
+version = "0.5.0"
 description = "A library to load configuration parameters from multiple sources and formats"
 authors = [
     "Tiago Requeijo <tiago.requeijo.dev@gmail.com>"
@@ -18,7 +18,9 @@ include = ["config/py.typed"]
 [tool.poetry.dependencies]
 python = "^3.6"
 pyyaml = {version = "^5.1", optional = true}
-toml = {version = "^0.10.0",optional = true}
+toml = {version = "^0.10.0", optional = true}
+azure-keyvault = {version = "^4.0.0", optional = true}
+azure-identity = {version = "^1.1.0", optional = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.0"
@@ -40,7 +42,8 @@ pytest-black = "^0.3.7"
 [tool.poetry.extras]
 yaml = ["pyyaml"]
 toml = ["toml"]
+azure = ["azure"]
 
 [build-system]
-requires = ["poetry>=1.0.0b1"]
+requires = ["poetry>=1.0.0"]
 build-backend = "poetry.masonry.api"

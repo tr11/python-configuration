@@ -21,7 +21,7 @@ DICT = {
 
 
 def test_load_from_module():  # type: ignore
-    import python_config
+    from . import python_config
 
     cfg = config_from_python(python_config, prefix="CONFIG", lowercase_keys=True)
     assert cfg["a1.b2"].as_dict() == {"c1": "a", "c2": True, "c3": 1.1}
@@ -43,7 +43,7 @@ def test_load_from_module_string():  # type: ignore
 
 
 def test_equality():  # type: ignore
-    import python_config
+    from . import python_config
 
     cfg = config_from_python(python_config, prefix="CONFIG", lowercase_keys=True)
     assert cfg == config_from_dict(DICT, lowercase_keys=True)
