@@ -17,10 +17,10 @@ FakeKeySecret = namedtuple("FakeKeySecret", ["key", "value"])
 
 if azure:
 
-    @dataclass
     class Secret:
-        name: str
-        value: str
+        def __init__(self, name: str, value: str):
+            self.name = name
+            self.value = value
 
     class FakeSecretClient:
         vault_url = "vault URL"

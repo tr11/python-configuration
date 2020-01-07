@@ -1,7 +1,6 @@
 """Configuration from Azure KeyVaults."""
 
 import time
-from dataclasses import dataclass
 from typing import Any, Dict, ItemsView, KeysView, Optional, Union, ValuesView, cast
 
 from azure.core.exceptions import ResourceNotFoundError
@@ -11,12 +10,12 @@ from azure.keyvault.secrets import SecretClient
 from .. import Configuration
 
 
-@dataclass
 class Cache:
     """Cache class."""
 
-    value: str
-    ts: float
+    def __init__(self, value: str, ts: float):  # noqa: D107
+        self.value = value
+        self.ts = ts
 
 
 class AzureKeyVaultConfiguration(Configuration):
