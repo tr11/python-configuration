@@ -28,10 +28,6 @@ try:
     import toml
 except ImportError:  # pragma: no cover
     toml = None  # type: ignore
-try:
-    import azure
-except ImportError:  # pragma: no cover
-    azure = None
 
 
 TRUTH_TEXT = frozenset(("t", "true", "y", "yes", "on", "1"))

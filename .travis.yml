@@ -8,7 +8,7 @@ before_install:
 - pip install poetry
 
 install:
-- poetry install -E yaml -E toml
+- poetry install -E yaml -E toml -E azure
 
 script:
 - poetry run pytest
