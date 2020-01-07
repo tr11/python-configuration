@@ -38,6 +38,7 @@ sphinx = "^2.1"
 sphinx-autodoc-typehints = "^1.6"
 pydocstyle = "^4.0"
 pytest-black = "^0.3.7"
+pytest-mock = "^2.0.0"
 
 [tool.poetry.extras]
 yaml = ["pyyaml"]

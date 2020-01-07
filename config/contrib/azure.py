@@ -2,20 +2,20 @@
 
 import time
 from dataclasses import dataclass
-from typing import Any, Mapping, Union
+from typing import Any, Dict, ItemsView, KeysView, Optional, Union, ValuesView, cast
 
 from azure.core.exceptions import ResourceNotFoundError
 from azure.identity import ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
 
-from . import Configuration
+from .. import Configuration
 
 
 @dataclass
 class Cache:
     """Cache class."""
 
-    value: Mapping[str, Any]
+    value: str
     ts: float
 
 
@@ -25,6 +25,12 @@ class AzureKeyVaultConfiguration(Configuration):
 
     The Azure Configuration class takes Azure KeyVault credentials and
     behaves like a drop-in replacement for the regular Configuration class.
+
+    The following limitations apply to the Azure KeyVault Configurations:
+        - keys must conform to the pattern '^[0-9a-zA-Z-]+$'. In particular,
+          there is no support for levels and nested values as there are no
+          natural key separators for the pattern above.
+        - values must be strings.
     """
 
     def __init__(
@@ -54,9 +60,9 @@ class AzureKeyVaultConfiguration(Configuration):
         )
         self._kv_client = SecretClient(vault_url=vault_url, credential=credentials)
         self._cache_expiration = cache_expiration
-        self._cache: Mapping[str, Cache] = {}
+        self._cache: Dict[str, Cache] = {}
 
-    def _get_secret(self, key: str) -> Mapping[str, Any]:
+    def _get_secret(self, key: str) -> Optional[str]:
         key = key.replace("_", "-")  # Normalize for Azure KeyVault
         now = time.time()
         from_cache = self._cache.get(key)
@@ -65,7 +71,7 @@ class AzureKeyVaultConfiguration(Configuration):
         try:
             secret = self._kv_client.get_secret(key)
             self._cache[key] = Cache(value=secret.value, ts=now)
-            return secret.value
+            return cast(str, secret.value)
         except ResourceNotFoundError:
             if key in self._cache:
                 del self._cache[key]
@@ -98,3 +104,42 @@ class AzureKeyVaultConfiguration(Configuration):
             return default
         else:
             return secret
+
+    def keys(
+        self, levels: Optional[int] = None
+    ) -> Union["Configuration", Any, KeysView[str]]:
+        """Return a set-like object providing a view on the configuration keys."""
+        assert not levels  # Azure Key Vaults don't support separators
+        return cast(
+            KeysView[str],
+            (k.name for k in self._kv_client.list_properties_of_secrets()),
+        )
+
+    def values(
+        self, levels: Optional[int] = None
+    ) -> Union["Configuration", Any, ValuesView[Any]]:
+        """Return a set-like object providing a view on the configuration values."""
+        assert not levels  # Azure Key Vaults don't support separators
+        return cast(
+            ValuesView[str],
+            (
+                self._get_secret(k.name)
+                for k in self._kv_client.list_properties_of_secrets()
+            ),
+        )
+
+    def items(
+        self, levels: Optional[int] = None
+    ) -> Union["Configuration", Any, ItemsView[str, Any]]:
+        """Return a set-like object providing a view on the configuration items."""
+        assert not levels  # Azure Key Vaults don't support separators
+        return cast(
+            ItemsView[str, Any],
+            (
+                (k.name, self._get_secret(k.name))
+                for k in self._kv_client.list_properties_of_secrets()
+            ),
+        )
+
+    def __repr__(self) -> str:  # noqa: D105
+        return "<AzureKeyVaultConfiguration: %r>" % self._kv_client.vault_url
