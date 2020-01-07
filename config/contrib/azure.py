@@ -43,11 +43,11 @@ class AzureKeyVaultConfiguration(Configuration):
         """
         Constructor.
 
-        :param az_client_id:
-        :param az_client_secret:
-        :param az_tenant_id:
-        :param az_vault_name:
-        :param cache_expiration:
+        :param az_client_id: Client ID
+        :param az_client_secret: Client Secret
+        :param az_tenant_id: Tenant ID
+        :param az_vault_name: Vault Name
+        :param cache_expiration: Cache expiration (in seconds)
         """
         credentials = ClientSecretCredential(
             client_id=az_client_id,

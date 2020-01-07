@@ -214,6 +214,12 @@ define the elements sets its datatype. For example, if in the example above
 JSON file specifies it as anything else besides a mapping, then the JSON value will be
 dropped automatically. 
 
+## Extras
+The `config.contrib` package contains extra implementations of the `Configuration` class
+used for special cases. Currently the following are implemented:
+* `AzureKeyVaultConfiguration` in `config.contrib.azure`, which takes Azure Key Vault
+  credentials into a `Configuration`-compatible instance. 
+
 ## Developing
 
 To develop this library, download the source code and install a local version.
