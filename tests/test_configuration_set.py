@@ -292,7 +292,9 @@ def test_repr_and_str():  # type: ignore
         str(cfg)
         == "{'a1.b1.c1': '1', 'a1.b1.c2': '2', 'a1.b1.c3': '3', 'a1.b2.c1': 'a', 'a1.b2.c2': 'True', "
         "'a1.b2.c3': '1.1', 'a2.b1.c1': 'f', 'a2.b1.c2': False, 'a2.b1.c3': None, 'a2.b2.c1': 10, "
-        "'a2.b2.c2': 'YWJjZGVmZ2g=', 'a2.b2.c3': 'abcdefgh', 'sys.version': 50856432}"
+        "'a2.b2.c2': 'YWJjZGVmZ2g=', 'a2.b2.c3': 'abcdefgh', 'sys.version': "
+        + str(sys.hexversion)
+        + "}"
     )
 
 
