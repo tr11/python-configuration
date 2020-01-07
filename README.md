@@ -218,7 +218,11 @@ dropped automatically.
 The `config.contrib` package contains extra implementations of the `Configuration` class
 used for special cases. Currently the following are implemented:
 * `AzureKeyVaultConfiguration` in `config.contrib.azure`, which takes Azure Key Vault
-  credentials into a `Configuration`-compatible instance. 
+  credentials into a `Configuration`-compatible instance. To install the needed dependencies
+  execute
+  ```shell
+  pip install python-configuration[azure]
+  ```
 
 ## Developing
 
