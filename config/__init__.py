@@ -32,6 +32,7 @@ except ImportError:  # pragma: no cover
 
 TRUTH_TEXT = frozenset(("t", "true", "y", "yes", "on", "1"))
 FALSE_TEXT = frozenset(("f", "false", "n", "no", "off", "0", ""))
+PROTECTED_KEYS = frozenset(("secret", "password", "passwd", "pwd"))
 
 
 def as_bool(s: Any) -> bool:
@@ -50,6 +51,34 @@ def as_bool(s: Any) -> bool:
     if s not in TRUTH_TEXT and s not in FALSE_TEXT:
         raise ValueError("Expected a valid True or False expression.")
     return s in TRUTH_TEXT
+
+
+def clean(key: str, value: Any, mask: str = "******") -> Any:
+    """
+    Mask a value if needed.
+
+    :param key: key
+    :param value: value to hide
+    :param mask: string to use in case value should be hidden
+    :return: clear value or mask
+    """
+    key = key.lower()
+    # check for protected keys
+    for pk in PROTECTED_KEYS:
+        if pk in key:
+            return mask
+    # urls
+    if isinstance(value, str) and "://" in value:
+        from urllib.parse import urlparse
+
+        url = urlparse(value)
+        if url.password is None:
+            return value
+        else:
+            return url._replace(
+                netloc="{}:{}@{}".format(url.username, mask, url.hostname)
+            ).geturl()
+    return value
 
 
 class Configuration:
@@ -276,7 +305,10 @@ class Configuration:
             return {k: self._get_subset(k) for k in keys}.items()
 
     def __repr__(self) -> str:  # noqa: D105
-        return "<Configuration: %r>" % self._config
+        return "<Configuration: %s>" % hex(id(self))
+
+    def __str__(self) -> str:  # noqa: D105
+        return str({k: clean(k, v) for k, v in sorted(self.items())})
 
 
 class ConfigurationSet(Configuration):
@@ -366,8 +398,29 @@ class ConfigurationSet(Configuration):
         """
         return dict(self[item])
 
+    def keys(
+        self, levels: Optional[int] = None
+    ) -> Union["Configuration", Any, KeysView[str]]:
+        """Return a set-like object providing a view on the configuration keys."""
+        return Configuration(self.as_dict()).keys(levels)
+
+    def values(
+        self, levels: Optional[int] = None
+    ) -> Union["Configuration", Any, ValuesView[Any]]:
+        """Return a set-like object providing a view on the configuration values."""
+        return Configuration(self.as_dict()).values(levels)
+
+    def items(
+        self, levels: Optional[int] = None
+    ) -> Union["Configuration", Any, ItemsView[str, Any]]:
+        """Return a set-like object providing a view on the configuration items."""
+        return Configuration(self.as_dict()).items(levels)
+
     def __repr__(self) -> str:  # noqa: D105
-        return "<ConfigurationSet %r>" % self.as_dict()
+        return "<ConfigurationSet: %s>" % hex(id(self))
+
+    def __str__(self) -> str:  # noqa: D105
+        return str({k: clean(k, v) for k, v in sorted(self.as_dict().items())})
 
 
 def config(

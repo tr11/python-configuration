@@ -25,6 +25,14 @@ NESTED = {
     "a1": {"b1": {"c1": 1, "C2": 2, "c3": 3}, "b2": {"c1": "a", "c2": True, "c3": 1.1}}
 }
 
+PROTECTED = {
+    "important_password": "abc",
+    "very_secret": "SeCReT",
+    "clear_text": "abc",
+    "url": "protocol://user:pass@hostname:port/path",
+    "url2": "protocol://user@hostname:port/path",
+}
+
 
 def test_load_dict():  # type: ignore
     cfg = config_from_dict(DICT, lowercase_keys=True)
@@ -102,9 +110,27 @@ def test_type_conversions():  # type: ignore
     assert cfg["a2.b1"].get_bool("c1") is False  # 'f'
 
 
-def test_repr():  # type: ignore
+def test_repr_and_str():  # type: ignore
     cfg = config_from_dict(DICT, lowercase_keys=True)
-    assert str(dict((k.lower(), v) for k, v in DICT.items())) in repr(cfg)
+
+    # repr
+    assert hex(id(cfg)) in repr(cfg)
+
+    # str
+    assert (
+        str(cfg)
+        == "{'a1.b1.c1': 1, 'a1.b1.c2': 2, 'a1.b1.c3': 3, 'a1.b2.c1': 'a', 'a1.b2.c2': True,"
+        " 'a1.b2.c3': 1.1, 'a2.b1.c1': 'f', 'a2.b1.c2': False, 'a2.b1.c3': None,"
+        " 'a2.b2.c1': 10, 'a2.b2.c2': 'YWJjZGVmZ2g=', 'a2.b2.c3': 'abcdefgh'}"
+    )
+
+    # protected
+    cfg = config_from_dict(PROTECTED, lowercase_keys=True)
+    assert (
+        str(cfg) == "{'clear_text': 'abc', 'important_password': '******', "
+        "'url': 'protocol://user:******@hostname/path', 'url2': 'protocol://user@hostname:port/path', "
+        "'very_secret': '******'}"
+    )
 
 
 def test_dict_methods_keys():  # type: ignore

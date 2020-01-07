@@ -108,7 +108,7 @@ class AzureKeyVaultConfiguration(Configuration):
         self, levels: Optional[int] = None
     ) -> Union["Configuration", Any, KeysView[str]]:
         """Return a set-like object providing a view on the configuration keys."""
-        assert not levels  # Azure Key Vaults don't support separators
+        assert levels is None or levels > 0
         return cast(
             KeysView[str],
             (k.name for k in self._kv_client.list_properties_of_secrets()),
@@ -118,7 +118,7 @@ class AzureKeyVaultConfiguration(Configuration):
         self, levels: Optional[int] = None
     ) -> Union["Configuration", Any, ValuesView[Any]]:
         """Return a set-like object providing a view on the configuration values."""
-        assert not levels  # Azure Key Vaults don't support separators
+        assert levels is None or levels > 0
         return cast(
             ValuesView[str],
             (
@@ -131,7 +131,7 @@ class AzureKeyVaultConfiguration(Configuration):
         self, levels: Optional[int] = None
     ) -> Union["Configuration", Any, ItemsView[str, Any]]:
         """Return a set-like object providing a view on the configuration items."""
-        assert not levels  # Azure Key Vaults don't support separators
+        assert levels is None or levels > 0
         return cast(
             ItemsView[str, Any],
             (
@@ -142,3 +142,6 @@ class AzureKeyVaultConfiguration(Configuration):
 
     def __repr__(self) -> str:  # noqa: D105
         return "<AzureKeyVaultConfiguration: %r>" % self._kv_client.vault_url
+
+    def __str__(self) -> str:  # noqa: D105
+        return super().__str__()

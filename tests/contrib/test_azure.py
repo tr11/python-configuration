@@ -11,7 +11,12 @@ except ImportError:  # pragma: no cover
     azure = None
 
 
-DICT = {"foo": "foo_val", "bar": "bar_val", "with-underscore": "works"}
+DICT = {
+    "foo": "foo_val",
+    "bar": "bar_val",
+    "with-underscore": "works",
+    "password": "some passwd",
+}
 
 FakeKeySecret = namedtuple("FakeKeySecret", ["key", "value"])
 
@@ -142,3 +147,19 @@ def test_repr():  # type: ignore
     cfg._kv_client = FakeSecretClient(d)
 
     assert repr(cfg) == "<AzureKeyVaultConfiguration: 'vault URL'>"
+
+
+@pytest.mark.skipif("azure is None")
+def test_str():  # type: ignore
+    cfg = AzureKeyVaultConfiguration(
+        "fake_id", "fake_secret", "fake_tenant", "fake_vault", cache_expiration=0
+    )
+    d = DICT.copy()
+    cfg._kv_client = FakeSecretClient(d)
+
+    # str
+    assert (
+        str(cfg)
+        == "{'bar': 'bar_val', 'foo': 'foo_val', 'password': '******', 'with-underscore': 'works'}"
+    )
+    assert cfg["password"] == "some passwd"

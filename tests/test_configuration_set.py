@@ -271,7 +271,7 @@ def test_get_dict_different_types():  # type: ignore
     assert cfg.z1 == 100
 
 
-def test_repr():  # type: ignore
+def test_repr_and_str():  # type: ignore
     import sys
 
     path = os.path.join(os.path.dirname(__file__), "python_config.py")
@@ -286,7 +286,14 @@ def test_repr():  # type: ignore
     joined_dicts.update(DICT2_1)
     joined_dicts.update(DICT2_2)
     joined_dicts["sys.version"] = sys.hexversion
-    assert str(dict((k.lower(), v) for k, v in joined_dicts.items())) in repr(cfg)
+    assert hex(id(cfg)) in repr(cfg)
+
+    assert (
+        str(cfg)
+        == "{'a1.b1.c1': '1', 'a1.b1.c2': '2', 'a1.b1.c3': '3', 'a1.b2.c1': 'a', 'a1.b2.c2': 'True', "
+        "'a1.b2.c3': '1.1', 'a2.b1.c1': 'f', 'a2.b1.c2': False, 'a2.b1.c3': None, 'a2.b2.c1': 10, "
+        "'a2.b2.c2': 'YWJjZGVmZ2g=', 'a2.b2.c3': 'abcdefgh', 'sys.version': 50856432}"
+    )
 
 
 def test_alternate_set_loader():  # type: ignore
@@ -541,3 +548,53 @@ def test_allow_missing_paths():  # type: ignore
             entries.append(os.path.join(folder, "file.toml"))
 
         c = config(*entries, ignore_missing_paths=True)
+
+
+def test_dict_methods_items():  # type: ignore
+    cfg = ConfigurationSet(
+        config_from_dict(DICT2_1, lowercase_keys=True),
+        config_from_dict(DICT2_2, lowercase_keys=True),
+        config_from_env(prefix=PREFIX, lowercase_keys=True),
+    )
+
+    assert dict(cfg.items()) == dict(
+        [
+            ("a2.b2.c2", "YWJjZGVmZ2g="),
+            ("a1.b2.c2", "True"),
+            ("a1.b2.c1", "a"),
+            ("a1.b1.c2", "2"),
+            ("a2.b2.c3", "abcdefgh"),
+            ("a2.b1.c1", "f"),
+            ("a1.b1.c3", "3"),
+            ("a2.b1.c2", False),
+            ("a2.b1.c3", None),
+            ("a1.b1.c1", "1"),
+            ("a2.b2.c1", 10),
+            ("a1.b2.c3", "1.1"),
+        ]
+    )
+
+
+def test_dict_methods_keys_values():  # type: ignore
+    cfg = ConfigurationSet(
+        config_from_dict(DICT2_1, lowercase_keys=True),
+        config_from_dict(DICT2_2, lowercase_keys=True),
+        config_from_env(prefix=PREFIX, lowercase_keys=True),
+    )
+
+    assert sorted(cfg.keys()) == [
+        "a1.b1.c1",
+        "a1.b1.c2",
+        "a1.b1.c3",
+        "a1.b2.c1",
+        "a1.b2.c2",
+        "a1.b2.c3",
+        "a2.b1.c1",
+        "a2.b1.c2",
+        "a2.b1.c3",
+        "a2.b2.c1",
+        "a2.b2.c2",
+        "a2.b2.c3",
+    ]
+
+    assert dict(zip(cfg.keys(), cfg.values())) == cfg.as_dict()
