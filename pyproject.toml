@@ -43,7 +43,20 @@ pytest-mock = "^2.0.0"
 [tool.poetry.extras]
 yaml = ["pyyaml"]
 toml = ["toml"]
-azure = ["azure"]
+azure = ["azure-keyvault", "azure-identity"]
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+isolated_build = true
+envlist = py36, py37, py38
+
+[testenv]
+whitelist_externals = poetry
+commands =
+    poetry install -v -E toml -E yaml -E azure
+    poetry run pytest
+"""
 
 [build-system]
 requires = ["poetry>=1.0.0"]
