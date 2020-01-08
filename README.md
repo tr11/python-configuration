@@ -219,6 +219,8 @@ The `config.contrib` package contains extra implementations of the `Configuratio
 used for special cases. Currently the following are implemented:
 * `AzureKeyVaultConfiguration` in `config.contrib.azure`, which takes Azure Key Vault
   credentials into a `Configuration`-compatible instance. 
+* `AWSSecretsManagerConfiguration` in `config.contrib.aws`, which takes AWS Secrets Manager
+  credentials into a `Configuration`-compatible instance.
 
 ## Developing
 

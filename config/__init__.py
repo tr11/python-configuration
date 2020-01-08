@@ -280,7 +280,12 @@ class Configuration:
         except KeyError:
             return cast(
                 KeysView[str],
-                [".".join(x.split(".")[:levels]) for x in set(self.as_dict().keys())],
+                list(
+                    {
+                        ".".join(x.split(".")[:levels])
+                        for x in set(self.as_dict().keys())
+                    }
+                ),
             )
 
     def values(

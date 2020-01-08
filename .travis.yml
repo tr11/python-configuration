@@ -9,7 +9,7 @@ before_install:
 - pip install poetry
 
 install:
-- poetry install -E yaml -E toml -E azure
+- poetry install -E yaml -E toml -E azure -E aws
 
 script:
 - poetry run pytest

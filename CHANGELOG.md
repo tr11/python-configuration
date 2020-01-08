@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file.
 ## [0.5.0] - 2020-01-07
 ### Added
 - Support for Azure Key Vault credentials (in `config.contrib`)
+- Support for AWS Secrets Manager credentials (in `config.contrib`)
 - Tox support
 ### Changed
 - Changed the `__repr__` and `__str__` methods so possibly sensitive values are not printed by default.
