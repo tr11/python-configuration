@@ -21,6 +21,8 @@ hierarchically.  Current format types are:
 and optionally
 * YAML files
 * TOML files
+* Azure Key Vault credentials
+* AWS Secrets Manager credentials
 
 ## Installing
 
