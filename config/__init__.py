@@ -11,10 +11,12 @@ from typing import (
     IO,
     ItemsView,
     Iterable,
+    Iterator,
     KeysView,
     List,
     Mapping,
     Optional,
+    Tuple,
     Union,
     ValuesView,
     cast,
@@ -308,6 +310,79 @@ class Configuration:
         except KeyError:
             keys = cast(KeysView[str], self.keys(levels=levels))
             return {k: self._get_subset(k) for k in keys}.items()
+
+    def __iter__(self) -> Iterator[Tuple[str, Any]]:  # noqa: D105
+        return iter(self.keys())  # type: ignore
+
+    def __reversed__(self) -> Iterator[Tuple[str, Any]]:  # noqa: D105
+        return reversed(self.keys())  # type: ignore
+
+    def __len__(self) -> int:  # noqa: D105
+        return len(self._config)
+
+    def __setitem__(self, key: str, value: Any) -> None:  # noqa: D105
+        self.update({key: value})
+
+    def __delitem__(self, prefix: str) -> None:  # noqa: D105
+        """
+        Filter a dictionary and delete the items that are prefixed by :attr:`prefix`.
+
+        :param prefix: prefix to filter on to delete keys
+        """
+        remove = []
+        for k in self._config:
+            kl = k.lower() if self._lowercase else k
+            if kl == prefix or kl.startswith(prefix + "."):
+                remove.append(k)
+        if not remove:
+            raise KeyError("No key with prefix '%s' found." % prefix)
+        for k in remove:
+            del self._config[k]
+
+    def __contains__(self, prefix: str) -> bool:  # noqa: D105
+        try:
+            self[prefix]
+            return True
+        except KeyError:
+            return False
+
+    def clear(self) -> None:
+        """Remove all items."""
+        self._config.clear()
+
+    def copy(self) -> "Configuration":
+        """Return shallow copy."""
+        return Configuration(self._config)
+
+    def pop(self, prefix: str, value: Any = None) -> Any:
+        """
+        Remove keys with the specified prefix and return the corresponding value.
+
+        If the prefix is not found a KeyError is raised.
+        """
+        try:
+            value = self[prefix]
+            del self[prefix]
+        except KeyError:
+            if value is None:
+                raise
+        return value
+
+    def setdefault(self, key: str, default: Any = None) -> Any:
+        """
+        Insert key with a value of default if key is not in the Configuration.
+
+        Return the value for key if key is in the Configuration, else default.
+        """
+        try:
+            return self[key]
+        except KeyError:
+            self[key] = default
+        return self[key]
+
+    def update(self, other: Mapping[str, Any]) -> None:
+        """Update the COnfiguration with another Configuration object or Mapping."""
+        self._config.update(self._flatten_dict(other))
 
     def __repr__(self) -> str:  # noqa: D105
         return "<Configuration: %s>" % hex(id(self))
