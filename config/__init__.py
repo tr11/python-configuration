@@ -381,7 +381,7 @@ class Configuration:
         return self[key]
 
     def update(self, other: Mapping[str, Any]) -> None:
-        """Update the COnfiguration with another Configuration object or Mapping."""
+        """Update the Configuration with another Configuration object or Mapping."""
         self._config.update(self._flatten_dict(other))
 
     def __repr__(self) -> str:  # noqa: D105
@@ -416,6 +416,7 @@ class ConfigurationSet(Configuration):
             raise ValueError(
                 "configs should be a non-empty iterable of Configuration objects"
             )
+        self._writable = False
 
     def _from_configs(self, attr: str, *args: Any, **kwargs: dict) -> Any:
         last_err = Exception()
@@ -443,6 +444,17 @@ class ConfigurationSet(Configuration):
             return Configuration(result)
         else:
             return values[0]
+
+    def _writable_config(self) -> Configuration:
+        if not self._writable:
+            lowercase = bool(self._configs and self._configs[0]._lowercase)
+            self._configs.insert(0, Configuration({}, lowercase_keys=lowercase))
+            self._writable = True
+        return self._configs[0]
+
+    @property
+    def _config(self) -> Dict[str, Any]:  # type: ignore
+        return self.as_dict()
 
     def __getitem__(self, item: str) -> Union[Configuration, Any]:  # noqa: D105
         return self._from_configs("__getitem__", item)
@@ -495,6 +507,38 @@ class ConfigurationSet(Configuration):
     ) -> Union["Configuration", Any, ItemsView[str, Any]]:
         """Return a set-like object providing a view on the configuration items."""
         return Configuration(self.as_dict()).items(levels)
+
+    def __setitem__(self, key: str, value: Any) -> None:  # noqa: D105
+        cfg = self._writable_config()
+        cfg[key] = value
+
+    def __delitem__(self, prefix: str) -> None:  # noqa: D105
+        removed = False
+        for cfg in self._configs:
+            try:
+                del cfg[prefix]
+                removed = True
+            except KeyError:
+                continue
+        if not removed:
+            raise KeyError()
+
+    def __contains__(self, prefix: str) -> bool:  # noqa: D105
+        return any(prefix in cfg for cfg in self._configs)
+
+    def clear(self) -> None:
+        """Remove all items."""
+        for cfg in self._configs:
+            cfg.clear()
+
+    def copy(self) -> "Configuration":
+        """Return shallow copy."""
+        return ConfigurationSet(*self._configs)
+
+    def update(self, other: Mapping[str, Any]) -> None:
+        """Update the ConfigurationSet with another Configuration object or Mapping."""
+        cfg = self._writable_config()
+        cfg.update(other)
 
     def __repr__(self) -> str:  # noqa: D105
         return "<ConfigurationSet: %s>" % hex(id(self))
