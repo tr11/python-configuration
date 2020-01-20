@@ -319,6 +319,15 @@ class Configuration:
         """Update the Configuration with another Configuration object or Mapping."""
         self._config.update(self._flatten_dict(other))
 
+    def reload(self) -> None:  # pragma: no cover
+        """
+        Reload the configuration.
+
+        This method is not implemented for simple Configuration objects and is
+        intended only to be used in subclasses.
+        """
+        raise NotImplementedError()
+
     def __repr__(self) -> str:  # noqa: D105
         return "<Configuration: %s>" % hex(id(self))
 

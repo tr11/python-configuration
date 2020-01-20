@@ -125,24 +125,92 @@ def config(
     return ConfigurationSet(*instances)
 
 
+class EnvConfiguration(Configuration):
+    """Configuration from Environment variables."""
+
+    def __init__(
+        self, prefix: str, separator: str = "__", *, lowercase_keys: bool = False
+    ):
+        """
+        Constructor.
+
+        :param prefix: prefix to filter environment variables with
+        :param separator: separator to replace by dots
+        :param lowercase_keys: whether to convert every key to lower case.
+        """
+        self._prefix = prefix
+        self._separator = separator
+        super().__init__({}, lowercase_keys=lowercase_keys)
+        self.reload()
+
+    def reload(self) -> None:
+        """Reload the environment values."""
+        result = {}
+        for key, value in os.environ.items():
+            if not key.startswith(self._prefix + self._separator):
+                continue
+            result[
+                key[len(self._prefix) :].replace(self._separator, ".").strip(".")
+            ] = value
+        super().__init__(result, lowercase_keys=self._lowercase)
+
+
 def config_from_env(
     prefix: str, separator: str = "__", *, lowercase_keys: bool = False
 ) -> Configuration:
     """
-    Create a :class:`Configuration` instance from environment variables.
+    Create a :class:`EnvConfiguration` instance from environment variables.
 
     :param prefix: prefix to filter environment variables with
     :param separator: separator to replace by dots
     :param lowercase_keys: whether to convert every key to lower case.
     :return: a :class:`Configuration` instance
     """
-    result = {}
-    for key, value in os.environ.items():
-        if not key.startswith(prefix + separator):
-            continue
-        result[key[len(prefix) :].replace(separator, ".").strip(".")] = value
+    return EnvConfiguration(prefix, separator, lowercase_keys=lowercase_keys)
 
-    return Configuration(result, lowercase_keys=lowercase_keys)
+
+class PathConfiguration(Configuration):
+    """Configuration from a filessytem path."""
+
+    def __init__(
+        self, path: str, remove_level: int = 1, *, lowercase_keys: bool = False
+    ):
+        """
+        Constructor.
+
+        :param path: path to read from
+        :param remove_level: how many levels to remove from the resulting config
+        :param lowercase_keys: whether to convert every key to lower case.
+        """
+        self._path = path
+        self._remove_level = remove_level
+        super().__init__({}, lowercase_keys=lowercase_keys)
+        self.reload()
+
+    def reload(self) -> None:
+        """Reload the path."""
+        path = os.path.normpath(self._path)
+        if not os.path.exists(path) or not os.path.isdir(path):
+            raise FileNotFoundError()
+
+        dotted_path_levels = len(path.split("/"))
+        files_keys = (
+            (
+                os.path.join(x[0], y),
+                ".".join(
+                    (x[0].split("/") + [y])[(dotted_path_levels + self._remove_level) :]
+                ),
+            )
+            for x in os.walk(path)
+            for y in x[2]
+            if not x[0].split("/")[-1].startswith("..")
+        )
+
+        result = {}
+        for filename, key in files_keys:
+            result[key] = open(filename).read()
+
+        super().__init__(result, lowercase_keys=self._lowercase)
 
 
 def config_from_path(
@@ -156,26 +224,46 @@ def config_from_path(
     :param lowercase_keys: whether to convert every key to lower case.
     :return: a :class:`Configuration` instance
     """
-    path = os.path.normpath(path)
-    if not os.path.exists(path) or not os.path.isdir(path):
-        raise FileNotFoundError()
+    return PathConfiguration(path, remove_level, lowercase_keys=lowercase_keys)
 
-    dotted_path_levels = len(path.split("/"))
-    files_keys = (
-        (
-            os.path.join(x[0], y),
-            ".".join((x[0].split("/") + [y])[(dotted_path_levels + remove_level) :]),
-        )
-        for x in os.walk(path)
-        for y in x[2]
-        if not x[0].split("/")[-1].startswith("..")
-    )
 
-    result = {}
-    for filename, key in files_keys:
-        result[key] = open(filename).read()
+class FileConfiguration(Configuration):
+    """Configuration from a file input."""
 
-    return Configuration(result, lowercase_keys=lowercase_keys)
+    def __init__(
+        self,
+        data: Union[str, IO[str]],
+        read_from_file: bool = False,
+        *,
+        lowercase_keys: bool = False
+    ):
+        """
+        Constructor.
+
+        :param data: path to a JSON file or contents
+        :param read_from_file: whether to read from a file path or to interpret
+               the :attr:`data` as the contents of the file.
+        :param lowercase_keys: whether to convert every key to lower case.
+        """
+        self._data = data
+        self._read_from_file = read_from_file
+        super().__init__({}, lowercase_keys=lowercase_keys)
+        self.reload()
+
+
+class JSONConfiguration(FileConfiguration):
+    """Configuration from a JSON input."""
+
+    def reload(self) -> None:
+        """Reload the JSON data."""
+        if self._read_from_file:
+            if isinstance(self._data, str):
+                result = json.load(open(self._data, "rt"))
+            else:
+                result = json.load(self._data)
+        else:
+            result = json.loads(cast(str, self._data))
+        self._config = self._flatten_dict(result)
 
 
 def config_from_json(
@@ -189,18 +277,35 @@ def config_from_json(
 
     :param data: path to a JSON file or contents
     :param read_from_file: whether to read from a file path or to interpret
-           the :attr:`data` as the contents of the INI file.
+           the :attr:`data` as the contents of the JSON file.
     :param lowercase_keys: whether to convert every key to lower case.
     :return: a :class:`Configuration` instance
     """
-    if read_from_file:
-        if isinstance(data, str):
-            return Configuration(json.load(open(data, "rt")))
-        else:
-            return Configuration(json.load(data), lowercase_keys=lowercase_keys)
-    else:
+    return JSONConfiguration(data, read_from_file, lowercase_keys=lowercase_keys)
+
+
+class INIConfiguration(FileConfiguration):
+    """Configuration from an INI file input."""
+
+    def reload(self) -> None:
+        """Reload the INI data."""
+        import configparser
+
+        data = self._data
+        if self._read_from_file:
+            if isinstance(data, str):
+                data = open(data, "rt").read()
+            else:
+                data = data.read()
         data = cast(str, data)
-        return Configuration(json.loads(data), lowercase_keys=lowercase_keys)
+        cfg = configparser.RawConfigParser()
+        cfg.read_string(data)
+        result = {
+            section + "." + k: v
+            for section, values in cfg.items()
+            for k, v in values.items()
+        }
+        self._config = self._flatten_dict(result)
 
 
 def config_from_ini(
@@ -218,22 +323,60 @@ def config_from_ini(
     :param lowercase_keys: whether to convert every key to lower case.
     :return: a :class:`Configuration` instance
     """
-    import configparser
+    return INIConfiguration(data, read_from_file, lowercase_keys=lowercase_keys)
 
-    if read_from_file:
-        if isinstance(data, str):
-            data = open(data, "rt").read()
-        else:
-            data = data.read()
-    data = cast(str, data)
-    cfg = configparser.RawConfigParser()
-    cfg.read_string(data)
-    d = {
-        section + "." + k: v
-        for section, values in cfg.items()
-        for k, v in values.items()
-    }
-    return Configuration(d, lowercase_keys=lowercase_keys)
+
+class PythonConfiguration(Configuration):
+    """Configuration from a python module."""
+
+    def __init__(
+        self,
+        module: Union[str, ModuleType],
+        prefix: str = "",
+        separator: str = "_",
+        *,
+        lowercase_keys: bool = False
+    ):
+        """
+        Constructor.
+
+        :param module: a module or path string
+        :param prefix: prefix to use to filter object names
+        :param separator: separator to replace by dots
+        :param lowercase_keys: whether to convert every key to lower case.
+        """
+        if isinstance(module, str):
+            if module.endswith(".py"):
+                import importlib.util
+
+                spec = importlib.util.spec_from_file_location(module, module)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader = cast(InspectLoader, spec.loader)
+                spec.loader.exec_module(module)
+            else:
+                import importlib
+
+                module = importlib.import_module(module)
+        self._module = module
+        self._prefix = prefix
+        self._separator = separator
+        super().__init__({}, lowercase_keys=lowercase_keys)
+        self.reload()
+
+    def reload(self) -> None:
+        """Reload the path."""
+        variables = [
+            x
+            for x in dir(self._module)
+            if not x.startswith("__") and x.startswith(self._prefix)
+        ]
+        result = {
+            k[len(self._prefix) :]
+            .replace(self._separator, ".")
+            .strip("."): getattr(self._module, k)
+            for k in variables
+        }
+        super().__init__(result, lowercase_keys=self._lowercase)
 
 
 def config_from_python(
@@ -252,27 +395,7 @@ def config_from_python(
     :param lowercase_keys: whether to convert every key to lower case.
     :return: a :class:`Configuration` instance
     """
-    if isinstance(module, str):
-        if module.endswith(".py"):
-            import importlib.util
-
-            spec = importlib.util.spec_from_file_location(module, module)
-            module = importlib.util.module_from_spec(spec)
-            spec.loader = cast(InspectLoader, spec.loader)
-            spec.loader.exec_module(module)
-        else:
-            import importlib
-
-            module = importlib.import_module(module)
-
-    variables = [
-        x for x in dir(module) if not x.startswith("__") and x.startswith(prefix)
-    ]
-    dict_ = {
-        k[len(prefix) :].replace(separator, ".").strip("."): getattr(module, k)
-        for k in variables
-    }
-    return Configuration(dict_, lowercase_keys=lowercase_keys)
+    return PythonConfiguration(module, prefix, separator, lowercase_keys=lowercase_keys)
 
 
 def config_from_dict(data: dict, *, lowercase_keys: bool = False) -> Configuration:
@@ -311,6 +434,19 @@ def create_path_from_config(
 
 if yaml is not None:  # pragma: no branch
 
+    class YAMLConfiguration(FileConfiguration):
+        """Configuration from a YAML input."""
+
+        def reload(self) -> None:
+            """Reload the YAML data."""
+            if self._read_from_file and isinstance(self._data, str):
+                loaded = yaml.load(open(self._data, "rt"), Loader=yaml.FullLoader)
+            else:
+                loaded = yaml.load(self._data, Loader=yaml.FullLoader)
+            if not isinstance(loaded, dict):
+                raise ValueError("Data should be a dictionary")
+            self._config = self._flatten_dict(loaded)
+
     def config_from_yaml(
         data: Union[str, IO[str]],
         read_from_file: bool = False,
@@ -325,16 +461,26 @@ if yaml is not None:  # pragma: no branch
         :param lowercase_keys: whether to convert every key to lower case.
         :return: a Configuration instance
         """
-        if read_from_file and isinstance(data, str):
-            loaded = yaml.load(open(data, "rt"), Loader=yaml.FullLoader)
-        else:
-            loaded = yaml.load(data, Loader=yaml.FullLoader)
-        if not isinstance(loaded, dict):
-            raise ValueError("Data should be a dictionary")
-        return Configuration(loaded, lowercase_keys=lowercase_keys)
+        return YAMLConfiguration(data, read_from_file, lowercase_keys=lowercase_keys)
 
 
 if toml is not None:  # pragma: no branch
+
+    class TOMLConfiguration(FileConfiguration):
+        """Configuration from a TOML input."""
+
+        def reload(self) -> None:
+            """Reload the TOML data."""
+            if self._read_from_file:
+                if isinstance(self._data, str):
+                    loaded = toml.load(open(self._data, "rt"))
+                else:
+                    loaded = toml.load(self._data)
+            else:
+                data = cast(str, self._data)
+                loaded = toml.loads(data)
+            loaded = cast(dict, loaded)
+            self._config = self._flatten_dict(loaded)
 
     def config_from_toml(
         data: Union[str, IO[str]],
@@ -350,13 +496,4 @@ if toml is not None:  # pragma: no branch
         :param lowercase_keys: whether to convert every key to lower case.
         :return: a Configuration instance
         """
-        if read_from_file:
-            if isinstance(data, str):
-                loaded = toml.load(open(data, "rt"))
-            else:
-                loaded = toml.load(data)
-        else:
-            data = cast(str, data)
-            loaded = toml.loads(data)
-        loaded = cast(dict, loaded)
-        return Configuration(loaded, lowercase_keys=lowercase_keys)
+        return TOMLConfiguration(data, read_from_file, lowercase_keys=lowercase_keys)

@@ -140,5 +140,9 @@ class AzureKeyVaultConfiguration(Configuration):
             ),
         )
 
+    def reload(self) -> None:
+        """Reload the configuration."""
+        self._cache.clear()
+
     def __repr__(self) -> str:  # noqa: D105
         return "<AzureKeyVaultConfiguration: %r>" % self._kv_client.vault_url
