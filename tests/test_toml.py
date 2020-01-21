@@ -98,3 +98,19 @@ def test_load_toml_filename():  # type: ignore
 def test_equality():  # type: ignore
     cfg = config_from_toml(TOML)
     assert cfg == config_from_dict(DICT)
+
+
+@pytest.mark.skipif("toml is None")
+def test_reload_toml():  # type: ignore
+    with tempfile.NamedTemporaryFile() as f:
+        f.file.write(TOML.encode())
+        f.file.flush()
+        cfg = config_from_toml(f.name, read_from_file=True)
+        assert cfg == config_from_dict(DICT)
+
+        f.file.seek(0)
+        f.file.truncate(0)
+        f.file.write(b'[owner]\nname = "ABC"\n')
+        f.file.flush()
+        cfg.reload()
+        assert cfg == config_from_dict({"owner.name": "ABC"})

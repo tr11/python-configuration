@@ -19,12 +19,12 @@ DICT = {
 
 PREFIX = "PYTHONCONFIG"
 
-os.environ.update(
-    (PREFIX + "__" + k.replace(".", "__").upper(), str(v)) for k, v in DICT.items()
-)
-
 
 def test_load_env():  # type: ignore
+    os.environ.update(
+        (PREFIX + "__" + k.replace(".", "__").upper(), str(v)) for k, v in DICT.items()
+    )
+
     cfg = config_from_env(PREFIX, lowercase_keys=True)
     assert cfg["a1.b1.c1"] == "1"
     assert cfg["a1.b1"].get_int("c1") == 1
@@ -33,5 +33,25 @@ def test_load_env():  # type: ignore
 
 
 def test_equality():  # type: ignore
+    os.environ.update(
+        (PREFIX + "__" + k.replace(".", "__").upper(), str(v)) for k, v in DICT.items()
+    )
+
     cfg = config_from_env(PREFIX, lowercase_keys=True)
     assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+
+
+def test_reload():  # type: ignore
+    os.environ.update(
+        (PREFIX + "__" + k.replace(".", "__").upper(), str(v)) for k, v in DICT.items()
+    )
+
+    cfg = config_from_env(PREFIX, lowercase_keys=True)
+    assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+
+    os.environ[PREFIX + "__" + "A2__B2__C3"] = "updated"
+    assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+    cfg.reload()
+    d = DICT.copy()
+    d["a2.b2.c3"] = "updated"
+    assert cfg == config_from_dict(dict((k, str(v)) for k, v in d.items()))

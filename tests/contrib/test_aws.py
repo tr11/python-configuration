@@ -18,6 +18,8 @@ DICT = {
     "password": "some passwd",
 }
 
+DICT2 = {"a": "b", "c": "d"}
+
 
 class MockSession:
     def __init__(self, val, *args, **kwargs):  # type: ignore
@@ -152,3 +154,15 @@ def test_fail_binary(mocker):  # type: ignore
 
     with raises(ValueError):
         cfg.as_dict()
+
+
+@pytest.mark.skipif("aws is None")
+def test_reload(mocker):  # type: ignore
+    mocker.patch.object(aws.session, "Session", return_value=MockSession(DICT))
+    cfg = AWSSecretsManagerConfiguration(secret_name="test-secret")
+    assert cfg.as_dict() == DICT
+
+    mocker.patch.object(aws.session, "Session", return_value=MockSession(DICT2))
+    cfg._client = MockSession(DICT2).client(service_name="secretsmanager")
+    cfg.reload()
+    assert cfg.as_dict() == DICT2

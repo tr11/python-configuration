@@ -165,6 +165,14 @@ class ConfigurationSet(Configuration):
         cfg = self._writable_config()
         cfg.update(other)
 
+    def reload(self) -> None:
+        """Reload the underlying configuration instances."""
+        for cfg in self._configs:
+            try:
+                cfg.reload()
+            except NotImplementedError:
+                pass
+
     def __repr__(self) -> str:  # noqa: D105
         return "<ConfigurationSet: %s>" % hex(id(self))
 

@@ -49,6 +49,17 @@ DICT3 = {
 }
 JSON = json.dumps(DICT3)
 
+DICT4 = {
+    "a3.b1.c1": "afsdf",
+    "a3.b1.c2": False,
+    "a3.b1.c3": None,
+    "a3.b2.c1": 107,
+    "a3.b2.c2": "YWsdfsJjZGVmZ2g=",
+    "a3.b2.c3": "asdfdssdfbcdefgh",
+}
+JSON2 = json.dumps(DICT4)
+
+
 if yaml:
     YAML = """
     z1:
@@ -600,3 +611,77 @@ def test_dict_methods_keys_values():  # type: ignore
     ]
 
     assert dict(zip(cfg.keys(), cfg.values())) == cfg.as_dict()
+
+
+def test_reload():  # type: ignore
+    import sys
+
+    path = str(os.path.join(os.path.dirname(__file__), "python_config.py"))
+
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as folder, tempfile.NamedTemporaryFile(
+        suffix=".json"
+    ) as f1, tempfile.NamedTemporaryFile(
+        suffix=".ini"
+    ) as f2, tempfile.NamedTemporaryFile(
+        suffix=".yaml"
+    ) as f3, tempfile.NamedTemporaryFile(
+        suffix=".toml"
+    ) as f4:
+        # path
+        subfolder = folder + "/sub"
+        os.makedirs(subfolder)
+        create_path_from_config(subfolder, config_from_dict(PATH_DICT), remove_level=1)
+        # json
+        f1.file.write(JSON.encode())
+        f1.file.flush()
+        # ini
+        f2.file.write(INI.encode())
+        f2.file.flush()
+
+        entries = [
+            DICT2_1,  # dict
+            DICT2_2,
+            "env",
+            path,  # python
+            f1.name,  # json
+            f2.name,  # ini
+            folder,  # path
+        ]
+        if yaml:
+            f3.file.write(YAML.encode())
+            f3.file.flush()
+            entries.append(f3.name)  # yaml
+        if toml:
+            f4.file.write(TOML.encode())
+            f4.file.flush()
+            entries.append(f4.name)  # toml
+
+        cfg = config(*entries, prefix="CONFIG", lowercase_keys=True)
+
+        joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
+        joined_dicts.update(DICT2_1)
+        joined_dicts.update(DICT2_2)
+        joined_dicts.update(DICT3)
+        joined_dicts.update(DICT_INI)
+        if yaml:
+            joined_dicts.update(DICT_YAML)
+        if toml:
+            joined_dicts.update(DICT_TOML)
+        joined_dicts.update((k, str(v)) for k, v in PATH_DICT.items())
+        joined_dicts["sys.version"] = sys.hexversion
+        assert (
+            config_from_dict(joined_dicts, lowercase_keys=True).as_dict()
+            == cfg.as_dict()
+        )
+        assert config_from_dict(joined_dicts, lowercase_keys=True) == cfg
+
+        # json
+        f1.file.seek(0)
+        f1.file.truncate(0)
+        f1.file.write(JSON2.encode())
+        f1.file.flush()
+
+        cfg.reload()
+        assert cfg["a3.b1.c1"] == "afsdf"

@@ -245,24 +245,33 @@ class FileConfiguration(Configuration):
                the :attr:`data` as the contents of the file.
         :param lowercase_keys: whether to convert every key to lower case.
         """
-        self._data = data
-        self._read_from_file = read_from_file
         super().__init__({}, lowercase_keys=lowercase_keys)
-        self.reload()
+        self._reload(data, read_from_file)
+        self._data = data if read_from_file and isinstance(data, str) else None
+
+    def _reload(
+        self, data: Union[str, IO[str]], read_from_file: bool = False
+    ) -> None:  # pragma: no cover
+        raise NotImplementedError()
+
+    def reload(self) -> None:
+        """Reload the configuration."""
+        if self._data:  # pragma: no branch
+            self._reload(self._data, True)
 
 
 class JSONConfiguration(FileConfiguration):
     """Configuration from a JSON input."""
 
-    def reload(self) -> None:
+    def _reload(self, data: Union[str, IO[str]], read_from_file: bool = False) -> None:
         """Reload the JSON data."""
-        if self._read_from_file:
-            if isinstance(self._data, str):
-                result = json.load(open(self._data, "rt"))
+        if read_from_file:
+            if isinstance(data, str):
+                result = json.load(open(data, "rt"))
             else:
-                result = json.load(self._data)
+                result = json.load(data)
         else:
-            result = json.loads(cast(str, self._data))
+            result = json.loads(cast(str, data))
         self._config = self._flatten_dict(result)
 
 
@@ -287,12 +296,11 @@ def config_from_json(
 class INIConfiguration(FileConfiguration):
     """Configuration from an INI file input."""
 
-    def reload(self) -> None:
+    def _reload(self, data: Union[str, IO[str]], read_from_file: bool = False) -> None:
         """Reload the INI data."""
         import configparser
 
-        data = self._data
-        if self._read_from_file:
+        if read_from_file:
             if isinstance(data, str):
                 data = open(data, "rt").read()
             else:
@@ -437,12 +445,14 @@ if yaml is not None:  # pragma: no branch
     class YAMLConfiguration(FileConfiguration):
         """Configuration from a YAML input."""
 
-        def reload(self) -> None:
+        def _reload(
+            self, data: Union[str, IO[str]], read_from_file: bool = False
+        ) -> None:
             """Reload the YAML data."""
-            if self._read_from_file and isinstance(self._data, str):
-                loaded = yaml.load(open(self._data, "rt"), Loader=yaml.FullLoader)
+            if read_from_file and isinstance(data, str):
+                loaded = yaml.load(open(data, "rt"), Loader=yaml.FullLoader)
             else:
-                loaded = yaml.load(self._data, Loader=yaml.FullLoader)
+                loaded = yaml.load(data, Loader=yaml.FullLoader)
             if not isinstance(loaded, dict):
                 raise ValueError("Data should be a dictionary")
             self._config = self._flatten_dict(loaded)
@@ -469,15 +479,17 @@ if toml is not None:  # pragma: no branch
     class TOMLConfiguration(FileConfiguration):
         """Configuration from a TOML input."""
 
-        def reload(self) -> None:
+        def _reload(
+            self, data: Union[str, IO[str]], read_from_file: bool = False
+        ) -> None:
             """Reload the TOML data."""
-            if self._read_from_file:
-                if isinstance(self._data, str):
-                    loaded = toml.load(open(self._data, "rt"))
+            if read_from_file:
+                if isinstance(data, str):
+                    loaded = toml.load(open(data, "rt"))
                 else:
-                    loaded = toml.load(self._data)
+                    loaded = toml.load(data)
             else:
-                data = cast(str, self._data)
+                data = cast(str, data)
                 loaded = toml.loads(data)
             loaded = cast(dict, loaded)
             self._config = self._flatten_dict(loaded)

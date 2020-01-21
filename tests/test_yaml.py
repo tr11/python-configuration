@@ -111,3 +111,19 @@ def test_load_yaml_filename():  # type: ignore
 def test_equality():  # type: ignore
     cfg = config_from_yaml(YAML)
     assert cfg == config_from_dict(DICT)
+
+
+@pytest.mark.skipif("toml is None")
+def test_reload_yaml():  # type: ignore
+    with tempfile.NamedTemporaryFile() as f:
+        f.file.write(YAML.encode())
+        f.file.flush()
+        cfg = config_from_yaml(f.name, read_from_file=True)
+        assert cfg == config_from_dict(DICT)
+
+        f.file.seek(0)
+        f.file.truncate(0)
+        f.file.write(YAML2.encode())
+        f.file.flush()
+        cfg.reload()
+        assert cfg == config_from_yaml(YAML2)

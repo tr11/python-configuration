@@ -110,8 +110,7 @@ class AWSSecretsManagerConfiguration(Configuration):
 
     def reload(self) -> None:
         """Reload the configuration."""
-        now = time.time()
-        self._secret.ts = now - 2 * self._expiration
+        self._secret = Cache({}, 0)
 
     def __repr__(self) -> str:  # noqa: D105
         return "<AWSSecretsManagerConfiguration: %r>" % self._secret_name

@@ -52,3 +52,18 @@ def test_load_json_filename():  # type: ignore
 def test_equality():  # type: ignore
     cfg = config_from_json(JSON)
     assert cfg == config_from_dict(DICT)
+
+
+def test_reload_json():  # type: ignore
+    with tempfile.NamedTemporaryFile() as f:
+        f.file.write(JSON.encode())
+        f.file.flush()
+        cfg = config_from_json(f.name, read_from_file=True)
+        assert cfg == config_from_dict(DICT)
+
+        f.file.seek(0)
+        f.file.truncate(0)
+        f.file.write(b'{"test": 1}')
+        f.file.flush()
+        cfg.reload()
+        assert cfg == config_from_dict({"test": 1})

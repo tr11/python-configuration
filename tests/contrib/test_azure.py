@@ -2,6 +2,7 @@ from collections import namedtuple
 import pytest
 from pytest import raises
 
+from config import config_from_dict
 
 try:
     import azure
@@ -17,6 +18,8 @@ DICT = {
     "with-underscore": "works",
     "password": "some passwd",
 }
+
+DICT2 = {"a": "b", "c": "d"}
 
 FakeKeySecret = namedtuple("FakeKeySecret", ["key", "value"])
 
@@ -163,3 +166,16 @@ def test_str():  # type: ignore
         == "{'bar': 'bar_val', 'foo': 'foo_val', 'password': '******', 'with-underscore': 'works'}"
     )
     assert cfg["password"] == "some passwd"
+
+
+@pytest.mark.skipif("azure is None")
+def test_reload():  # type: ignore
+    cfg = AzureKeyVaultConfiguration(
+        "fake_id", "fake_secret", "fake_tenant", "fake_vault"
+    )
+    cfg._kv_client = FakeSecretClient(DICT)
+    assert cfg == config_from_dict(DICT)
+
+    cfg._kv_client = FakeSecretClient(DICT2)
+    cfg.reload()
+    assert cfg == config_from_dict(DICT2)

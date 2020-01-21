@@ -46,3 +46,19 @@ def test_load_ini_filename():  # type: ignore
         cfg = config_from_ini(f.name, read_from_file=True)
 
     assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+
+
+def test_reload():  # type: ignore
+    with tempfile.NamedTemporaryFile() as f:
+        f.file.write(INI.encode())
+        f.file.flush()
+        cfg = config_from_ini(open(f.name, "rt"), read_from_file=True)
+
+        assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+
+        f.file.write(b"\n[section4]\nkey10 = 1\n")
+        f.file.flush()
+        cfg = config_from_ini(open(f.name, "rt"), read_from_file=True)
+        cfg2 = config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+        cfg2["section4.key10"] = "1"
+        assert cfg == cfg2

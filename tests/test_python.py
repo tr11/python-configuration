@@ -53,3 +53,16 @@ def test_equality_from_path():  # type: ignore
     path = os.path.join(os.path.dirname(__file__), "python_config.py")
     cfg = config_from_python(path, prefix="CONFIG", lowercase_keys=True)
     assert cfg == config_from_dict(DICT, lowercase_keys=True)
+
+
+def test_reload():  # type: ignore
+    from . import python_config
+
+    cfg = config_from_python(python_config, prefix="CONFIG", lowercase_keys=True)
+    assert cfg == config_from_dict(DICT, lowercase_keys=True)
+
+    python_config.CONFIG_A10_B10 = "a"
+    cfg.reload()
+    cfg2 = config_from_dict(DICT, lowercase_keys=True)
+    cfg2["a10.b10"] = "a"
+    assert cfg == cfg2

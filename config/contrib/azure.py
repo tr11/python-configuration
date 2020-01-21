@@ -146,3 +146,7 @@ class AzureKeyVaultConfiguration(Configuration):
 
     def __repr__(self) -> str:  # noqa: D105
         return "<AzureKeyVaultConfiguration: %r>" % self._kv_client.vault_url
+
+    @property
+    def _config(self) -> Dict[str, Any]:  # type: ignore
+        return dict(self.items())
