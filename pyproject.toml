@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-configuration"
-version = "0.5.0"
+version = "0.6.0"
 description = "A library to load configuration parameters from multiple sources and formats"
 authors = [
     "Tiago Requeijo <tiago.requeijo.dev@gmail.com>"

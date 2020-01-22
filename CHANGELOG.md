@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2020-01-22
+### Added
+- Added missing `dict` methods so a `Configuration` instance acts like a dictionary for most use cases
+- Added a `reload` method to refresh a `Configuration` instance (can be used to reload a configuration from a file that may have changed).
+- Added a `configs` method to expose the underlying instances of a `ConfigurationSet`
+
 ## [0.5.0] - 2020-01-08
 ### Added
 - Support for Azure Key Vault credentials (in `config.contrib`)
@@ -33,7 +39,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Initial version
 
-[Unreleased]: https://github.com/tr11/python-configuration/compare/0.5.0...HEAD
+[Unreleased]: https://github.com/tr11/python-configuration/compare/0.6.0...HEAD
+[0.6.0]: https://github.com/tr11/python-configuration/compare/0.5.0...0.6.0
 [0.5.0]: https://github.com/tr11/python-configuration/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/tr11/python-configuration/compare/0.3.1...0.4.0
 [0.3.1]: https://github.com/tr11/python-configuration/compare/0.3.0...0.3.1
