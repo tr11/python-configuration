@@ -685,3 +685,28 @@ def test_reload():  # type: ignore
 
         cfg.reload()
         assert cfg["a3.b1.c1"] == "afsdf"
+
+
+def test_configs():  # type: ignore
+    # readable configs
+    cfg = ConfigurationSet(
+        config_from_dict(DICT2_1, lowercase_keys=True),
+        config_from_dict(DICT2_2, lowercase_keys=True),
+        config_from_env(prefix=PREFIX, lowercase_keys=True),
+    )
+
+    assert cfg.configs[0] == config_from_dict(DICT2_1, lowercase_keys=True)
+    cfg.configs = cfg.configs[1:]
+    assert cfg.configs[0] == config_from_dict(DICT2_2, lowercase_keys=True)
+
+    # writable configs
+    cfg = ConfigurationSet(
+        config_from_dict(DICT2_1, lowercase_keys=True),
+        config_from_dict(DICT2_2, lowercase_keys=True),
+        config_from_env(prefix=PREFIX, lowercase_keys=True),
+    )
+    cfg.update({"abc": "xyz"})
+
+    assert cfg.configs[0] == config_from_dict(DICT2_1, lowercase_keys=True)
+    cfg.configs = cfg.configs[1:]
+    assert cfg.configs[0] == config_from_dict(DICT2_2, lowercase_keys=True)

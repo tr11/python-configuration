@@ -4,6 +4,7 @@ from typing import (
     Any,
     Dict,
     ItemsView,
+    Iterable,
     KeysView,
     List,
     Mapping,
@@ -80,6 +81,21 @@ class ConfigurationSet(Configuration):
     @property
     def _config(self) -> Dict[str, Any]:  # type: ignore
         return self.as_dict()
+
+    @property
+    def configs(self) -> List[Configuration]:
+        """List of underlying configuration objects."""
+        if self._writable:
+            return self._configs[1:]
+        else:
+            return list(self._configs)
+
+    @configs.setter
+    def configs(self, iterable: Iterable[Configuration]) -> None:
+        if self._writable:
+            self._configs = [self._configs[0]] + list(iterable)
+        else:
+            self._configs = list(iterable)
 
     def __getitem__(self, item: str) -> Union[Configuration, Any]:  # noqa: D105
         return self._from_configs("__getitem__", item)
