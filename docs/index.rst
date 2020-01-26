@@ -22,6 +22,8 @@ and optionally
 
 - YAML files
 - TOML files
+- Azure Key Vault credentials
+- AWS Secrets Manager credentials
 
 
 Installing
@@ -109,9 +111,9 @@ or simply as
 Configuration
 =============
 
-There are two general types of objects in this library. The first one is the :class:`~config.Configuration`,
-which represents a single config source.  The second is a :class:`~config.ConfigurationSet` that allows for
-multiple :class:`~config.Configuration` objects to be specified.
+There are two general types of objects in this library. The first one is the :class:`~config.configuration.Configuration`,
+which represents a single config source.  The second is a :class:`~config.configuration_set.ConfigurationSet` that allows for
+multiple :class:`~config.configuration.Configuration` objects to be specified.
 
 Single Config
 -------------
@@ -199,22 +201,22 @@ whether a string should be interpreted as a filename.
 
 Caveats
 *******
-In order for :class:`~config.Configuration` objects to act as ``dict`` and allow the syntax
+In order for :class:`~config.configuration.Configuration` objects to act as ``dict`` and allow the syntax
 ``dict(cfg)``, the ``keys()`` method is implemented as the typical ``dict`` keys.
 If ``keys`` is an element in the configuration ``cfg`` then the ``dict(cfg)`` call will fail.
 In that case, it's necessary to use the :meth:`cfg.as_dict() <config.Configuration.as_dict>` method to retrieve the
-``dict`` representation for the :class:`~config.Configuration` object.
+``dict`` representation for the :class:`~config.configuration.Configuration` object.
 
-The same applies to the methods :meth:`~config.Configuration.values` and :meth:`~config.Configuration.items()`.
+The same applies to the methods :meth:`~config.configuration.Configuration.values` and :meth:`~config.configuration.Configuration.items()`.
 
 
 Configuration Sets
 ==================
 Configuration sets are used to hierarchically load configurations and merge
-settings. Sets can be loaded by constructing a :class:`~config.ConfigurationSet` object directly or
+settings. Sets can be loaded by constructing a :class:`~config.configuration_set.ConfigurationSet` object directly or
 using the simplified :func:`~config.config` function.
 
-To construct a :class:`~config.ConfigurationSet`, pass in as many of the simple :class:`~config.Configuration` objects as needed:
+To construct a :class:`~config.configuration_set.ConfigurationSet`, pass in as many of the simple :class:`~config.configuration.Configuration` objects as needed:
 
 .. code-block:: python
 
@@ -255,17 +257,58 @@ The :func:`~config.config` function automatically detects the following:
 - filesystem folders as Filesystem Paths
 - the strings ``env`` or ``environment`` for Environment Variables
 
+Merging Values
+--------------
+:class:`~config.configuration_set.ConfigurationSet` instances
+are constructed by inspecting each configuration source, taking into account nested dictionaries, and merging at the most granular level.
+For example, the instance obtained from ``cfg = config(d1, d2)`` for the dictionaries below
+
+.. code-block:: python
+
+   d1 = {'sub': {'a': 1, 'b': 4}}
+   d2 = {'sub': {'b': 2, 'c': 3}}
+
+is such that ``cfg['sub']`` equals
+
+.. code-block:: python
+
+   {'a': 1, 'b': 4, 'c': 3}
+
+Note that the nested dictionaries of ``'sub'`` in each of ``d1`` and ``d2`` do not overwrite each other, but are merged into a single
+dictionary with keys from both ``d1`` and ``d2``, giving priority to the values of ``d1`` over those from ``d2``.
 
 Caveats
 *******
-
 As long as the data types are consistent across all the configurations that are
-part of a :class:`~config.ConfigurationSet`, the behavior should be straightforward.  When different
+part of a :class:`~config.configuration_set.ConfigurationSet`, the behavior should be straightforward.  When different
 configuration objects are specified with competing data types, the first configuration to
 define the elements sets its datatype. For example, if in the example above
 ``element`` is interpreted as a ``dict`` from environment variables, but the
 JSON file specifies it as anything else besides a mapping, then the JSON value will be
 dropped automatically.
+
+
+Extras
+======
+The :mod:`~config.contrib` package contains extra implementations of the :class:`~config.configuration.Configuration` class
+used for special cases. Currently the following are implemented:
+
+- :class:`~config.contrib.azure.AzureKeyVaultConfiguration` in :mod:`~config.contrib.azure`, which takes Azure Key Vault
+  credentials into a :class:`~config.configuration.Configuration`-compatible instance. To install the needed dependencies
+  execute
+
+  .. code-block:: shell
+
+     pip install python-configuration[azure]
+
+- :class:`~config.contrib.aws.AWSSecretsManagerConfiguration` in :mod:`~config.contrib.aws`, which takes AWS Secrets Manager
+  credentials into a :class:`~config.configuration.Configuration`-compatible instance. To install the needed dependencies
+  execute
+
+  .. code-block:: shell
+
+     pip install python-configuration[aws]
+
 
 Developing
 ==========

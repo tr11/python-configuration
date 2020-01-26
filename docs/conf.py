@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath("../config"))
 # -- Project information -----------------------------------------------------
 
 project = "python-configuration"
-copyright = "2019, Tiago Requeijo"
+copyright = "2020, Tiago Requeijo"
 author = "Tiago Requeijo"
 
 

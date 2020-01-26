@@ -4,7 +4,7 @@ import json
 import os
 from importlib.abc import InspectLoader
 from types import ModuleType
-from typing import IO, Iterable, Union, cast
+from typing import Iterable, TextIO, Union, cast
 
 try:
     import yaml
@@ -232,7 +232,7 @@ class FileConfiguration(Configuration):
 
     def __init__(
         self,
-        data: Union[str, IO[str]],
+        data: Union[str, TextIO],
         read_from_file: bool = False,
         *,
         lowercase_keys: bool = False
@@ -250,7 +250,7 @@ class FileConfiguration(Configuration):
         self._data = data if read_from_file and isinstance(data, str) else None
 
     def _reload(
-        self, data: Union[str, IO[str]], read_from_file: bool = False
+        self, data: Union[str, TextIO], read_from_file: bool = False
     ) -> None:  # pragma: no cover
         raise NotImplementedError()
 
@@ -263,7 +263,7 @@ class FileConfiguration(Configuration):
 class JSONConfiguration(FileConfiguration):
     """Configuration from a JSON input."""
 
-    def _reload(self, data: Union[str, IO[str]], read_from_file: bool = False) -> None:
+    def _reload(self, data: Union[str, TextIO], read_from_file: bool = False) -> None:
         """Reload the JSON data."""
         if read_from_file:
             if isinstance(data, str):
@@ -276,7 +276,7 @@ class JSONConfiguration(FileConfiguration):
 
 
 def config_from_json(
-    data: Union[str, IO[str]],
+    data: Union[str, TextIO],
     read_from_file: bool = False,
     *,
     lowercase_keys: bool = False
@@ -296,7 +296,7 @@ def config_from_json(
 class INIConfiguration(FileConfiguration):
     """Configuration from an INI file input."""
 
-    def _reload(self, data: Union[str, IO[str]], read_from_file: bool = False) -> None:
+    def _reload(self, data: Union[str, TextIO], read_from_file: bool = False) -> None:
         """Reload the INI data."""
         import configparser
 
@@ -317,7 +317,7 @@ class INIConfiguration(FileConfiguration):
 
 
 def config_from_ini(
-    data: Union[str, IO[str]],
+    data: Union[str, TextIO],
     read_from_file: bool = False,
     *,
     lowercase_keys: bool = False
@@ -446,7 +446,7 @@ if yaml is not None:  # pragma: no branch
         """Configuration from a YAML input."""
 
         def _reload(
-            self, data: Union[str, IO[str]], read_from_file: bool = False
+            self, data: Union[str, TextIO], read_from_file: bool = False
         ) -> None:
             """Reload the YAML data."""
             if read_from_file and isinstance(data, str):
@@ -458,7 +458,7 @@ if yaml is not None:  # pragma: no branch
             self._config = self._flatten_dict(loaded)
 
     def config_from_yaml(
-        data: Union[str, IO[str]],
+        data: Union[str, TextIO],
         read_from_file: bool = False,
         *,
         lowercase_keys: bool = False
@@ -480,7 +480,7 @@ if toml is not None:  # pragma: no branch
         """Configuration from a TOML input."""
 
         def _reload(
-            self, data: Union[str, IO[str]], read_from_file: bool = False
+            self, data: Union[str, TextIO], read_from_file: bool = False
         ) -> None:
             """Reload the TOML data."""
             if read_from_file:
@@ -495,7 +495,7 @@ if toml is not None:  # pragma: no branch
             self._config = self._flatten_dict(loaded)
 
     def config_from_toml(
-        data: Union[str, IO[str]],
+        data: Union[str, TextIO],
         read_from_file: bool = False,
         *,
         lowercase_keys: bool = False

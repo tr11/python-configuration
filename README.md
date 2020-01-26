@@ -1,5 +1,5 @@
 # python-configuration
-> A library to load configuration parameters from multiple sources and formats
+> A library to load configuration parameters hierarchically from multiple sources and formats
 
 [![version](https://img.shields.io/pypi/v/python-configuration)](https://pypi.org/project/python-configuration/)
 ![python](https://img.shields.io/pypi/pyversions/python-configuration)
@@ -207,6 +207,25 @@ The `config` function automatically detects the following:
 * filesystem folders as Filesystem Paths
 * the strings `env` or `environment` for Environment Variables
 
+#### Merging Values
+`ConfigurationSet` instances are constructed by inspecting each configuration source, taking into account nested dictionaries, and merging at the most granular level.
+For example, the instance obtained from `cfg = config(d1, d2)` for the dictionaries below
+
+```python
+d1 = {'sub': {'a': 1, 'b': 4}}
+d2 = {'sub': {'b': 2, 'c': 3}}
+```
+
+is such that `cfg['sub']` equals
+
+```python
+{'a': 1, 'b': 4, 'c': 3}
+```
+
+Note that the nested dictionaries of `'sub'` in each of `d1` and `d2` do not overwrite each other, but are merged into a single
+dictionary with keys from both `d1` and `d2`, giving priority to the values of `d1` over those from `d2`.
+
+
 ###### Caveats
 As long as the data types are consistent across all the configurations that are
 part of a `ConfigurationSet`, the behavior should be straightforward.  When different
@@ -224,6 +243,7 @@ used for special cases. Currently the following are implemented:
   execute
   ```shell
   pip install python-configuration[azure]
+  ```
 * `AWSSecretsManagerConfiguration` in `config.contrib.aws`, which takes AWS Secrets Manager
   credentials into a `Configuration`-compatible instance. To install the needed dependencies
   execute
