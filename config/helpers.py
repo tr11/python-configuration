@@ -1,6 +1,7 @@
 """Helper functions."""
 
-from typing import Any
+import string
+from typing import Any, Set
 
 
 TRUTH_TEXT = frozenset(("t", "true", "y", "yes", "on", "1"))
@@ -52,3 +53,23 @@ def clean(key: str, value: Any, mask: str = "******") -> Any:
                 netloc="{}:{}@{}".format(url.username, mask, url.hostname)
             ).geturl()
     return value
+
+
+def interpolate(text: str, d: dict) -> str:
+    """
+    Return the string interpolate as many times as needed.
+
+    :param text: string possibly containing an interpolation pattern
+    :param d: dictionary
+    """
+    all_variables: Set[str] = set()
+    variables = [""]
+
+    while variables:
+        variables = [x[1] for x in string.Formatter().parse(text) if x[1] is not None]
+        if all_variables.intersection(variables):
+            raise ValueError("Cycle detected while interpolating keys")
+        all_variables.update(variables)
+        text = text.format(**d)
+
+    return text
