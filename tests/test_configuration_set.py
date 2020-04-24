@@ -716,3 +716,49 @@ def test_configs():  # type: ignore
     assert cfg.configs[0] == config_from_dict(DICT2_1, lowercase_keys=True)
     cfg.configs = cfg.configs[1:]
     assert cfg.configs[0] == config_from_dict(DICT2_2, lowercase_keys=True)
+
+
+def test_separator():  # type: ignore
+    import sys
+    import tempfile
+
+    path = os.path.join(os.path.dirname(__file__), "python_config_2.py")
+    with tempfile.TemporaryDirectory() as folder:
+        create_path_from_config(folder, config_from_dict(PATH_DICT), remove_level=0)
+        entries = [
+            ("env", PREFIX),
+            ("python", path, "CONFIG", "__"),
+        ]
+        cfg = config(*entries, lowercase_keys=True)
+
+    joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
+    joined_dicts.update(DICT2_1)
+    joined_dicts.update(DICT2_2)
+    joined_dicts["sys.version"] = sys.hexversion
+    assert (
+        config_from_dict(joined_dicts, lowercase_keys=True).as_dict() == cfg.as_dict()
+    )
+    assert config_from_dict(joined_dicts, lowercase_keys=True) == cfg
+
+
+def test_separator_override_default():  # type: ignore
+    import sys
+    import tempfile
+
+    path = os.path.join(os.path.dirname(__file__), "python_config.py")
+    with tempfile.TemporaryDirectory() as folder:
+        create_path_from_config(folder, config_from_dict(PATH_DICT), remove_level=0)
+        entries = [
+            ("env", PREFIX, "__"),
+            ("python", path, "CONFIG"),
+        ]
+        cfg = config(*entries, separator="_", lowercase_keys=True)
+
+    joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
+    joined_dicts.update(DICT2_1)
+    joined_dicts.update(DICT2_2)
+    joined_dicts["sys.version"] = sys.hexversion
+    assert (
+        config_from_dict(joined_dicts, lowercase_keys=True).as_dict() == cfg.as_dict()
+    )
+    assert config_from_dict(joined_dicts, lowercase_keys=True) == cfg

@@ -66,3 +66,12 @@ def test_reload():  # type: ignore
     cfg2 = config_from_dict(DICT, lowercase_keys=True)
     cfg2["a10.b10"] = "a"
     assert cfg == cfg2
+
+
+def test_separator():  # type: ignore
+    from . import python_config_2
+
+    cfg = config_from_python(
+        python_config_2, prefix="CONFIG", separator="__", lowercase_keys=True
+    )
+    assert cfg == config_from_dict(DICT, lowercase_keys=True)

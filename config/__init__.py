@@ -4,7 +4,7 @@ import json
 import os
 from importlib.abc import InspectLoader
 from types import ModuleType
-from typing import Iterable, TextIO, Union, cast
+from typing import Iterable, List, Optional, TextIO, Union, cast
 
 try:
     import yaml
@@ -23,9 +23,10 @@ from .configuration_set import ConfigurationSet
 def config(
     *configs: Iterable,
     prefix: str = "",
+    separator: Optional[str] = None,
     remove_level: int = 1,
     lowercase_keys: bool = False,
-    ignore_missing_paths: bool = False
+    ignore_missing_paths: bool = False,
 ) -> ConfigurationSet:
     """
     Create a :class:`ConfigurationSet` instance from an iterable of configs.
@@ -35,15 +36,26 @@ def config(
     :param remove_level: how many levels to remove from the resulting config
     :param lowercase_keys: whether to convert every key to lower case.
     :param ignore_missing_paths: whether to ignore failures from missing files/folders.
+    :param separator: separator for Python modules and environment variables.
+
+    Note that the :py:attr:`separator` parameter  impacts Python modules and and
+    environment variables at the same time. To pass different separators to Python
+    modules and environments, use the longer version
+    ``('python', 'path-to-module', prefix, separator)``
+    and ``('env', prefix, separator)`` .
     """
     instances = []
+    default_params: List[str] = [prefix]
+    if separator is not None:
+        default_params.append(separator)
+
     for config_ in configs:
         if isinstance(config_, dict):
             instances.append(config_from_dict(config_, lowercase_keys=lowercase_keys))
             continue
         elif isinstance(config_, str):
             if config_.endswith(".py"):
-                config_ = ("python", config_, prefix)
+                config_ = ("python", config_, *default_params)
             elif config_.endswith(".json"):
                 config_ = ("json", config_, True)
             elif yaml and config_.endswith(".yaml"):
@@ -55,9 +67,9 @@ def config(
             elif os.path.isdir(config_):
                 config_ = ("path", config_, remove_level)
             elif config_ in ("env", "environment"):
-                config_ = ("env", prefix)
+                config_ = ("env", *default_params)
             elif all(s and s.isidentifier() for s in config_.split(".")):
-                config_ = ("python", config_, prefix)
+                config_ = ("python", config_, *default_params)
             else:
                 raise ValueError('Cannot determine config type from "%s"' % config_)
 
@@ -72,12 +84,12 @@ def config(
                 config_from_dict(*config_[1:], lowercase_keys=lowercase_keys)
             )
         elif type_ in ("env", "environment"):
-            params = config_[1:] if len(config_) > 1 else [prefix]
+            params = list(config_[1:]) + default_params[(len(config_) - 1) :]
             instances.append(config_from_env(*params, lowercase_keys=lowercase_keys))
         elif type_ == "python":
             if len(config_) < 2:
                 raise ValueError("No path specified for python module")
-            params = config_[1:] if len(config_) > 2 else [config_[1], prefix]
+            params = list(config_[1:]) + default_params[(len(config_) - 2) :]
             try:
                 instances.append(
                     config_from_python(*params, lowercase_keys=lowercase_keys)
@@ -176,7 +188,7 @@ def config_from_env(
 
 
 class PathConfiguration(Configuration):
-    """Configuration from a filessytem path."""
+    """Configuration from a filesytem path."""
 
     def __init__(
         self, path: str, remove_level: int = 1, *, lowercase_keys: bool = False
@@ -241,7 +253,7 @@ class FileConfiguration(Configuration):
         data: Union[str, TextIO],
         read_from_file: bool = False,
         *,
-        lowercase_keys: bool = False
+        lowercase_keys: bool = False,
     ):
         """
         Constructor.
@@ -285,7 +297,7 @@ def config_from_json(
     data: Union[str, TextIO],
     read_from_file: bool = False,
     *,
-    lowercase_keys: bool = False
+    lowercase_keys: bool = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from a JSON file.
@@ -326,7 +338,7 @@ def config_from_ini(
     data: Union[str, TextIO],
     read_from_file: bool = False,
     *,
-    lowercase_keys: bool = False
+    lowercase_keys: bool = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from an INI file.
@@ -349,7 +361,7 @@ class PythonConfiguration(Configuration):
         prefix: str = "",
         separator: str = "_",
         *,
-        lowercase_keys: bool = False
+        lowercase_keys: bool = False,
     ):
         """
         Constructor.
@@ -398,7 +410,7 @@ def config_from_python(
     prefix: str = "",
     separator: str = "_",
     *,
-    lowercase_keys: bool = False
+    lowercase_keys: bool = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from the objects in a Python module.
@@ -467,7 +479,7 @@ if yaml is not None:  # pragma: no branch
         data: Union[str, TextIO],
         read_from_file: bool = False,
         *,
-        lowercase_keys: bool = False
+        lowercase_keys: bool = False,
     ) -> Configuration:
         """
         Return a Configuration instance from YAML files.
@@ -504,7 +516,7 @@ if toml is not None:  # pragma: no branch
         data: Union[str, TextIO],
         read_from_file: bool = False,
         *,
-        lowercase_keys: bool = False
+        lowercase_keys: bool = False,
     ) -> Configuration:
         """
         Return a Configuration instance from TOML files.
