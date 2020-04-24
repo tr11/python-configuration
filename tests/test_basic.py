@@ -1,7 +1,7 @@
 from config import config_from_dict
-from pytest import raises
-import pytest
 import json
+
+import pytest
 
 
 DICT = {
@@ -75,23 +75,20 @@ def test_reserved():  # type: ignore
     assert cfg["items"] == [1.1, 2.1, 3.1]
 
     assert cfg.as_dict() == RESERVED
-    with raises(TypeError):  # fails as the config has an entry for keys
+    with pytest.raises(TypeError):  # fails as the config has an entry for keys
         dict(cfg)
 
 
 def test_fails():  # type: ignore
     cfg = config_from_dict(DICT)
-    with raises(KeyError):
+    with pytest.raises(KeyError, match="a1.b2.c3.d4"):
         assert cfg["a1.b2.c3.d4"] is Exception
-        pytest.fail("a1.b2.c3.d4")
 
-    with raises(KeyError):
+    with pytest.raises(KeyError, match="c4"):
         assert cfg.a1.b2.c4 is Exception
-        pytest.fail("'c4'")
 
-    with raises(ValueError):
+    with pytest.raises(ValueError, match="Expected a valid True or False expression."):
         assert cfg["a1.b2"].get_bool("c3") is Exception
-        pytest.fail("Expected a valid True or False expression.")
 
 
 def test_type_conversions():  # type: ignore

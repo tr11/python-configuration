@@ -6,7 +6,6 @@ from config import (
     ConfigurationSet,
     config,
 )
-from pytest import raises
 import os
 import json
 
@@ -181,17 +180,14 @@ def test_fails():  # type: ignore
         config_from_env(prefix=PREFIX, lowercase_keys=True),
     )
 
-    with raises(KeyError):
+    with pytest.raises(KeyError, match="a1.b2.c3.d4"):
         assert cfg["a1.b2.c3.d4"] is Exception
-        pytest.fail("a1.b2.c3.d4")
 
-    with raises(KeyError):
+    with pytest.raises(KeyError, match="c4"):
         assert cfg.a1.b2.c4 is Exception
-        pytest.fail("'c4'")
 
-    with raises(ValueError):
+    with pytest.raises(ValueError, match="Expected a valid True or False expression."):
         assert cfg["a1.b2"].get_bool("c3") is Exception
-        pytest.fail("Expected a valid True or False expression.")
 
 
 def test_get():  # type: ignore
@@ -238,7 +234,7 @@ def test_get_dict():  # type: ignore
         "b2.c2": "YWJjZGVmZ2g=",
         "b2.c3": "abcdefgh",
     }
-    with raises(KeyError):
+    with pytest.raises(KeyError):
         assert cfg.get_dict("a3") is Exception
 
     assert set(cfg.a2.values()) == {"f", False, None, 10, "YWJjZGVmZ2g=", "abcdefgh"}
@@ -277,7 +273,7 @@ def test_get_dict_different_types():  # type: ignore
         "w3": "abc",
     }
 
-    with raises(TypeError):  # the first configuration overrides the type
+    with pytest.raises(TypeError):  # the first configuration overrides the type
         assert cfg.get_dict("z1") is Exception
     assert cfg.z1 == 100
 
@@ -514,20 +510,22 @@ def test_alternate_set_loader_strings_python_module():  # type: ignore
 
 
 def test_alternate_set_loader_fails():  # type: ignore
-    with raises(ValueError):
+    with pytest.raises(
+        ValueError,
+        match="configs should be a non-empty iterable of Configuration objects",
+    ):
         assert config() is Exception
-        pytest.fail("configs should be a non-empty iterable of Configuration objects")
 
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         assert config(("no type", "")) is Exception
 
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         assert config("no type") is Exception
 
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         assert config([]) is Exception
 
-    with raises(ValueError):
+    with pytest.raises(ValueError):
         assert config(("python",)) is Exception
 
 
