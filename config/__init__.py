@@ -78,7 +78,13 @@ def config(
             if len(config_) < 2:
                 raise ValueError("No path specified for python module")
             params = config_[1:] if len(config_) > 2 else [config_[1], prefix]
-            instances.append(config_from_python(*params, lowercase_keys=lowercase_keys))
+            try:
+                instances.append(
+                    config_from_python(*params, lowercase_keys=lowercase_keys)
+                )
+            except (FileNotFoundError, ModuleNotFoundError):
+                if not ignore_missing_paths:
+                    raise
         elif type_ == "json":
             try:
                 instances.append(

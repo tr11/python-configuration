@@ -542,6 +542,10 @@ def test_allow_missing_paths():  # type: ignore
             config(os.path.join(folder, "file.json"))
         with pytest.raises(FileNotFoundError):
             config(os.path.join(folder, "file.ini"))
+        with pytest.raises(FileNotFoundError):
+            config(os.path.join(folder, "module.py"))
+        with pytest.raises(ModuleNotFoundError):
+            config(("python", folder))
         if yaml:
             with pytest.raises(FileNotFoundError):
                 config(os.path.join(folder, "file.yaml"))
@@ -554,6 +558,8 @@ def test_allow_missing_paths():  # type: ignore
             os.path.join(folder, "file.json"),
             os.path.join(folder, "file.ini"),
             ("path", os.path.join(folder, "sub")),
+            os.path.join(folder, "module.py"),
+            ("python", folder),
         ]
         if yaml:
             entries.append(os.path.join(folder, "file.yaml"))
