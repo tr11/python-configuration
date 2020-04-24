@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.6.1] - 2020-04-24
+### Changed
+- Added a `separator` argument to `config` function
+
 ## [0.6.0] - 2020-01-22
 ### Added
 - Added missing `dict` methods so a `Configuration` instance acts like a dictionary for most use cases
@@ -39,7 +43,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Initial version
 
-[Unreleased]: https://github.com/tr11/python-configuration/compare/0.6.0...HEAD
+[Unreleased]: https://github.com/tr11/python-configuration/compare/0.6.1...HEAD
+[0.6.1]: https://github.com/tr11/python-configuration/compare/0.6.0...0.6.1
 [0.6.0]: https://github.com/tr11/python-configuration/compare/0.5.0...0.6.0
 [0.5.0]: https://github.com/tr11/python-configuration/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/tr11/python-configuration/compare/0.3.1...0.4.0
