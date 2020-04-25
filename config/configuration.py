@@ -7,6 +7,7 @@ from typing import (
     ItemsView,
     Iterator,
     KeysView,
+    List,
     Mapping,
     Optional,
     Tuple,
@@ -15,7 +16,7 @@ from typing import (
     cast,
 )
 
-from .helpers import as_bool, clean, interpolate
+from .helpers import as_bool, clean, interpolate_object
 
 
 class Configuration:
@@ -132,21 +133,13 @@ class Configuration:
             raise KeyError(item)
         if isinstance(v, dict):
             return Configuration(v)
-        elif isinstance(v, str) and self._interpolate:
-            return interpolate(v, self.as_dict())
+        elif self._interpolate:
+            return interpolate_object(v, self.as_dict())
         else:
             return v
 
     def __getattr__(self, item: str) -> Any:  # noqa: D105
-        v = self._get_subset(item)
-        if v == {}:
-            raise KeyError(item)
-        if isinstance(v, dict):
-            return Configuration(v)
-        elif isinstance(v, str) and self._interpolate:
-            return interpolate(v, self.as_dict())
-        else:
-            return v
+        return self[item]
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
         """
@@ -194,6 +187,14 @@ class Configuration:
         :param item: key
         """
         return float(self[item])
+
+    def get_list(self, item: str) -> List[Any]:
+        """
+        Get the item value as a list.
+
+        :param item: key
+        """
+        return list(self[item])
 
     def get_dict(self, item: str) -> dict:
         """

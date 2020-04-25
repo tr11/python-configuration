@@ -75,3 +75,18 @@ def interpolate(text: str, d: dict) -> str:
         text = text.format(**d)
 
     return text
+
+
+def interpolate_object(obj: Any, d: dict) -> Any:
+    """
+    Return the interpolated object.
+
+    :param obj: object to interpolate
+    :param d: dictionary
+    """
+    if isinstance(obj, str):
+        return interpolate(obj, d)
+    elif hasattr(obj, "__iter__"):
+        return [interpolate_object(x, d) for x in obj]
+    else:
+        return obj
