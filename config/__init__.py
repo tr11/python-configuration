@@ -52,7 +52,7 @@ def config(
         default_args.append(separator)
     default_kwargs: Dict[Any, Any] = {
         "lowercase_keys": lowercase_keys,
-        "interpolate": interpolate,
+        "interpolate": False,  # for Configuration Sets, interpolate at the Set level
     }
 
     for config_ in configs:
@@ -132,7 +132,7 @@ def config(
         else:
             raise ValueError('Unknown configuration type "%s"' % type_)
 
-    return ConfigurationSet(*instances)
+    return ConfigurationSet(*instances, interpolate=interpolate)
 
 
 class EnvConfiguration(Configuration):

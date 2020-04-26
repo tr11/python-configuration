@@ -1,4 +1,4 @@
-from config import config_from_dict
+from config import config, config_from_dict
 
 from pytest import raises
 
@@ -12,6 +12,8 @@ ARRAY = {
     "var3": "test",
     "var4": ["{var3}", ["{var2}"], 1],
 }
+SET1 = {"var1": "This {var2}", "var2": "is a {var3}"}
+SET2 = {"var3": "test"}
 
 
 def test_no_interpolation():  # type: ignore
@@ -55,3 +57,12 @@ def test_list():  # type: ignore
     assert cfg["var4"] == ["test", ["repeat test"], 1]
 
     assert cfg.get_list("var1") == ["This is a repeat test test", "repeat test", "test"]
+
+
+def test_interpolation_on_set():  # type: ignore
+    cfg = config(SET1, SET2, lowercase_keys=True, interpolate=True)
+
+    assert cfg["var3"] == "test"
+    assert cfg["var2"] == "is a test"
+    assert cfg["var1"] == "This is a test"
+    assert cfg.var1 == "This is a test"
