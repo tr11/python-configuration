@@ -7,6 +7,7 @@ from typing import (
     ItemsView,
     Iterator,
     KeysView,
+    List,
     Mapping,
     Optional,
     Tuple,
@@ -15,7 +16,7 @@ from typing import (
     cast,
 )
 
-from .helpers import as_bool, clean
+from .helpers import as_bool, clean, interpolate_object
 
 
 class Configuration:
@@ -34,7 +35,12 @@ class Configuration:
         - ``a2.b2.c2``
     """
 
-    def __init__(self, config_: Mapping[str, Any], lowercase_keys: bool = False):
+    def __init__(
+        self,
+        config_: Mapping[str, Any],
+        lowercase_keys: bool = False,
+        interpolate: bool = False,
+    ):
         """
         Constructor.
 
@@ -42,6 +48,7 @@ class Configuration:
         :param lowercase_keys: whether to convert every key to lower case.
         """
         self._lowercase = lowercase_keys
+        self._interpolate = interpolate
         self._config: Dict[str, Any] = self._flatten_dict(config_)
 
     def __eq__(self, other):  # type: ignore
@@ -124,13 +131,15 @@ class Configuration:
         v = self._get_subset(item)
         if v == {}:
             raise KeyError(item)
-        return Configuration(v) if isinstance(v, dict) else v
+        if isinstance(v, dict):
+            return Configuration(v)
+        elif self._interpolate:
+            return interpolate_object(v, self.as_dict())
+        else:
+            return v
 
     def __getattr__(self, item: str) -> Any:  # noqa: D105
-        v = self._get_subset(item)
-        if v == {}:
-            raise KeyError(item)
-        return Configuration(v) if isinstance(v, dict) else v
+        return self[item]
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
         """
@@ -178,6 +187,14 @@ class Configuration:
         :param item: key
         """
         return float(self[item])
+
+    def get_list(self, item: str) -> List[Any]:
+        """
+        Get the item value as a list.
+
+        :param item: key
+        """
+        return list(self[item])
 
     def get_dict(self, item: str) -> dict:
         """
