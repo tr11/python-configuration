@@ -14,6 +14,7 @@ ARRAY = {
 }
 SET1 = {"var1": "This {var2}", "var2": "is a {var3}"}
 SET2 = {"var3": "test"}
+VALUES_FMT = {"percentage": "{val:.3%}", "with_sign": "{val:+f}", "val": 1.23456}
 
 
 def test_no_interpolation():  # type: ignore
@@ -66,3 +67,12 @@ def test_interpolation_on_set():  # type: ignore
     assert cfg["var2"] == "is a test"
     assert cfg["var1"] == "This is a test"
     assert cfg.var1 == "This is a test"
+
+
+def test_interpolation_with_formatting():  # type: ignore
+    cfg = config_from_dict(VALUES_FMT, lowercase_keys=True, interpolate=True)
+
+    assert cfg["val"] == 1.23456
+    assert cfg["with_sign"] == "+1.234560"
+    assert cfg["percentage"] == "123.456%"
+    assert cfg.percentage == "123.456%"
