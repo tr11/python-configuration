@@ -14,7 +14,7 @@ from typing import (
 )
 
 from .configuration import Configuration
-from .helpers import clean
+from .helpers import clean, interpolate_object
 
 
 class ConfigurationSet(Configuration):
@@ -25,7 +25,10 @@ class ConfigurationSet(Configuration):
     in a hierarchical manner.
     """
 
-    def __init__(self, *configs: Configuration):  # noqa: D107
+    def __init__(
+        self, *configs: Configuration, interpolate: bool = False
+    ):  # noqa: D107
+        self._interpolate = interpolate
         try:
             self._configs: List[Configuration] = list(configs)
         except Exception:  # pragma: no cover
@@ -69,7 +72,7 @@ class ConfigurationSet(Configuration):
                 result.update(v)
             return Configuration(result)
         else:
-            return values[0]
+            return interpolate_object(values[0], self.as_dict())
 
     def _writable_config(self) -> Configuration:
         if not self._writable:

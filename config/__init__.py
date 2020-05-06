@@ -4,7 +4,7 @@ import json
 import os
 from importlib.abc import InspectLoader
 from types import ModuleType
-from typing import Iterable, List, Optional, TextIO, Union, cast
+from typing import Any, Dict, Iterable, List, Optional, TextIO, Union, cast
 
 try:
     import yaml
@@ -27,6 +27,7 @@ def config(
     remove_level: int = 1,
     lowercase_keys: bool = False,
     ignore_missing_paths: bool = False,
+    interpolate: bool = False,
 ) -> ConfigurationSet:
     """
     Create a :class:`ConfigurationSet` instance from an iterable of configs.
@@ -37,6 +38,7 @@ def config(
     :param lowercase_keys: whether to convert every key to lower case.
     :param ignore_missing_paths: whether to ignore failures from missing files/folders.
     :param separator: separator for Python modules and environment variables.
+    :param interpolate: whether to apply string interpolation when looking for items
 
     Note that the :py:attr:`separator` parameter  impacts Python modules and and
     environment variables at the same time. To pass different separators to Python
@@ -45,17 +47,21 @@ def config(
     and ``('env', prefix, separator)`` .
     """
     instances = []
-    default_params: List[str] = [prefix]
+    default_args: List[str] = [prefix]
     if separator is not None:
-        default_params.append(separator)
+        default_args.append(separator)
+    default_kwargs: Dict[Any, Any] = {
+        "lowercase_keys": lowercase_keys,
+        "interpolate": False,  # for Configuration Sets, interpolate at the Set level
+    }
 
     for config_ in configs:
         if isinstance(config_, dict):
-            instances.append(config_from_dict(config_, lowercase_keys=lowercase_keys))
+            instances.append(config_from_dict(config_, **default_kwargs))
             continue
         elif isinstance(config_, str):
             if config_.endswith(".py"):
-                config_ = ("python", config_, *default_params)
+                config_ = ("python", config_, *default_args)
             elif config_.endswith(".json"):
                 config_ = ("json", config_, True)
             elif yaml and config_.endswith(".yaml"):
@@ -67,9 +73,9 @@ def config(
             elif os.path.isdir(config_):
                 config_ = ("path", config_, remove_level)
             elif config_ in ("env", "environment"):
-                config_ = ("env", *default_params)
+                config_ = ("env", *default_args)
             elif all(s and s.isidentifier() for s in config_.split(".")):
-                config_ = ("python", config_, *default_params)
+                config_ = ("python", config_, *default_args)
             else:
                 raise ValueError('Cannot determine config type from "%s"' % config_)
 
@@ -80,74 +86,65 @@ def config(
             )
         type_ = config_[0]
         if type_ == "dict":
-            instances.append(
-                config_from_dict(*config_[1:], lowercase_keys=lowercase_keys)
-            )
+            instances.append(config_from_dict(*config_[1:], **default_kwargs))
         elif type_ in ("env", "environment"):
-            params = list(config_[1:]) + default_params[(len(config_) - 1) :]
-            instances.append(config_from_env(*params, lowercase_keys=lowercase_keys))
+            params = list(config_[1:]) + default_args[(len(config_) - 1) :]
+            instances.append(config_from_env(*params, **default_kwargs))
         elif type_ == "python":
             if len(config_) < 2:
                 raise ValueError("No path specified for python module")
-            params = list(config_[1:]) + default_params[(len(config_) - 2) :]
+            params = list(config_[1:]) + default_args[(len(config_) - 2) :]
             try:
-                instances.append(
-                    config_from_python(*params, lowercase_keys=lowercase_keys)
-                )
+                instances.append(config_from_python(*params, **default_kwargs))
             except (FileNotFoundError, ModuleNotFoundError):
                 if not ignore_missing_paths:
                     raise
         elif type_ == "json":
             try:
-                instances.append(
-                    config_from_json(*config_[1:], lowercase_keys=lowercase_keys)
-                )
+                instances.append(config_from_json(*config_[1:], **default_kwargs))
             except FileNotFoundError:
                 if not ignore_missing_paths:
                     raise
         elif yaml and type_ == "yaml":
             try:
-                instances.append(
-                    config_from_yaml(*config_[1:], lowercase_keys=lowercase_keys)
-                )
+                instances.append(config_from_yaml(*config_[1:], **default_kwargs))
             except FileNotFoundError:
                 if not ignore_missing_paths:
                     raise
         elif toml and type_ == "toml":
             try:
-                instances.append(
-                    config_from_toml(*config_[1:], lowercase_keys=lowercase_keys)
-                )
+                instances.append(config_from_toml(*config_[1:], **default_kwargs))
             except FileNotFoundError:
                 if not ignore_missing_paths:
                     raise
         elif type_ == "ini":
             try:
-                instances.append(
-                    config_from_ini(*config_[1:], lowercase_keys=lowercase_keys)
-                )
+                instances.append(config_from_ini(*config_[1:], **default_kwargs))
             except FileNotFoundError:
                 if not ignore_missing_paths:
                     raise
         elif type_ == "path":
             try:
-                instances.append(
-                    config_from_path(*config_[1:], lowercase_keys=lowercase_keys)
-                )
+                instances.append(config_from_path(*config_[1:], **default_kwargs))
             except FileNotFoundError:
                 if not ignore_missing_paths:
                     raise
         else:
             raise ValueError('Unknown configuration type "%s"' % type_)
 
-    return ConfigurationSet(*instances)
+    return ConfigurationSet(*instances, interpolate=interpolate)
 
 
 class EnvConfiguration(Configuration):
     """Configuration from Environment variables."""
 
     def __init__(
-        self, prefix: str, separator: str = "__", *, lowercase_keys: bool = False
+        self,
+        prefix: str,
+        separator: str = "__",
+        *,
+        lowercase_keys: bool = False,
+        interpolate: bool = False,
     ):
         """
         Constructor.
@@ -158,7 +155,7 @@ class EnvConfiguration(Configuration):
         """
         self._prefix = prefix
         self._separator = separator
-        super().__init__({}, lowercase_keys=lowercase_keys)
+        super().__init__({}, lowercase_keys=lowercase_keys, interpolate=interpolate)
         self.reload()
 
     def reload(self) -> None:
@@ -170,11 +167,17 @@ class EnvConfiguration(Configuration):
             result[
                 key[len(self._prefix) :].replace(self._separator, ".").strip(".")
             ] = value
-        super().__init__(result, lowercase_keys=self._lowercase)
+        super().__init__(
+            result, lowercase_keys=self._lowercase, interpolate=self._interpolate
+        )
 
 
 def config_from_env(
-    prefix: str, separator: str = "__", *, lowercase_keys: bool = False
+    prefix: str,
+    separator: str = "__",
+    *,
+    lowercase_keys: bool = False,
+    interpolate: bool = False,
 ) -> Configuration:
     """
     Create a :class:`EnvConfiguration` instance from environment variables.
@@ -184,14 +187,21 @@ def config_from_env(
     :param lowercase_keys: whether to convert every key to lower case.
     :return: a :class:`Configuration` instance
     """
-    return EnvConfiguration(prefix, separator, lowercase_keys=lowercase_keys)
+    return EnvConfiguration(
+        prefix, separator, lowercase_keys=lowercase_keys, interpolate=interpolate
+    )
 
 
 class PathConfiguration(Configuration):
     """Configuration from a filesytem path."""
 
     def __init__(
-        self, path: str, remove_level: int = 1, *, lowercase_keys: bool = False
+        self,
+        path: str,
+        remove_level: int = 1,
+        *,
+        lowercase_keys: bool = False,
+        interpolate: bool = False,
     ):
         """
         Constructor.
@@ -202,7 +212,7 @@ class PathConfiguration(Configuration):
         """
         self._path = path
         self._remove_level = remove_level
-        super().__init__({}, lowercase_keys=lowercase_keys)
+        super().__init__({}, lowercase_keys=lowercase_keys, interpolate=interpolate)
         self.reload()
 
     def reload(self) -> None:
@@ -228,11 +238,17 @@ class PathConfiguration(Configuration):
         for filename, key in files_keys:
             result[key] = open(filename).read()
 
-        super().__init__(result, lowercase_keys=self._lowercase)
+        super().__init__(
+            result, lowercase_keys=self._lowercase, interpolate=self._interpolate
+        )
 
 
 def config_from_path(
-    path: str, remove_level: int = 1, *, lowercase_keys: bool = False
+    path: str,
+    remove_level: int = 1,
+    *,
+    lowercase_keys: bool = False,
+    interpolate: bool = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from filesystem path.
@@ -242,7 +258,9 @@ def config_from_path(
     :param lowercase_keys: whether to convert every key to lower case.
     :return: a :class:`Configuration` instance
     """
-    return PathConfiguration(path, remove_level, lowercase_keys=lowercase_keys)
+    return PathConfiguration(
+        path, remove_level, lowercase_keys=lowercase_keys, interpolate=interpolate
+    )
 
 
 class FileConfiguration(Configuration):
@@ -254,6 +272,7 @@ class FileConfiguration(Configuration):
         read_from_file: bool = False,
         *,
         lowercase_keys: bool = False,
+        interpolate: bool = False,
     ):
         """
         Constructor.
@@ -263,7 +282,7 @@ class FileConfiguration(Configuration):
                the :attr:`data` as the contents of the file.
         :param lowercase_keys: whether to convert every key to lower case.
         """
-        super().__init__({}, lowercase_keys=lowercase_keys)
+        super().__init__({}, lowercase_keys=lowercase_keys, interpolate=interpolate)
         self._reload(data, read_from_file)
         self._data = data if read_from_file and isinstance(data, str) else None
 
@@ -298,6 +317,7 @@ def config_from_json(
     read_from_file: bool = False,
     *,
     lowercase_keys: bool = False,
+    interpolate: bool = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from a JSON file.
@@ -308,7 +328,9 @@ def config_from_json(
     :param lowercase_keys: whether to convert every key to lower case.
     :return: a :class:`Configuration` instance
     """
-    return JSONConfiguration(data, read_from_file, lowercase_keys=lowercase_keys)
+    return JSONConfiguration(
+        data, read_from_file, lowercase_keys=lowercase_keys, interpolate=interpolate
+    )
 
 
 class INIConfiguration(FileConfiguration):
@@ -339,6 +361,7 @@ def config_from_ini(
     read_from_file: bool = False,
     *,
     lowercase_keys: bool = False,
+    interpolate: bool = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from an INI file.
@@ -349,7 +372,9 @@ def config_from_ini(
     :param lowercase_keys: whether to convert every key to lower case.
     :return: a :class:`Configuration` instance
     """
-    return INIConfiguration(data, read_from_file, lowercase_keys=lowercase_keys)
+    return INIConfiguration(
+        data, read_from_file, lowercase_keys=lowercase_keys, interpolate=interpolate
+    )
 
 
 class PythonConfiguration(Configuration):
@@ -362,6 +387,7 @@ class PythonConfiguration(Configuration):
         separator: str = "_",
         *,
         lowercase_keys: bool = False,
+        interpolate: bool = False,
     ):
         """
         Constructor.
@@ -386,7 +412,7 @@ class PythonConfiguration(Configuration):
         self._module = module
         self._prefix = prefix
         self._separator = separator
-        super().__init__({}, lowercase_keys=lowercase_keys)
+        super().__init__({}, lowercase_keys=lowercase_keys, interpolate=interpolate)
         self.reload()
 
     def reload(self) -> None:
@@ -402,7 +428,9 @@ class PythonConfiguration(Configuration):
             .strip("."): getattr(self._module, k)
             for k in variables
         }
-        super().__init__(result, lowercase_keys=self._lowercase)
+        super().__init__(
+            result, lowercase_keys=self._lowercase, interpolate=self._interpolate
+        )
 
 
 def config_from_python(
@@ -411,6 +439,7 @@ def config_from_python(
     separator: str = "_",
     *,
     lowercase_keys: bool = False,
+    interpolate: bool = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from the objects in a Python module.
@@ -421,10 +450,18 @@ def config_from_python(
     :param lowercase_keys: whether to convert every key to lower case.
     :return: a :class:`Configuration` instance
     """
-    return PythonConfiguration(module, prefix, separator, lowercase_keys=lowercase_keys)
+    return PythonConfiguration(
+        module,
+        prefix,
+        separator,
+        lowercase_keys=lowercase_keys,
+        interpolate=interpolate,
+    )
 
 
-def config_from_dict(data: dict, *, lowercase_keys: bool = False) -> Configuration:
+def config_from_dict(
+    data: dict, *, lowercase_keys: bool = False, interpolate: bool = False
+) -> Configuration:
     """
     Create a :class:`Configuration` instance from a dictionary.
 
@@ -432,7 +469,7 @@ def config_from_dict(data: dict, *, lowercase_keys: bool = False) -> Configurati
     :param lowercase_keys: whether to convert every key to lower case.
     :return: a :class:`Configuration` instance
     """
-    return Configuration(data, lowercase_keys=lowercase_keys)
+    return Configuration(data, lowercase_keys=lowercase_keys, interpolate=interpolate)
 
 
 def create_path_from_config(
@@ -480,6 +517,7 @@ if yaml is not None:  # pragma: no branch
         read_from_file: bool = False,
         *,
         lowercase_keys: bool = False,
+        interpolate: bool = False,
     ) -> Configuration:
         """
         Return a Configuration instance from YAML files.
@@ -489,7 +527,9 @@ if yaml is not None:  # pragma: no branch
         :param lowercase_keys: whether to convert every key to lower case.
         :return: a Configuration instance
         """
-        return YAMLConfiguration(data, read_from_file, lowercase_keys=lowercase_keys)
+        return YAMLConfiguration(
+            data, read_from_file, lowercase_keys=lowercase_keys, interpolate=interpolate
+        )
 
 
 if toml is not None:  # pragma: no branch
@@ -517,6 +557,7 @@ if toml is not None:  # pragma: no branch
         read_from_file: bool = False,
         *,
         lowercase_keys: bool = False,
+        interpolate: bool = False,
     ) -> Configuration:
         """
         Return a Configuration instance from TOML files.
@@ -526,4 +567,6 @@ if toml is not None:  # pragma: no branch
         :param lowercase_keys: whether to convert every key to lower case.
         :return: a Configuration instance
         """
-        return TOMLConfiguration(data, read_from_file, lowercase_keys=lowercase_keys)
+        return TOMLConfiguration(
+            data, read_from_file, lowercase_keys=lowercase_keys, interpolate=interpolate
+        )

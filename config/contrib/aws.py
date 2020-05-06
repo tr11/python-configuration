@@ -38,6 +38,7 @@ class AWSSecretsManagerConfiguration(Configuration):
         profile_name: Optional[str] = None,
         cache_expiration: int = 5 * 60,
         lowercase_keys: bool = False,
+        interpolate: bool = False,
     ) -> None:
         """
         Constructor.
@@ -63,6 +64,7 @@ class AWSSecretsManagerConfiguration(Configuration):
         self._secret: Cache = Cache({}, 0)
         self._expiration: float = cache_expiration
         self._lowercase = lowercase_keys
+        self._interpolate = interpolate
 
     @property
     def _config(self) -> Dict[str, Any]:  # type: ignore

@@ -235,6 +235,23 @@ define the elements sets its datatype. For example, if in the example above
 JSON file specifies it as anything else besides a mapping, then the JSON value will be
 dropped automatically. 
 
+## Other Features
+
+###### String Interpolation
+When setting the `interpolate` parameter in any `Configuration` instance, the library will
+perform a string interpolation step using the [str.format](https://docs.python.org/3/library/string.html#formatstrings)
+syntax.  In particular, this allows to format configuration values automatically:
+```python
+cfg = config_from_dict({
+    "percentage": "{val:.3%}",
+    "with_sign": "{val:+f}",
+    "val": 1.23456}, interpolate=True)
+
+assert cfg.val == 1.23456
+assert cfg.with_sign == "+1.234560"
+assert cfg.percentage == "123.456%"
+```
+
 ## Extras
 The `config.contrib` package contains extra implementations of the `Configuration` class
 used for special cases. Currently the following are implemented:
