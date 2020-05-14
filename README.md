@@ -34,7 +34,7 @@ pip install python-configuration
 To include the optional TOML and/or YAML loaders, install the optional
 dependencies `toml` and ` yaml`. For example,
 ```shell
-pip install python-configuration[toml, yaml]
+pip install python-configuration[toml,yaml]
 ```
 
 ## Getting started
