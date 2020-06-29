@@ -71,8 +71,10 @@ class ConfigurationSet(Configuration):
                     continue
                 result.update(v)
             return Configuration(result)
-        else:
+        elif self._interpolate:
             return interpolate_object(values[0], self.as_dict())
+        else:
+            return values[0]
 
     def _writable_config(self) -> Configuration:
         if not self._writable:

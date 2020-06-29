@@ -17,4 +17,5 @@ cover
 .pytest*
 .mypy_cache
 .idea
+.vscode
 poetry.lock

@@ -69,6 +69,15 @@ def test_interpolation_on_set():  # type: ignore
     assert cfg.var1 == "This is a test"
 
 
+def test_no_interpolation_on_set():  # type: ignore
+    cfg = config(SET1, SET2, lowercase_keys=True, interpolate=False)
+
+    assert cfg["var3"] == "test"
+    assert cfg["var2"] == "is a {var3}"
+    assert cfg["var1"] == "This {var2}"
+    assert cfg.var1 == "This {var2}"
+
+
 def test_interpolation_with_formatting():  # type: ignore
     cfg = config_from_dict(VALUES_FMT, lowercase_keys=True, interpolate=True)
 
