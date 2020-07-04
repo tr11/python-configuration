@@ -85,3 +85,17 @@ def test_interpolation_with_formatting():  # type: ignore
     assert cfg["with_sign"] == "+1.234560"
     assert cfg["percentage"] == "123.456%"
     assert cfg.percentage == "123.456%"
+
+
+def test_interpolation_with_literals():  # type: ignore
+    values = {
+        "something": "value_of_something",
+        "interpolatable": "say {something} {{literal}}",
+        "interpolatable2": "{interpolatable} {{another_literal}}",
+    }
+
+    cfg = config_from_dict(values, interpolate=True)
+
+    assert cfg.something == "value_of_something"
+    assert cfg.interpolatable == "say value_of_something {literal}"
+    assert cfg.interpolatable2 == "say value_of_something {literal} {another_literal}"

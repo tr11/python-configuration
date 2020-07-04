@@ -55,26 +55,31 @@ def clean(key: str, value: Any, mask: str = "******") -> Any:
     return value
 
 
-def interpolate(text: str, d: dict) -> str:
+def interpolate(text: str, d: dict, found: Set[Tuple[str, ...]]) -> str:
     """
     Return the string interpolated as many times as needed.
 
     :param text: string possibly containing an interpolation pattern
     :param d: dictionary
+    :param found: variables found so far
     """
-    all_variables: Set[Tuple[str, ...]] = set()
-    variables: Tuple[str, ...] = ("",)
+    if not isinstance(text, str):
+        return text
 
-    while variables:
-        variables = tuple(
-            sorted(x[1] for x in string.Formatter().parse(text) if x[1] is not None)
-        )
-        if variables in all_variables:
-            raise ValueError("Cycle detected while interpolating keys")
-        all_variables.add(variables)
-        text = text.format(**d)
+    variables = tuple(
+        sorted(x[1] for x in string.Formatter().parse(text) if x[1] is not None)
+    )
 
-    return text
+    if not variables:
+        return text
+
+    if variables in found:
+        raise ValueError("Cycle detected while interpolating keys")
+    else:
+        found.add(variables)
+
+    interpolated = {v: interpolate(d[v], d, found) for v in variables}
+    return text.format(**interpolated)
 
 
 def interpolate_object(obj: Any, d: dict) -> Any:
@@ -85,7 +90,7 @@ def interpolate_object(obj: Any, d: dict) -> Any:
     :param d: dictionary
     """
     if isinstance(obj, str):
-        return interpolate(obj, d)
+        return interpolate(obj, d, set())
     elif hasattr(obj, "__iter__"):
         return [interpolate_object(x, d) for x in obj]
     else:
