@@ -48,7 +48,7 @@ class Configuration:
         :param lowercase_keys: whether to convert every key to lower case.
         """
         self._lowercase = lowercase_keys
-        self._interpolate = interpolate
+        self._interpolate = {} if interpolate is True else interpolate
         self._config: Dict[str, Any] = self._flatten_dict(config_)
 
     def __eq__(self, other):  # type: ignore
@@ -133,8 +133,10 @@ class Configuration:
             raise KeyError(item)
         if isinstance(v, dict):
             return Configuration(v)
-        elif self._interpolate:
-            return interpolate_object(v, self.as_dict())
+        elif self._interpolate is not False:
+            d = self.as_dict()
+            d.update(self._interpolate)
+            return interpolate_object(v, d)
         else:
             return v
 

@@ -88,6 +88,7 @@ def test_interpolation_with_formatting():  # type: ignore
 
 
 def test_interpolation_with_literals():  # type: ignore
+    # literals escaped
     values = {
         "something": "value_of_something",
         "interpolatable": "say {something} {{literal}}",
@@ -99,3 +100,18 @@ def test_interpolation_with_literals():  # type: ignore
     assert cfg.something == "value_of_something"
     assert cfg.interpolatable == "say value_of_something {literal}"
     assert cfg.interpolatable2 == "say value_of_something {literal} {another_literal}"
+
+    # passing extra values to interpolate
+    values = {
+        "something": "value_of_something",
+        "interpolatable": "say {something} {literal}",
+        "interpolatable2": "{interpolatable} {another_literal}",
+    }
+
+    cfg = config_from_dict(
+        values, interpolate={"literal": "abc", "another_literal": "xyz"}
+    )
+
+    assert cfg.something == "value_of_something"
+    assert cfg.interpolatable == "say value_of_something abc"
+    assert cfg.interpolatable2 == "say value_of_something abc xyz"
