@@ -71,6 +71,8 @@ def config(
                 config_ = ("toml", config_, True)
             elif config_.endswith(".ini"):
                 config_ = ("ini", config_, True)
+            elif config_.endswith(".env"):
+                config_ = ("dotenv", config_, True)
             elif os.path.isdir(config_):
                 config_ = ("path", config_, remove_level)
             elif config_ in ("env", "environment"):
@@ -121,6 +123,12 @@ def config(
         elif type_ == "ini":
             try:
                 instances.append(config_from_ini(*config_[1:], **default_kwargs))
+            except FileNotFoundError:
+                if not ignore_missing_paths:
+                    raise
+        elif type_ == "dotenv":
+            try:
+                instances.append(config_from_dotenv(*config_[1:], **default_kwargs))
             except FileNotFoundError:
                 if not ignore_missing_paths:
                     raise
