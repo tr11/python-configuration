@@ -1,6 +1,7 @@
 """Configuration class."""
 
 import base64
+from copy import copy
 from typing import (
     Any,
     Dict,
@@ -116,16 +117,16 @@ class Configuration:
         if not d:
             prefixes = prefix.split(".")
             if len(prefixes) == 1:
-                return self._config.get(prefix, {})
+                return copy(self._config.get(prefix, {}))
             d = self._config
             while prefixes:  # pragma: no branches
                 p = prefixes[0]
                 new_d = self._filter_dict(d, p)
                 if new_d == {}:
-                    return d.get(p, {}) if len(prefixes) == 1 else {}
+                    return copy(d.get(p, {}) if len(prefixes) == 1 else {})
                 d = new_d
                 prefixes = prefixes[1:]
-        return d
+        return copy(d)
 
     def __getitem__(self, item: str) -> Union["Configuration", Any]:  # noqa: D105
         v = self._get_subset(item)
