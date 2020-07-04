@@ -16,7 +16,7 @@ from typing import (
     cast,
 )
 
-from .helpers import as_bool, clean, interpolate_object
+from .helpers import InterpolateType, as_bool, clean, interpolate_object
 
 
 class Configuration:
@@ -39,7 +39,7 @@ class Configuration:
         self,
         config_: Mapping[str, Any],
         lowercase_keys: bool = False,
-        interpolate: bool = False,
+        interpolate: InterpolateType = False,
     ):
         """
         Constructor.
@@ -135,7 +135,7 @@ class Configuration:
             return Configuration(v)
         elif self._interpolate is not False:
             d = self.as_dict()
-            d.update(self._interpolate)
+            d.update(cast(Dict[str, str], self._interpolate))
             return interpolate_object(v, d)
         else:
             return v

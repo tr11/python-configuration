@@ -11,10 +11,11 @@ from typing import (
     Optional,
     Union,
     ValuesView,
+    cast,
 )
 
 from .configuration import Configuration
-from .helpers import clean, interpolate_object
+from .helpers import InterpolateType, clean, interpolate_object
 
 
 class ConfigurationSet(Configuration):
@@ -26,7 +27,7 @@ class ConfigurationSet(Configuration):
     """
 
     def __init__(
-        self, *configs: Configuration, interpolate: bool = False
+        self, *configs: Configuration, interpolate: InterpolateType = False
     ):  # noqa: D107
         self._interpolate = {} if interpolate is True else interpolate
         try:
@@ -73,7 +74,7 @@ class ConfigurationSet(Configuration):
             return Configuration(result)
         elif self._interpolate is not False:
             d = self.as_dict()
-            d.update(self._interpolate)
+            d.update(cast(Dict[str, str], self._interpolate))
             return interpolate_object(values[0], d)
         else:
             return values[0]

@@ -1,12 +1,14 @@
 """Helper functions."""
 
 import string
-from typing import Any, Set, Tuple
+from typing import Any, Dict, Set, Tuple, Union
 
 
 TRUTH_TEXT = frozenset(("t", "true", "y", "yes", "on", "1"))
 FALSE_TEXT = frozenset(("f", "false", "n", "no", "off", "0", ""))
 PROTECTED_KEYS = frozenset(("secret", "password", "passwd", "pwd"))
+
+InterpolateType = Union[bool, Dict[str, str]]
 
 
 def as_bool(s: Any) -> bool:

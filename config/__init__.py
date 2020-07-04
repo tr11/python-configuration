@@ -18,8 +18,7 @@ except ImportError:  # pragma: no cover
 
 from .configuration import Configuration
 from .configuration_set import ConfigurationSet
-
-InterpolateType = Union[bool, Dict[str, str]]
+from .helpers import InterpolateType
 
 
 def config(
@@ -574,7 +573,7 @@ if toml is not None:  # pragma: no branch
         :param data: string or file
         :param read_from_file: whether `data` is a file or a TOML formatted string
         :param lowercase_keys: whether to convert every key to lower case.
-    :param interpolate: whether to apply string interpolation when looking for items
+        :param interpolate: whether to apply string interpolation when looking for items
         :return: a Configuration instance
         """
         return TOMLConfiguration(
