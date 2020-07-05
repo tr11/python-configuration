@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "python-configuration"
-version = "0.7.0"
+version = "0.7.1"
 description = "A library to load configuration parameters from multiple sources and formats"
 authors = [
     "Tiago Requeijo <tiago.requeijo.dev@gmail.com>"
@@ -40,6 +40,8 @@ sphinx-autodoc-typehints = "^1.6"
 pydocstyle = "^4.0"
 pytest-black = "^0.3.7"
 pytest-mock = "^2.0.0"
+# need to allow pre-releases to address a recent change in pytest-black. See https://github.com/shopkeep/pytest-black/issues/45
+black = { version = "*", allow-prereleases = true }
 
 [tool.poetry.extras]
 yaml = ["pyyaml"]

@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.7.1] - 2020-07-05
+### Fixed
+- installation with `poetry` because of changes to pytest-black
+
 ## [0.7.0] - 2020-05-06
 ### Added
 - New string interpolation feature
@@ -47,7 +51,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Initial version
 
-[Unreleased]: https://github.com/tr11/python-configuration/compare/0.7.0...HEAD
+[Unreleased]: https://github.com/tr11/python-configuration/compare/0.7.1...HEAD
+[0.7.1]: https://github.com/tr11/python-configuration/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/tr11/python-configuration/compare/0.6.1...0.7.0
 [0.6.1]: https://github.com/tr11/python-configuration/compare/0.6.0...0.6.1
 [0.6.0]: https://github.com/tr11/python-configuration/compare/0.5.0...0.6.0
