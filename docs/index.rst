@@ -24,6 +24,7 @@ and optionally
 - TOML files
 - Azure Key Vault credentials
 - AWS Secrets Manager credentials
+- GCP Secret Manager credentials
 
 
 Installing
@@ -329,6 +330,14 @@ used for special cases. Currently the following are implemented:
   .. code-block:: shell
 
      pip install python-configuration[aws]
+
+- :class:`~config.contrib.gpc.GCPSecretManagerConfiguration` in :mod:`~config.contrib.gcp`, which takes GCP Secret Manager
+  credentials into a :class:`~config.configuration.Configuration`-compatible instance. To install the needed dependencies
+  execute
+
+  .. code-block:: shell
+
+     pip install python-configuration[gcp]
 
 
 Developing
