@@ -41,7 +41,7 @@ dependencies :term:`toml` and :term:`yaml`. For example,
 
 .. code-block:: bash
 
-   $ pip install python-configuration[toml, yaml]
+   $ pip install python-configuration[toml,yaml]
 
 Getting started
 ===============
