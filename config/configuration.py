@@ -17,7 +17,7 @@ from typing import (
     cast,
 )
 
-from .helpers import InterpolateType, as_bool, clean, interpolate_object
+from .helpers import AttributeDict, InterpolateType, as_bool, clean, interpolate_object
 
 
 class Configuration:
@@ -157,6 +157,15 @@ class Configuration:
     def as_dict(self) -> dict:
         """Return the representation as a dictionary."""
         return self._config
+
+    def as_attrdict(self) -> AttributeDict:
+        """Return the representation as an attribute dictionary."""
+        return AttributeDict(
+            {
+                x: Configuration(v).as_attrdict() if isinstance(v, dict) else v
+                for x, v in self.items(levels=1)
+            }
+        )
 
     def get_bool(self, item: str) -> bool:
         """

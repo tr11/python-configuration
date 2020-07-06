@@ -11,6 +11,20 @@ PROTECTED_KEYS = frozenset(("secret", "password", "passwd", "pwd"))
 InterpolateType = Union[bool, Dict[str, str]]
 
 
+class AttributeDict(dict):
+    """Dictionary subclass enabling attribute lookup/assignment of keys/values."""
+
+    def __getattr__(self, key: Any) -> Any:  # noqa: D105
+        try:
+            return self[key]
+        except KeyError:
+            # to conform with __getattr__ spec
+            raise AttributeError(key)
+
+    def __setattr__(self, key: Any, value: Any) -> None:  # noqa: D105
+        self[key] = value
+
+
 def as_bool(s: Any) -> bool:
     """
     Boolean value from an object.
