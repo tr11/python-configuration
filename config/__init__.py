@@ -18,6 +18,7 @@ except ImportError:  # pragma: no cover
 
 from .configuration import Configuration
 from .configuration_set import ConfigurationSet
+from .helpers import InterpolateType
 
 
 def config(
@@ -27,7 +28,7 @@ def config(
     remove_level: int = 1,
     lowercase_keys: bool = False,
     ignore_missing_paths: bool = False,
-    interpolate: bool = False,
+    interpolate: InterpolateType = False,
 ) -> ConfigurationSet:
     """
     Create a :class:`ConfigurationSet` instance from an iterable of configs.
@@ -144,7 +145,7 @@ class EnvConfiguration(Configuration):
         separator: str = "__",
         *,
         lowercase_keys: bool = False,
-        interpolate: bool = False,
+        interpolate: InterpolateType = False,
     ):
         """
         Constructor.
@@ -177,7 +178,7 @@ def config_from_env(
     separator: str = "__",
     *,
     lowercase_keys: bool = False,
-    interpolate: bool = False,
+    interpolate: InterpolateType = False,
 ) -> Configuration:
     """
     Create a :class:`EnvConfiguration` instance from environment variables.
@@ -185,6 +186,7 @@ def config_from_env(
     :param prefix: prefix to filter environment variables with
     :param separator: separator to replace by dots
     :param lowercase_keys: whether to convert every key to lower case.
+    :param interpolate: whether to apply string interpolation when looking for items
     :return: a :class:`Configuration` instance
     """
     return EnvConfiguration(
@@ -201,7 +203,7 @@ class PathConfiguration(Configuration):
         remove_level: int = 1,
         *,
         lowercase_keys: bool = False,
-        interpolate: bool = False,
+        interpolate: InterpolateType = False,
     ):
         """
         Constructor.
@@ -248,7 +250,7 @@ def config_from_path(
     remove_level: int = 1,
     *,
     lowercase_keys: bool = False,
-    interpolate: bool = False,
+    interpolate: InterpolateType = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from filesystem path.
@@ -256,6 +258,7 @@ def config_from_path(
     :param path: path to read from
     :param remove_level: how many levels to remove from the resulting config
     :param lowercase_keys: whether to convert every key to lower case.
+    :param interpolate: whether to apply string interpolation when looking for items
     :return: a :class:`Configuration` instance
     """
     return PathConfiguration(
@@ -272,7 +275,7 @@ class FileConfiguration(Configuration):
         read_from_file: bool = False,
         *,
         lowercase_keys: bool = False,
-        interpolate: bool = False,
+        interpolate: InterpolateType = False,
     ):
         """
         Constructor.
@@ -317,7 +320,7 @@ def config_from_json(
     read_from_file: bool = False,
     *,
     lowercase_keys: bool = False,
-    interpolate: bool = False,
+    interpolate: InterpolateType = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from a JSON file.
@@ -326,6 +329,7 @@ def config_from_json(
     :param read_from_file: whether to read from a file path or to interpret
            the :attr:`data` as the contents of the JSON file.
     :param lowercase_keys: whether to convert every key to lower case.
+    :param interpolate: whether to apply string interpolation when looking for items
     :return: a :class:`Configuration` instance
     """
     return JSONConfiguration(
@@ -361,7 +365,7 @@ def config_from_ini(
     read_from_file: bool = False,
     *,
     lowercase_keys: bool = False,
-    interpolate: bool = False,
+    interpolate: InterpolateType = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from an INI file.
@@ -370,6 +374,7 @@ def config_from_ini(
     :param read_from_file: whether to read from a file path or to interpret
            the :attr:`data` as the contents of the INI file.
     :param lowercase_keys: whether to convert every key to lower case.
+    :param interpolate: whether to apply string interpolation when looking for items
     :return: a :class:`Configuration` instance
     """
     return INIConfiguration(
@@ -387,7 +392,7 @@ class PythonConfiguration(Configuration):
         separator: str = "_",
         *,
         lowercase_keys: bool = False,
-        interpolate: bool = False,
+        interpolate: InterpolateType = False,
     ):
         """
         Constructor.
@@ -439,7 +444,7 @@ def config_from_python(
     separator: str = "_",
     *,
     lowercase_keys: bool = False,
-    interpolate: bool = False,
+    interpolate: InterpolateType = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from the objects in a Python module.
@@ -448,6 +453,7 @@ def config_from_python(
     :param prefix: prefix to use to filter object names
     :param separator: separator to replace by dots
     :param lowercase_keys: whether to convert every key to lower case.
+    :param interpolate: whether to apply string interpolation when looking for items
     :return: a :class:`Configuration` instance
     """
     return PythonConfiguration(
@@ -460,13 +466,14 @@ def config_from_python(
 
 
 def config_from_dict(
-    data: dict, *, lowercase_keys: bool = False, interpolate: bool = False
+    data: dict, *, lowercase_keys: bool = False, interpolate: InterpolateType = False
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from a dictionary.
 
     :param data: dictionary with string keys
     :param lowercase_keys: whether to convert every key to lower case.
+    :param interpolate: whether to apply string interpolation when looking for items
     :return: a :class:`Configuration` instance
     """
     return Configuration(data, lowercase_keys=lowercase_keys, interpolate=interpolate)
@@ -517,7 +524,7 @@ if yaml is not None:  # pragma: no branch
         read_from_file: bool = False,
         *,
         lowercase_keys: bool = False,
-        interpolate: bool = False,
+        interpolate: InterpolateType = False,
     ) -> Configuration:
         """
         Return a Configuration instance from YAML files.
@@ -525,6 +532,7 @@ if yaml is not None:  # pragma: no branch
         :param data: string or file
         :param read_from_file: whether `data` is a file or a YAML formatted string
         :param lowercase_keys: whether to convert every key to lower case.
+        :param interpolate: whether to apply string interpolation when looking for items
         :return: a Configuration instance
         """
         return YAMLConfiguration(
@@ -557,7 +565,7 @@ if toml is not None:  # pragma: no branch
         read_from_file: bool = False,
         *,
         lowercase_keys: bool = False,
-        interpolate: bool = False,
+        interpolate: InterpolateType = False,
     ) -> Configuration:
         """
         Return a Configuration instance from TOML files.
@@ -565,6 +573,7 @@ if toml is not None:  # pragma: no branch
         :param data: string or file
         :param read_from_file: whether `data` is a file or a TOML formatted string
         :param lowercase_keys: whether to convert every key to lower case.
+        :param interpolate: whether to apply string interpolation when looking for items
         :return: a Configuration instance
         """
         return TOMLConfiguration(
