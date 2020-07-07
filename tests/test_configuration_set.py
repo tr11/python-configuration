@@ -143,6 +143,19 @@ DICT_INI = {
     "section3.key2": "0",
 }
 
+DOTENV = """
+dotenv1 = abc
+dotenv2 = 1.2
+dotenv3 = xyz
+"""
+
+
+DICT_DOTENV = {
+    "dotenv1": "abc",
+    "dotenv2": "1.2",
+    "dotenv3": "xyz",
+}
+
 PATH_DICT = {
     "sdf.dsfsfd": 1,
     "sdjf.wquwe": "sdfsd",
@@ -321,6 +334,7 @@ def test_alternate_set_loader():  # type: ignore
             ("python", path, "CONFIG"),
             ("json", JSON),
             ("ini", INI),
+            ("dotenv", DOTENV),
             ("path", folder, 0),
         ]
         if yaml:
@@ -334,6 +348,7 @@ def test_alternate_set_loader():  # type: ignore
     joined_dicts.update(DICT2_2)
     joined_dicts.update(DICT3)
     joined_dicts.update(DICT_INI)
+    joined_dicts.update(DICT_DOTENV)
     if yaml:
         joined_dicts.update(DICT_YAML)
     if toml:
@@ -362,6 +377,7 @@ def test_alternate_set_loader_prefix():  # type: ignore
             ("python", path),
             ("json", JSON),
             ("ini", INI),
+            ("dotenv", DOTENV),
             ("path", folder, 0),
             prefix="CONFIG",
             lowercase_keys=True,
@@ -372,6 +388,7 @@ def test_alternate_set_loader_prefix():  # type: ignore
     joined_dicts.update(DICT2_2)
     joined_dicts.update(DICT3)
     joined_dicts.update(DICT_INI)
+    joined_dicts.update(DICT_DOTENV)
     joined_dicts.update((k, str(v)) for k, v in PATH_DICT.items())
     joined_dicts["sys.version"] = sys.hexversion
     assert (
@@ -395,7 +412,9 @@ def test_alternate_set_loader_strings():  # type: ignore
         suffix=".yaml"
     ) as f3, tempfile.NamedTemporaryFile(
         suffix=".toml"
-    ) as f4:
+    ) as f4, tempfile.NamedTemporaryFile(
+        suffix=".env"
+    ) as f5:
         # path
         subfolder = folder + "/sub"
         os.makedirs(subfolder)
@@ -406,6 +425,9 @@ def test_alternate_set_loader_strings():  # type: ignore
         # ini
         f2.file.write(INI.encode())
         f2.file.flush()
+        # ini
+        f5.file.write(DOTENV.encode())
+        f5.file.flush()
 
         entries = [
             DICT2_1,  # dict
@@ -414,6 +436,7 @@ def test_alternate_set_loader_strings():  # type: ignore
             path,  # python
             f1.name,  # json
             f2.name,  # ini
+            f5.name,  # .env
             folder,  # path
         ]
         if yaml:
@@ -432,6 +455,7 @@ def test_alternate_set_loader_strings():  # type: ignore
     joined_dicts.update(DICT2_2)
     joined_dicts.update(DICT3)
     joined_dicts.update(DICT_INI)
+    joined_dicts.update(DICT_DOTENV)
     if yaml:
         joined_dicts.update(DICT_YAML)
     if toml:
@@ -541,6 +565,8 @@ def test_allow_missing_paths():  # type: ignore
         with pytest.raises(FileNotFoundError):
             config(os.path.join(folder, "file.ini"))
         with pytest.raises(FileNotFoundError):
+            config(os.path.join(folder, "file.env"))
+        with pytest.raises(FileNotFoundError):
             config(os.path.join(folder, "module.py"))
         with pytest.raises(ModuleNotFoundError):
             config(("python", folder))
@@ -555,6 +581,7 @@ def test_allow_missing_paths():  # type: ignore
             "env",
             os.path.join(folder, "file.json"),
             os.path.join(folder, "file.ini"),
+            os.path.join(folder, "file.env"),
             ("path", os.path.join(folder, "sub")),
             os.path.join(folder, "module.py"),
             ("python", folder),
@@ -564,7 +591,7 @@ def test_allow_missing_paths():  # type: ignore
         if toml:
             entries.append(os.path.join(folder, "file.toml"))
 
-        c = config(*entries, ignore_missing_paths=True)
+        config(*entries, ignore_missing_paths=True)
 
 
 def test_dict_methods_items():  # type: ignore
@@ -632,7 +659,9 @@ def test_reload():  # type: ignore
         suffix=".yaml"
     ) as f3, tempfile.NamedTemporaryFile(
         suffix=".toml"
-    ) as f4:
+    ) as f4, tempfile.NamedTemporaryFile(
+        suffix=".env"
+    ) as f5:
         # path
         subfolder = folder + "/sub"
         os.makedirs(subfolder)
@@ -643,6 +672,9 @@ def test_reload():  # type: ignore
         # ini
         f2.file.write(INI.encode())
         f2.file.flush()
+        # ini
+        f5.file.write(DOTENV.encode())
+        f5.file.flush()
 
         entries = [
             DICT2_1,  # dict
@@ -651,6 +683,7 @@ def test_reload():  # type: ignore
             path,  # python
             f1.name,  # json
             f2.name,  # ini
+            f5.name,  # .env
             folder,  # path
         ]
         if yaml:
@@ -669,6 +702,7 @@ def test_reload():  # type: ignore
         joined_dicts.update(DICT2_2)
         joined_dicts.update(DICT3)
         joined_dicts.update(DICT_INI)
+        joined_dicts.update(DICT_DOTENV)
         if yaml:
             joined_dicts.update(DICT_YAML)
         if toml:

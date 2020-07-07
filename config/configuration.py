@@ -1,6 +1,7 @@
 """Configuration class."""
 
 import base64
+from copy import deepcopy
 from typing import (
     Any,
     Dict,
@@ -16,7 +17,7 @@ from typing import (
     cast,
 )
 
-from .helpers import InterpolateType, as_bool, clean, interpolate_object
+from .helpers import AttributeDict, InterpolateType, as_bool, clean, interpolate_object
 
 
 class Configuration:
@@ -116,16 +117,16 @@ class Configuration:
         if not d:
             prefixes = prefix.split(".")
             if len(prefixes) == 1:
-                return self._config.get(prefix, {})
+                return deepcopy(self._config.get(prefix, {}))
             d = self._config
             while prefixes:  # pragma: no branches
                 p = prefixes[0]
                 new_d = self._filter_dict(d, p)
                 if new_d == {}:
-                    return d.get(p, {}) if len(prefixes) == 1 else {}
+                    return deepcopy(d.get(p, {}) if len(prefixes) == 1 else {})
                 d = new_d
                 prefixes = prefixes[1:]
-        return d
+        return deepcopy(d)
 
     def __getitem__(self, item: str) -> Union["Configuration", Any]:  # noqa: D105
         v = self._get_subset(item)
@@ -156,6 +157,15 @@ class Configuration:
     def as_dict(self) -> dict:
         """Return the representation as a dictionary."""
         return self._config
+
+    def as_attrdict(self) -> AttributeDict:
+        """Return the representation as an attribute dictionary."""
+        return AttributeDict(
+            {
+                x: Configuration(v).as_attrdict() if isinstance(v, dict) else v
+                for x, v in self.items(levels=1)
+            }
+        )
 
     def get_bool(self, item: str) -> bool:
         """

@@ -17,6 +17,7 @@ hierarchically.  Current format types are:
 * Filesystem paths
 * JSON files
 * INI files
+* dotenv type files
 
 and optionally
 * YAML files
@@ -150,10 +151,11 @@ Folders with files named as `xxx.yyy.zzz` can be loaded with the `config_from_pa
 Kubernetes [ConfigMaps](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#populate-a-volume-with-data-stored-in-a-configmap)
 or [Secrets](https://kubernetes.io/docs/tasks/inject-data-application/distribute-credentials-secure/#create-a-pod-that-has-access-to-the-secret-data-through-a-volume).
 
-#### JSON, INI, YAML, TOML
+#### JSON, INI, .env, YAML, TOML
 JSON, INI, YAML, TOML files are loaded respectively with
 `config_from_json`,
 `config_from_ini`,
+`config_from_dotenv`,
 `config_from_yaml`, and
 `config_from_toml`.
 The parameter `read_from_file` controls
@@ -205,6 +207,7 @@ The `config` function automatically detects the following:
 * extension `.yaml` for YAML files
 * extension `.toml` for TOML files
 * extension `.ini` for INI files
+* extension `.env` for dotenv type files
 * filesystem folders as Filesystem Paths
 * the strings `env` or `environment` for Environment Variables
 
