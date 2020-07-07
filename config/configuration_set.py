@@ -47,6 +47,7 @@ class ConfigurationSet(Configuration):
                 "configs should be a non-empty iterable of Configuration objects"
             )
         self._writable = False
+        self._default_levels = 1
 
     def _from_configs(self, attr: str, *args: Any, **kwargs: dict) -> Any:
         last_err = Exception()
@@ -137,25 +138,34 @@ class ConfigurationSet(Configuration):
 
         :param item: key
         """
-        return dict(self[item])
+        return Configuration({k: v for k, v in dict(self[item]).items()}).as_dict()
 
     def keys(
         self, levels: Optional[int] = None
     ) -> Union["Configuration", Any, KeysView[str]]:
         """Return a set-like object providing a view on the configuration keys."""
-        return Configuration(self.as_dict()).keys(levels)
+        if self._default_levels:
+            return Configuration(self.as_dict()).keys(levels or self._default_levels)
+        with Configuration(self.as_dict()).dotted_iter() as cfg:
+            return cfg.keys(levels)
 
     def values(
         self, levels: Optional[int] = None
     ) -> Union["Configuration", Any, ValuesView[Any]]:
         """Return a set-like object providing a view on the configuration values."""
-        return Configuration(self.as_dict()).values(levels)
+        if self._default_levels:
+            return Configuration(self.as_dict()).values(levels or self._default_levels)
+        with Configuration(self.as_dict()).dotted_iter() as cfg:
+            return cfg.values(levels)
 
     def items(
         self, levels: Optional[int] = None
     ) -> Union["Configuration", Any, ItemsView[str, Any]]:
         """Return a set-like object providing a view on the configuration items."""
-        return Configuration(self.as_dict()).items(levels)
+        if self._default_levels:
+            return Configuration(self.as_dict()).items(levels or self._default_levels)
+        with Configuration(self.as_dict()).dotted_iter() as cfg:
+            return cfg.items(levels)
 
     def __setitem__(self, key: str, value: Any) -> None:  # noqa: D105
         cfg = self._writable_config()

@@ -7,7 +7,7 @@ from azure.core.exceptions import ResourceNotFoundError
 from azure.identity import ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
 
-from .. import Configuration
+from .. import Configuration, InterpolateType
 
 
 class Cache:
@@ -39,6 +39,7 @@ class AzureKeyVaultConfiguration(Configuration):
         az_tenant_id: str,
         az_vault_name: str,
         cache_expiration: int = 5 * 60,
+        interpolate: InterpolateType = False,
     ) -> None:
         """
         Constructor.
@@ -60,6 +61,8 @@ class AzureKeyVaultConfiguration(Configuration):
         self._kv_client = SecretClient(vault_url=vault_url, credential=credentials)
         self._cache_expiration = cache_expiration
         self._cache: Dict[str, Cache] = {}
+        self._interpolate = {} if interpolate is True else interpolate
+        self._default_levels = None
 
     def _get_secret(self, key: str) -> Optional[str]:
         key = key.replace("_", "-")  # Normalize for Azure KeyVault

@@ -1,6 +1,7 @@
 """Configuration class."""
 
 import base64
+from contextlib import contextmanager
 from typing import (
     Any,
     Dict,
@@ -50,10 +51,11 @@ class Configuration:
         self._lowercase = lowercase_keys
         self._interpolate = {} if interpolate is True else interpolate
         self._config: Dict[str, Any] = self._flatten_dict(config_)
+        self._default_levels: Optional[int] = 1
 
     def __eq__(self, other):  # type: ignore
         """Equality operator."""
-        return self.as_dict() == other.as_dict()
+        return self.as_dict() == Configuration(other).as_dict()
 
     def _filter_dict(self, d: Dict[str, Any], prefix: str) -> Dict[str, Any]:
         """
@@ -65,6 +67,7 @@ class Configuration:
         if self._lowercase:
             return {
                 k[(len(prefix) + 1) :].lower(): v
+                for k, v in d.items()
                 for k, v in d.items()
                 if k.startswith(prefix + ".")
             }
@@ -82,7 +85,7 @@ class Configuration:
         :param d: dict
         :return: a flattened dict
         """
-        nested = {k for k, v in d.items() if isinstance(v, dict)}
+        nested = {k for k, v in d.items() if isinstance(v, (dict, Configuration))}
         if self._lowercase:
             result = {
                 k.lower() + "." + ki: vi
@@ -90,7 +93,9 @@ class Configuration:
                 for ki, vi in self._flatten_dict(d[k]).items()
             }
             result.update(
-                (k.lower(), v) for k, v in d.items() if not isinstance(v, dict)
+                (k.lower(), v)
+                for k, v in d.items()
+                if not isinstance(v, (dict, Configuration))
             )
         else:
             result = {
@@ -98,7 +103,9 @@ class Configuration:
                 for k in nested
                 for ki, vi in self._flatten_dict(d[k]).items()
             }
-            result.update((k, v) for k, v in d.items() if not isinstance(v, dict))
+            result.update(
+                (k, v) for k, v in d.items() if not isinstance(v, (dict, Configuration))
+            )
         return result
 
     def _get_subset(self, prefix: str) -> Union[Dict[str, Any], Any]:
@@ -129,6 +136,7 @@ class Configuration:
 
     def __getitem__(self, item: str) -> Union["Configuration", Any]:  # noqa: D105
         v = self._get_subset(item)
+
         if v == {}:
             raise KeyError(item)
         if isinstance(v, dict):
@@ -231,6 +239,7 @@ class Configuration:
     ) -> Union["Configuration", Any, KeysView[str]]:
         """Return a set-like object providing a view on the configuration keys."""
         assert levels is None or levels > 0
+        levels = self._default_levels if levels is None else levels
         try:
             return self["keys"]  # don't filter levels, existing attribute
         except KeyError:
@@ -249,6 +258,7 @@ class Configuration:
     ) -> Union["Configuration", Any, ValuesView[Any]]:
         """Return a set-like object providing a view on the configuration values."""
         assert levels is None or levels > 0
+        levels = self._default_levels if levels is None else levels
         try:
             return self["values"]
         except KeyError:
@@ -259,6 +269,7 @@ class Configuration:
     ) -> Union["Configuration", Any, ItemsView[str, Any]]:
         """Return a set-like object providing a view on the configuration items."""
         assert levels is None or levels > 0
+        levels = self._default_levels if levels is None else levels
         try:
             return self["items"]
         except KeyError:
@@ -266,13 +277,13 @@ class Configuration:
             return {k: self._get_subset(k) for k in keys}.items()
 
     def __iter__(self) -> Iterator[Tuple[str, Any]]:  # noqa: D105
-        return iter(self.keys())  # type: ignore
+        return iter(dict(self.items()))  # type: ignore
 
     def __reversed__(self) -> Iterator[Tuple[str, Any]]:  # noqa: D105
         return reversed(self.keys())  # type: ignore
 
     def __len__(self) -> int:  # noqa: D105
-        return len(self._config)
+        return len(self.keys())
 
     def __setitem__(self, key: str, value: Any) -> None:  # noqa: D105
         self.update({key: value})
@@ -347,8 +358,22 @@ class Configuration:
         """
         raise NotImplementedError()
 
+    @contextmanager
+    def dotted_iter(self) -> Iterator["Configuration"]:
+        """
+        Context manager for dotted iteration.
+
+        This context manager changes all the iterator-related functions
+        to include every nested (dotted) key instead of just the top level.
+        """
+        self._default_levels = None
+        try:
+            yield self
+        finally:
+            self._default_levels = 1
+
     def __repr__(self) -> str:  # noqa: D105
         return "<Configuration: %s>" % hex(id(self))
 
     def __str__(self) -> str:  # noqa: D105
-        return str({k: clean(k, v) for k, v in sorted(self.items())})
+        return str({k: clean(k, v) for k, v in sorted(self.as_dict().items())})

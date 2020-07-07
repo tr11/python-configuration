@@ -9,7 +9,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-from .. import Configuration
+from .. import Configuration, InterpolateType
 
 
 class Cache:
@@ -38,7 +38,7 @@ class AWSSecretsManagerConfiguration(Configuration):
         profile_name: Optional[str] = None,
         cache_expiration: int = 5 * 60,
         lowercase_keys: bool = False,
-        interpolate: bool = False,
+        interpolate: InterpolateType = False,
     ) -> None:
         """
         Constructor.
@@ -64,7 +64,8 @@ class AWSSecretsManagerConfiguration(Configuration):
         self._secret: Cache = Cache({}, 0)
         self._expiration: float = cache_expiration
         self._lowercase = lowercase_keys
-        self._interpolate = interpolate
+        self._interpolate = {} if interpolate is True else interpolate
+        self._default_levels = None
 
     @property
     def _config(self) -> Dict[str, Any]:  # type: ignore
