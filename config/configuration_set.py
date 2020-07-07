@@ -88,10 +88,6 @@ class ConfigurationSet(Configuration):
         return self._configs[0]
 
     @property
-    def _config(self) -> Dict[str, Any]:  # type: ignore
-        return self.as_dict()
-
-    @property
     def configs(self) -> List[Configuration]:
         """List of underlying configuration objects."""
         if self._writable:

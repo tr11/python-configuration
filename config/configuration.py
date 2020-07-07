@@ -280,7 +280,7 @@ class Configuration:
         return iter(dict(self.items()))  # type: ignore
 
     def __reversed__(self) -> Iterator[Tuple[str, Any]]:  # noqa: D105
-        return reversed(self.keys())  # type: ignore
+        return reversed(dict(self.items()))  # type: ignore
 
     def __len__(self) -> int:  # noqa: D105
         return len(self.keys())
