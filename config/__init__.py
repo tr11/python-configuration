@@ -71,6 +71,8 @@ def config(
                 config_ = ("toml", config_, True)
             elif config_.endswith(".ini"):
                 config_ = ("ini", config_, True)
+            elif config_.endswith(".env"):
+                config_ = ("dotenv", config_, True)
             elif os.path.isdir(config_):
                 config_ = ("path", config_, remove_level)
             elif config_ in ("env", "environment"):
@@ -121,6 +123,12 @@ def config(
         elif type_ == "ini":
             try:
                 instances.append(config_from_ini(*config_[1:], **default_kwargs))
+            except FileNotFoundError:
+                if not ignore_missing_paths:
+                    raise
+        elif type_ == "dotenv":
+            try:
+                instances.append(config_from_dotenv(*config_[1:], **default_kwargs))
             except FileNotFoundError:
                 if not ignore_missing_paths:
                     raise
@@ -378,6 +386,47 @@ def config_from_ini(
     :return: a :class:`Configuration` instance
     """
     return INIConfiguration(
+        data, read_from_file, lowercase_keys=lowercase_keys, interpolate=interpolate
+    )
+
+
+class DotEnvConfiguration(FileConfiguration):
+    """Configuration from a .env type file input."""
+
+    def _reload(self, data: Union[str, TextIO], read_from_file: bool = False) -> None:
+        """Reload the .env data."""
+        if read_from_file:
+            if isinstance(data, str):
+                data = open(data, "rt").read()
+            else:
+                data = data.read()
+        data = cast(str, data)
+        result: Dict[str, Any] = dict(
+            (y.strip() for y in x.split("=", 1))  # type: ignore
+            for x in data.splitlines()
+            if x
+        )
+        self._config = self._flatten_dict(result)
+
+
+def config_from_dotenv(
+    data: Union[str, TextIO],
+    read_from_file: bool = False,
+    *,
+    lowercase_keys: bool = False,
+    interpolate: InterpolateType = False,
+) -> Configuration:
+    """
+    Create a :class:`Configuration` instance from a .env type file.
+
+    :param data: path to a .env type file or contents
+    :param read_from_file: whether to read from a file path or to interpret
+           the :attr:`data` as the contents of the INI file.
+    :param lowercase_keys: whether to convert every key to lower case.
+    :param interpolate: whether to apply string interpolation when looking for items
+    :return: a :class:`Configuration` instance
+    """
+    return DotEnvConfiguration(
         data, read_from_file, lowercase_keys=lowercase_keys, interpolate=interpolate
     )
 
