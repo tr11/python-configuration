@@ -73,9 +73,14 @@ class ConfigurationSet(Configuration):
                 result.update(v)
             return Configuration(result)
         elif self._interpolate is not False:
-            d = self.as_dict()
-            d.update(cast(Dict[str, str], self._interpolate))
-            return interpolate_object(values[0], d)
+            d = {}
+            for config_ in self._configs:
+                c = config_.as_dict()
+                for k, v in c.items():
+                    v = interpolate_object(v, d)
+                    c[k] = v
+                    d.update(c)
+            return d[args[0]]
         else:
             return values[0]
 
