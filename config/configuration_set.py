@@ -15,7 +15,7 @@ from typing import (
 )
 
 from .configuration import Configuration
-from .helpers import InterpolateType, clean, interpolate_object
+from .helpers import InterpolateEnumType, InterpolateType, clean, interpolate_object
 
 
 class ConfigurationSet(Configuration):
@@ -27,9 +27,13 @@ class ConfigurationSet(Configuration):
     """
 
     def __init__(
-        self, *configs: Configuration, interpolate: InterpolateType = False
+        self,
+        *configs: Configuration,
+        interpolate: InterpolateType = False,
+        interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD
     ):  # noqa: D107
         self._interpolate = {} if interpolate is True else interpolate
+        self._interpolate_type = interpolate_type
         try:
             self._configs: List[Configuration] = list(configs)
         except Exception:  # pragma: no cover
@@ -73,9 +77,9 @@ class ConfigurationSet(Configuration):
                 result.update(v)
             return Configuration(result)
         elif self._interpolate is not False:
-            d = self.as_dict()
-            d.update(cast(Dict[str, str], self._interpolate))
-            return interpolate_object(values[0], d)
+            d = [d.as_dict() for d in self._configs]
+            d[0].update(cast(Dict[str, str], self._interpolate))
+            return interpolate_object(args[0], values[0], d, self._interpolate_type)
         else:
             return values[0]
 

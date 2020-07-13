@@ -17,7 +17,14 @@ from typing import (
     cast,
 )
 
-from .helpers import AttributeDict, InterpolateType, as_bool, clean, interpolate_object
+from .helpers import (
+    AttributeDict,
+    InterpolateEnumType,
+    InterpolateType,
+    as_bool,
+    clean,
+    interpolate_object,
+)
 
 
 class Configuration:
@@ -41,6 +48,7 @@ class Configuration:
         config_: Mapping[str, Any],
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
+        interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ):
         """
         Constructor.
@@ -50,6 +58,7 @@ class Configuration:
         """
         self._lowercase = lowercase_keys
         self._interpolate = {} if interpolate is True else interpolate
+        self._interpolate_type = interpolate_type
         self._config: Dict[str, Any] = self._flatten_dict(config_)
 
     def __eq__(self, other):  # type: ignore
@@ -137,7 +146,7 @@ class Configuration:
         elif self._interpolate is not False:
             d = self.as_dict()
             d.update(cast(Dict[str, str], self._interpolate))
-            return interpolate_object(v, d)
+            return interpolate_object(item, v, [d], self._interpolate_type)
         else:
             return v
 
