@@ -18,7 +18,7 @@ except ImportError:  # pragma: no cover
 
 from .configuration import Configuration
 from .configuration_set import ConfigurationSet
-from .helpers import InterpolateType
+from .helpers import InterpolateEnumType, InterpolateType
 
 
 def config(
@@ -29,6 +29,7 @@ def config(
     lowercase_keys: bool = False,
     ignore_missing_paths: bool = False,
     interpolate: InterpolateType = False,
+    interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
 ) -> ConfigurationSet:
     """
     Create a :class:`ConfigurationSet` instance from an iterable of configs.
@@ -53,7 +54,9 @@ def config(
         default_args.append(separator)
     default_kwargs: Dict[Any, Any] = {
         "lowercase_keys": lowercase_keys,
-        "interpolate": False,  # for Configuration Sets, interpolate at the Set level
+        # for Configuration Sets, interpolate parameters should be at the Set level
+        "interpolate": False,
+        "interpolate_type": InterpolateEnumType.STANDARD,
     }
 
     for config_ in configs:
@@ -141,7 +144,9 @@ def config(
         else:
             raise ValueError('Unknown configuration type "%s"' % type_)
 
-    return ConfigurationSet(*instances, interpolate=interpolate)
+    return ConfigurationSet(
+        *instances, interpolate=interpolate, interpolate_type=interpolate_type
+    )
 
 
 class EnvConfiguration(Configuration):
@@ -154,6 +159,7 @@ class EnvConfiguration(Configuration):
         *,
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
+        interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ):
         """
         Constructor.
@@ -164,7 +170,12 @@ class EnvConfiguration(Configuration):
         """
         self._prefix = prefix
         self._separator = separator
-        super().__init__({}, lowercase_keys=lowercase_keys, interpolate=interpolate)
+        super().__init__(
+            {},
+            lowercase_keys=lowercase_keys,
+            interpolate=interpolate,
+            interpolate_type=interpolate_type,
+        )
         self.reload()
 
     def reload(self) -> None:
@@ -177,7 +188,10 @@ class EnvConfiguration(Configuration):
                 key[len(self._prefix) :].replace(self._separator, ".").strip(".")
             ] = value
         super().__init__(
-            result, lowercase_keys=self._lowercase, interpolate=self._interpolate
+            result,
+            lowercase_keys=self._lowercase,
+            interpolate=self._interpolate,
+            interpolate_type=self._interpolate_type,
         )
 
 
@@ -187,6 +201,7 @@ def config_from_env(
     *,
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
+    interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
 ) -> Configuration:
     """
     Create a :class:`EnvConfiguration` instance from environment variables.
@@ -198,7 +213,11 @@ def config_from_env(
     :return: a :class:`Configuration` instance
     """
     return EnvConfiguration(
-        prefix, separator, lowercase_keys=lowercase_keys, interpolate=interpolate
+        prefix,
+        separator,
+        lowercase_keys=lowercase_keys,
+        interpolate=interpolate,
+        interpolate_type=interpolate_type,
     )
 
 
@@ -212,6 +231,7 @@ class PathConfiguration(Configuration):
         *,
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
+        interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ):
         """
         Constructor.
@@ -222,7 +242,12 @@ class PathConfiguration(Configuration):
         """
         self._path = path
         self._remove_level = remove_level
-        super().__init__({}, lowercase_keys=lowercase_keys, interpolate=interpolate)
+        super().__init__(
+            {},
+            lowercase_keys=lowercase_keys,
+            interpolate=interpolate,
+            interpolate_type=interpolate_type,
+        )
         self.reload()
 
     def reload(self) -> None:
@@ -249,7 +274,10 @@ class PathConfiguration(Configuration):
             result[key] = open(filename).read()
 
         super().__init__(
-            result, lowercase_keys=self._lowercase, interpolate=self._interpolate
+            result,
+            lowercase_keys=self._lowercase,
+            interpolate=self._interpolate,
+            interpolate_type=self._interpolate_type,
         )
 
 
@@ -259,6 +287,7 @@ def config_from_path(
     *,
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
+    interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from filesystem path.
@@ -270,7 +299,11 @@ def config_from_path(
     :return: a :class:`Configuration` instance
     """
     return PathConfiguration(
-        path, remove_level, lowercase_keys=lowercase_keys, interpolate=interpolate
+        path,
+        remove_level,
+        lowercase_keys=lowercase_keys,
+        interpolate=interpolate,
+        interpolate_type=interpolate_type,
     )
 
 
@@ -284,6 +317,7 @@ class FileConfiguration(Configuration):
         *,
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
+        interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ):
         """
         Constructor.
@@ -293,7 +327,12 @@ class FileConfiguration(Configuration):
                the :attr:`data` as the contents of the file.
         :param lowercase_keys: whether to convert every key to lower case.
         """
-        super().__init__({}, lowercase_keys=lowercase_keys, interpolate=interpolate)
+        super().__init__(
+            {},
+            lowercase_keys=lowercase_keys,
+            interpolate=interpolate,
+            interpolate_type=interpolate_type,
+        )
         self._reload(data, read_from_file)
         self._data = data if read_from_file and isinstance(data, str) else None
 
@@ -329,6 +368,7 @@ def config_from_json(
     *,
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
+    interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from a JSON file.
@@ -341,7 +381,11 @@ def config_from_json(
     :return: a :class:`Configuration` instance
     """
     return JSONConfiguration(
-        data, read_from_file, lowercase_keys=lowercase_keys, interpolate=interpolate
+        data,
+        read_from_file,
+        lowercase_keys=lowercase_keys,
+        interpolate=interpolate,
+        interpolate_type=interpolate_type,
     )
 
 
@@ -374,6 +418,7 @@ def config_from_ini(
     *,
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
+    interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from an INI file.
@@ -386,7 +431,11 @@ def config_from_ini(
     :return: a :class:`Configuration` instance
     """
     return INIConfiguration(
-        data, read_from_file, lowercase_keys=lowercase_keys, interpolate=interpolate
+        data,
+        read_from_file,
+        lowercase_keys=lowercase_keys,
+        interpolate=interpolate,
+        interpolate_type=interpolate_type,
     )
 
 
@@ -415,6 +464,7 @@ def config_from_dotenv(
     *,
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
+    interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from a .env type file.
@@ -427,7 +477,11 @@ def config_from_dotenv(
     :return: a :class:`Configuration` instance
     """
     return DotEnvConfiguration(
-        data, read_from_file, lowercase_keys=lowercase_keys, interpolate=interpolate
+        data,
+        read_from_file,
+        lowercase_keys=lowercase_keys,
+        interpolate=interpolate,
+        interpolate_type=interpolate_type,
     )
 
 
@@ -442,6 +496,7 @@ class PythonConfiguration(Configuration):
         *,
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
+        interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ):
         """
         Constructor.
@@ -466,7 +521,12 @@ class PythonConfiguration(Configuration):
         self._module = module
         self._prefix = prefix
         self._separator = separator
-        super().__init__({}, lowercase_keys=lowercase_keys, interpolate=interpolate)
+        super().__init__(
+            {},
+            lowercase_keys=lowercase_keys,
+            interpolate=interpolate,
+            interpolate_type=interpolate_type,
+        )
         self.reload()
 
     def reload(self) -> None:
@@ -483,7 +543,10 @@ class PythonConfiguration(Configuration):
             for k in variables
         }
         super().__init__(
-            result, lowercase_keys=self._lowercase, interpolate=self._interpolate
+            result,
+            lowercase_keys=self._lowercase,
+            interpolate=self._interpolate,
+            interpolate_type=self._interpolate_type,
         )
 
 
@@ -494,6 +557,7 @@ def config_from_python(
     *,
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
+    interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from the objects in a Python module.
@@ -511,11 +575,16 @@ def config_from_python(
         separator,
         lowercase_keys=lowercase_keys,
         interpolate=interpolate,
+        interpolate_type=interpolate_type,
     )
 
 
 def config_from_dict(
-    data: dict, *, lowercase_keys: bool = False, interpolate: InterpolateType = False
+    data: dict,
+    *,
+    lowercase_keys: bool = False,
+    interpolate: InterpolateType = False,
+    interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from a dictionary.
@@ -525,7 +594,12 @@ def config_from_dict(
     :param interpolate: whether to apply string interpolation when looking for items
     :return: a :class:`Configuration` instance
     """
-    return Configuration(data, lowercase_keys=lowercase_keys, interpolate=interpolate)
+    return Configuration(
+        data,
+        lowercase_keys=lowercase_keys,
+        interpolate=interpolate,
+        interpolate_type=interpolate_type,
+    )
 
 
 def create_path_from_config(
@@ -574,6 +648,7 @@ if yaml is not None:  # pragma: no branch
         *,
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
+        interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ) -> Configuration:
         """
         Return a Configuration instance from YAML files.
@@ -585,7 +660,11 @@ if yaml is not None:  # pragma: no branch
         :return: a Configuration instance
         """
         return YAMLConfiguration(
-            data, read_from_file, lowercase_keys=lowercase_keys, interpolate=interpolate
+            data,
+            read_from_file,
+            lowercase_keys=lowercase_keys,
+            interpolate=interpolate,
+            interpolate_type=interpolate_type,
         )
 
 
@@ -615,6 +694,7 @@ if toml is not None:  # pragma: no branch
         *,
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
+        interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ) -> Configuration:
         """
         Return a Configuration instance from TOML files.
@@ -626,5 +706,9 @@ if toml is not None:  # pragma: no branch
         :return: a Configuration instance
         """
         return TOMLConfiguration(
-            data, read_from_file, lowercase_keys=lowercase_keys, interpolate=interpolate
+            data,
+            read_from_file,
+            lowercase_keys=lowercase_keys,
+            interpolate=interpolate,
+            interpolate_type=interpolate_type,
         )

@@ -1,7 +1,8 @@
 """Helper functions."""
 
 import string
-from typing import Any, Dict, Set, Tuple, Union
+from enum import Enum
+from typing import Any, Dict, List, Set, Tuple, Union
 
 
 TRUTH_TEXT = frozenset(("t", "true", "y", "yes", "on", "1"))
@@ -9,6 +10,19 @@ FALSE_TEXT = frozenset(("f", "false", "n", "no", "off", "0", ""))
 PROTECTED_KEYS = frozenset(("secret", "password", "passwd", "pwd"))
 
 InterpolateType = Union[bool, Dict[str, str]]
+
+
+class InterpolateEnumType(Enum):
+    """Interpolation Method."""
+
+    # standard matching
+    STANDARD = 0
+    # interpolation will look through lower levels to attempt to resolve variables.
+    # This is particularly useful for templating
+    DEEP = 1
+    # similar to DEEP, but interpolating will not backtrack levels.
+    # That is, lower levels cannot use values from higher levels.
+    DEEP_NO_BACKTRACK = 2
 
 
 class AttributeDict(dict):
@@ -71,7 +85,7 @@ def clean(key: str, value: Any, mask: str = "******") -> Any:
     return value
 
 
-def interpolate(text: str, d: dict, found: Set[Tuple[str, ...]]) -> str:
+def interpolate_standard(text: str, d: dict, found: Set[Tuple[str, ...]]) -> str:
     """
     Return the string interpolated as many times as needed.
 
@@ -94,20 +108,96 @@ def interpolate(text: str, d: dict, found: Set[Tuple[str, ...]]) -> str:
     else:
         found.add(variables)
 
-    interpolated = {v: interpolate(d[v], d, found) for v in variables}
+    interpolated = {v: interpolate_standard(d[v], d, found) for v in variables}
     return text.format(**interpolated)
 
 
-def interpolate_object(obj: Any, d: dict) -> Any:
+def interpolate_deep(
+    attr: str,
+    text: str,
+    d: List[dict],
+    resolved: Dict[str, str],
+    levels: Dict[str, int],
+    method: InterpolateEnumType,
+) -> str:
+    """
+    Return the string interpolated as many times as needed.
+
+    :param attr: attribute name
+    :param text: string possibly containing an interpolation pattern
+    :param d: dictionary
+    :param resolved: variables resolved so far
+    :param levels: last level to read the variable from
+    """
+    if not isinstance(text, str):
+        return text
+
+    variables = {x[1] for x in string.Formatter().parse(text) if x[1] is not None}
+
+    if not variables:
+        return text
+
+    length = len(d)
+
+    for variable in variables.difference(resolved.keys()):
+        # start at 1 if this is the intended attribute
+        level = levels.setdefault(variable, 1 if variable == attr else 0)
+        # get the first level for which the variable is defined
+        if level == length:
+            raise KeyError(variable)
+        for i, dict_ in enumerate(d[level:]):
+            if variable in dict_:
+                level = level + i
+                break
+        else:
+            raise KeyError(variable)
+        levels[variable] = level + 1
+
+        new_d = (
+            ([{}] * level) + d[level:]
+            if method == InterpolateEnumType.DEEP_NO_BACKTRACK
+            else d
+        )
+        resolved[variable] = interpolate_deep(
+            attr, d[level][variable], new_d, resolved, levels, method
+        )
+
+    return text.format(**resolved)
+
+
+def flatten(d: List[dict]) -> dict:
+    """
+    Flatten a list of dictionaries.
+
+    :param d: dictionary list
+    """
+    result = {}
+    [result.update(dict_) for dict_ in d[::-1]]
+    return result
+
+
+def interpolate_object(
+    attr: str, obj: Any, d: List[dict], method: InterpolateEnumType
+) -> Any:
     """
     Return the interpolated object.
 
+    :param attr: attribute name
     :param obj: object to interpolate
     :param d: dictionary
+    :param method: interpolation method
     """
     if isinstance(obj, str):
-        return interpolate(obj, d, set())
+        if method == InterpolateEnumType.STANDARD:
+            return interpolate_standard(obj, flatten(d), set())
+        elif method in (
+            InterpolateEnumType.DEEP,
+            InterpolateEnumType.DEEP_NO_BACKTRACK,
+        ):
+            return interpolate_deep(attr, obj, d, {}, {}, method)
+        else:
+            raise ValueError('Invalid interpolation method "%s"' % method)
     elif hasattr(obj, "__iter__"):
-        return [interpolate_object(x, d) for x in obj]
+        return [interpolate_object(attr, x, d, method) for x in obj]
     else:
         return obj
