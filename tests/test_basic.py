@@ -53,6 +53,13 @@ def test_gets():  # type: ignore
     assert cfg["a1.b2"].get("r") is None
     assert cfg["a1.b2"].get("c3") == 1.1
     assert cfg["a1"].get_dict("b2") == {"c1": "a", "c2": True, "c3": 1.1}
+    assert cfg.get_dict("a1") == {
+        "B1.c1": 1,
+        "b1.C2": 2,
+        "b2.c1": "a",
+        "b2.c2": True,
+        "b2.c3": 1.1,
+    }
 
 
 def test_attr_gets():  # type: ignore
@@ -134,19 +141,24 @@ def test_dict_methods_keys():  # type: ignore
     cfg = config_from_dict(DICT, lowercase_keys=True)
 
     assert set(cfg.keys()) == {
-        "a1.b2.c3",
-        "a2.b1.c3",
-        "a2.b2.c2",
-        "a2.b2.c3",
-        "a1.b2.c2",
-        "a2.b1.c2",
-        "a1.b2.c1",
-        "a1.b1.c3",
-        "a2.b1.c1",
-        "a1.b1.c1",
-        "a1.b1.c2",
-        "a2.b2.c1",
+        "a1",
+        "a2",
     }
+    with cfg.dotted_iter() as cfg_:
+        assert set(cfg_.keys()) == {
+            "a1.b2.c3",
+            "a2.b1.c3",
+            "a2.b2.c2",
+            "a2.b2.c3",
+            "a1.b2.c2",
+            "a2.b1.c2",
+            "a1.b2.c1",
+            "a1.b1.c3",
+            "a2.b1.c1",
+            "a1.b1.c1",
+            "a1.b1.c2",
+            "a2.b2.c1",
+        }
     assert set(cfg.keys(levels=1)) == {"a1", "a2"}
     assert set(cfg.keys(levels=2)) == {"a1.b2", "a2.b2", "a2.b1", "a1.b1"}
     assert set(cfg.keys(levels=3)) == {
@@ -177,6 +189,7 @@ def test_dict_methods_keys():  # type: ignore
         "a1.b1.c2",
         "a2.b2.c1",
     }
+
     with pytest.raises(AssertionError):
         set(cfg.keys(levels=0))
 
@@ -184,20 +197,39 @@ def test_dict_methods_keys():  # type: ignore
 def test_dict_methods_items():  # type: ignore
     cfg = config_from_dict(DICT, lowercase_keys=True)
 
-    assert set(cfg.items()) == {
-        ("a1.b1.c3", 3),
-        ("a2.b1.c3", None),
-        ("a1.b2.c1", "a"),
-        ("a2.b2.c2", "YWJjZGVmZ2g="),
-        ("a2.b1.c1", "f"),
-        ("a1.b1.c1", 1),
-        ("a2.b2.c3", "abcdefgh"),
-        ("a1.b2.c2", True),
-        ("a1.b2.c3", 1.1),
-        ("a2.b2.c1", 10),
-        ("a1.b1.c2", 2),
-        ("a2.b1.c2", False),
+    assert dict(cfg.items()) == {
+        "a1": {
+            "b1.c1": 1,
+            "b1.c2": 2,
+            "b1.c3": 3,
+            "b2.c1": "a",
+            "b2.c2": True,
+            "b2.c3": 1.1,
+        },
+        "a2": {
+            "b1.c1": "f",
+            "b1.c2": False,
+            "b1.c3": None,
+            "b2.c1": 10,
+            "b2.c2": "YWJjZGVmZ2g=",
+            "b2.c3": "abcdefgh",
+        },
     }
+    with cfg.dotted_iter() as cfg_:
+        assert set(cfg_.items()) == {
+            ("a1.b1.c3", 3),
+            ("a2.b1.c3", None),
+            ("a1.b2.c1", "a"),
+            ("a2.b2.c2", "YWJjZGVmZ2g="),
+            ("a2.b1.c1", "f"),
+            ("a1.b1.c1", 1),
+            ("a2.b2.c3", "abcdefgh"),
+            ("a1.b2.c2", True),
+            ("a1.b2.c3", 1.1),
+            ("a2.b2.c1", 10),
+            ("a1.b1.c2", 2),
+            ("a2.b1.c2", False),
+        }
     assert dict(cfg.items(levels=1)) == {
         "a1": {
             "b1.c1": 1,
@@ -257,19 +289,47 @@ def test_dict_methods_items():  # type: ignore
 def test_dict_methods_values():  # type: ignore
     cfg = config_from_dict(DICT, lowercase_keys=True)
 
-    assert set(cfg.values()) == {
-        False,
-        True,
-        2,
-        3,
-        "f",
-        1.1,
-        10,
-        None,
-        "abcdefgh",
-        "a",
-        "YWJjZGVmZ2g=",
-    }
+    assert sorted(json.dumps(x, sort_keys=True) for x in cfg.values()) == sorted(
+        [
+            json.dumps(
+                {
+                    "b1.c1": "f",
+                    "b1.c2": False,
+                    "b1.c3": None,
+                    "b2.c1": 10,
+                    "b2.c2": "YWJjZGVmZ2g=",
+                    "b2.c3": "abcdefgh",
+                },
+                sort_keys=True,
+            ),
+            json.dumps(
+                {
+                    "b1.c1": 1,
+                    "b1.c2": 2,
+                    "b1.c3": 3,
+                    "b2.c1": "a",
+                    "b2.c2": True,
+                    "b2.c3": 1.1,
+                },
+                sort_keys=True,
+            ),
+        ]
+    )
+
+    with cfg.dotted_iter() as cfg_:
+        assert set(cfg_.values()) == {
+            False,
+            True,
+            2,
+            3,
+            "f",
+            1.1,
+            10,
+            None,
+            "abcdefgh",
+            "a",
+            "YWJjZGVmZ2g=",
+        }
 
     assert sorted(
         json.dumps(x, sort_keys=True) for x in cfg.values(levels=1)
@@ -299,3 +359,61 @@ def test_dict_methods_values():  # type: ignore
             ),
         ]
     )
+
+
+def test_dict_methods_dict():  # type: ignore
+    cfg = config_from_dict(DICT, lowercase_keys=True)
+
+    a1 = {
+        "b1.c1": 1,
+        "b1.c2": 2,
+        "b1.c3": 3,
+        "b2.c1": "a",
+        "b2.c2": True,
+        "b2.c3": 1.1,
+    }
+    a2 = {
+        "b1.c1": "f",
+        "b1.c2": False,
+        "b1.c3": None,
+        "b2.c1": 10,
+        "b2.c2": "YWJjZGVmZ2g=",
+        "b2.c3": "abcdefgh",
+    }
+
+    # as_dict and get_dict always returns dotted keys
+    assert cfg.as_dict() == {k.lower(): v for k, v in DICT.items()}
+    assert cfg.get_dict("a1") == a1
+    assert cfg.get_dict("a1.b2") == {"c1": "a", "c2": True, "c3": 1.1}
+    # dict() uses the iterator methods and will return a nested dict by default
+    assert dict(cfg) == {"a1": a1, "a2": a2}
+
+    with cfg.dotted_iter():
+        # as_dict and get_dict always returns dotted keys
+        assert cfg.as_dict() == {k.lower(): v for k, v in DICT.items()}
+        assert cfg.get_dict("a1") == a1
+        assert cfg.get_dict("a1.b2") == {"c1": "a", "c2": True, "c3": 1.1}
+        # in this case the iterators will return all the (dotted) keys, so dict() is the same as .as_dict()
+        assert dict(cfg) == {k.lower(): v for k, v in DICT.items()}
+
+
+def test_eq():  # type: ignore
+    cfg = config_from_dict(DICT, lowercase_keys=True)
+
+    nested = {
+        "a1": {
+            "b1": {"c1": 1, "c2": 2, "c3": 3},
+            "b2": {"c1": "a", "c2": True, "c3": 1.1},
+        },
+        "a2": {
+            "b1": {"c1": "f", "c2": False, "c3": None},
+            "b2": {"c1": 10, "c2": "YWJjZGVmZ2g=", "c3": "abcdefgh"},
+        },
+    }
+
+    # equality with dictionaries -- the second one fails as it's a dict comparison
+    assert cfg.as_dict() == {k.lower(): v for k, v in DICT.items()}
+    assert cfg.as_dict() != nested
+    # equality with dictionaries  -- in this case the second one passes
+    assert cfg == {k.lower(): v for k, v in DICT.items()}
+    assert cfg == nested

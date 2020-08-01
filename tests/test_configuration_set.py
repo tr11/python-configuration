@@ -3,6 +3,7 @@ from config import (
     config_from_env,
     config_from_python,
     create_path_from_config,
+    Configuration,
     ConfigurationSet,
     config,
 )
@@ -223,7 +224,8 @@ def test_get_dict():  # type: ignore
         config_from_env(prefix=PREFIX, lowercase_keys=True),
     )
 
-    assert cfg.get_dict("a2") == {
+    a2 = {
+        "b2.c1": 10,
         "b1.c1": "f",
         "b1.c2": False,
         "b1.c3": None,
@@ -231,26 +233,27 @@ def test_get_dict():  # type: ignore
         "b2.c2": "YWJjZGVmZ2g=",
         "b2.c3": "abcdefgh",
     }
-    assert cfg.a2.as_dict() == {
-        "b1.c1": "f",
-        "b1.c2": False,
-        "b1.c3": None,
-        "b2.c1": 10,
-        "b2.c2": "YWJjZGVmZ2g=",
-        "b2.c3": "abcdefgh",
+    a2nested = {
+        "b1": {"c1": "f", "c2": False, "c3": None},
+        "b2": {"c1": 10, "c2": "YWJjZGVmZ2g=", "c3": "abcdefgh"},
     }
-    assert dict(cfg.a2) == {
-        "b1.c1": "f",
-        "b1.c2": False,
-        "b1.c3": None,
-        "b2.c1": 10,
-        "b2.c2": "YWJjZGVmZ2g=",
-        "b2.c3": "abcdefgh",
-    }
+
+    assert cfg.get_dict("a2") == a2
+    assert cfg.a2.as_dict() == a2
+    assert dict(cfg.a2) == a2nested
+    with cfg.dotted_iter():
+        assert cfg.get_dict("a2") == a2
+        assert cfg.a2.as_dict() == a2
+        # note that this still returns he nested dict since the dotted iteration
+        # impacts only the parent cfg, not cfg.a
+        assert dict(cfg.a2) == a2nested
+        # to use dotted iteration for children, we need to explicitly set it
+        with cfg.a2.dotted_iter() as cfg_a2:
+            assert dict(cfg_a2) == a2
+
     with pytest.raises(KeyError):
         assert cfg.get_dict("a3") is Exception
 
-    assert set(cfg.a2.values()) == {"f", False, None, 10, "YWJjZGVmZ2g=", "abcdefgh"}
     assert dict(cfg.a2) == dict(cfg.a2.items())
 
 
@@ -261,7 +264,7 @@ def test_get_dict_different_types():  # type: ignore
         config_from_dict(DICT3_3, lowercase_keys=True),
     )
 
-    assert cfg.get_dict("a2") == {
+    a2 = {
         "b2.c1": 10,
         "b2.c2": "YWJjZGVmZ2g=",
         "b2.c3": "abcdefgh",
@@ -269,22 +272,26 @@ def test_get_dict_different_types():  # type: ignore
         "w2": 123,
         "w3": "abc",
     }
-    assert cfg.a2.as_dict() == {
-        "b2.c1": 10,
-        "b2.c2": "YWJjZGVmZ2g=",
-        "b2.c3": "abcdefgh",
+    a2nested = {
+        "b2": {"c1": 10, "c2": "YWJjZGVmZ2g=", "c3": "abcdefgh"},
         "g2": 10,
         "w2": 123,
         "w3": "abc",
     }
-    assert dict(cfg.a2) == {
-        "b2.c1": 10,
-        "b2.c2": "YWJjZGVmZ2g=",
-        "b2.c3": "abcdefgh",
-        "g2": 10,
-        "w2": 123,
-        "w3": "abc",
-    }
+
+    assert cfg.get_dict("a2") == a2
+    assert cfg.a2.as_dict() == a2
+    assert dict(cfg.a2) == a2nested
+
+    with cfg.dotted_iter():
+        assert cfg.get_dict("a2") == a2
+        assert cfg.a2.as_dict() == a2
+        # note that this still returns he nested dict since the dotted iteration
+        # impacts only the parent cfg, not cfg.a
+        assert dict(cfg.a2) == a2nested
+        # to use dotted iteration for children, we need to explicitly set it
+        with cfg.a2.dotted_iter() as cfg_a2:
+            assert dict(cfg_a2) == a2
 
     with pytest.raises(TypeError):  # the first configuration overrides the type
         assert cfg.get_dict("z1") is Exception
@@ -601,22 +608,42 @@ def test_dict_methods_items():  # type: ignore
         config_from_env(prefix=PREFIX, lowercase_keys=True),
     )
 
-    assert dict(cfg.items()) == dict(
-        [
-            ("a2.b2.c2", "YWJjZGVmZ2g="),
-            ("a1.b2.c2", "True"),
-            ("a1.b2.c1", "a"),
-            ("a1.b1.c2", "2"),
-            ("a2.b2.c3", "abcdefgh"),
-            ("a2.b1.c1", "f"),
-            ("a1.b1.c3", "3"),
-            ("a2.b1.c2", False),
-            ("a2.b1.c3", None),
-            ("a1.b1.c1", "1"),
-            ("a2.b2.c1", 10),
-            ("a1.b2.c3", "1.1"),
-        ]
-    )
+    assert dict(cfg.items()) == {
+        "a1": {
+            "b1.c1": "1",
+            "b1.c2": "2",
+            "b1.c3": "3",
+            "b2.c1": "a",
+            "b2.c2": "True",
+            "b2.c3": "1.1",
+        },
+        "a2": {
+            "b1.c1": "f",
+            "b1.c2": False,
+            "b1.c3": None,
+            "b2.c1": 10,
+            "b2.c2": "YWJjZGVmZ2g=",
+            "b2.c3": "abcdefgh",
+        },
+    }
+
+    with cfg.dotted_iter():
+        assert dict(cfg.items()) == dict(
+            [
+                ("a2.b2.c2", "YWJjZGVmZ2g="),
+                ("a1.b2.c2", "True"),
+                ("a1.b2.c1", "a"),
+                ("a1.b1.c2", "2"),
+                ("a2.b2.c3", "abcdefgh"),
+                ("a2.b1.c1", "f"),
+                ("a1.b1.c3", "3"),
+                ("a2.b1.c2", False),
+                ("a2.b1.c3", None),
+                ("a1.b1.c1", "1"),
+                ("a2.b2.c1", 10),
+                ("a1.b2.c3", "1.1"),
+            ]
+        )
 
 
 def test_dict_methods_keys_values():  # type: ignore
@@ -627,21 +654,46 @@ def test_dict_methods_keys_values():  # type: ignore
     )
 
     assert sorted(cfg.keys()) == [
-        "a1.b1.c1",
-        "a1.b1.c2",
-        "a1.b1.c3",
-        "a1.b2.c1",
-        "a1.b2.c2",
-        "a1.b2.c3",
-        "a2.b1.c1",
-        "a2.b1.c2",
-        "a2.b1.c3",
-        "a2.b2.c1",
-        "a2.b2.c2",
-        "a2.b2.c3",
+        "a1",
+        "a2",
     ]
 
-    assert dict(zip(cfg.keys(), cfg.values())) == cfg.as_dict()
+    assert dict(zip(cfg.keys(), cfg.values())) == {
+        "a1": {
+            "b1.c1": "1",
+            "b1.c2": "2",
+            "b1.c3": "3",
+            "b2.c1": "a",
+            "b2.c2": "True",
+            "b2.c3": "1.1",
+        },
+        "a2": {
+            "b1.c1": "f",
+            "b1.c2": False,
+            "b1.c3": None,
+            "b2.c1": 10,
+            "b2.c2": "YWJjZGVmZ2g=",
+            "b2.c3": "abcdefgh",
+        },
+    }
+
+    with cfg.dotted_iter():
+        assert sorted(cfg.keys()) == [
+            "a1.b1.c1",
+            "a1.b1.c2",
+            "a1.b1.c3",
+            "a1.b2.c1",
+            "a1.b2.c2",
+            "a1.b2.c3",
+            "a2.b1.c1",
+            "a2.b1.c2",
+            "a2.b1.c3",
+            "a2.b2.c1",
+            "a2.b2.c2",
+            "a2.b2.c3",
+        ]
+
+        assert dict(zip(cfg.keys(), cfg.values())) == cfg.as_dict()
 
 
 def test_reload():  # type: ignore
@@ -794,3 +846,19 @@ def test_separator_override_default():  # type: ignore
         config_from_dict(joined_dicts, lowercase_keys=True).as_dict() == cfg.as_dict()
     )
     assert config_from_dict(joined_dicts, lowercase_keys=True) == cfg
+
+
+def test_same_as_configuration():  # type: ignore
+    cfg = config_from_dict(DICT2_1, lowercase_keys=True)
+
+    cfgset = ConfigurationSet(config_from_dict(DICT2_1, lowercase_keys=True))
+
+    assert cfg.get_dict("a2") == cfgset.get_dict("a2")
+    assert cfg.a2.as_dict() == cfgset.a2.as_dict()
+    assert dict(cfg.a2) == dict(cfgset.a2)
+
+    assert dict(cfg.a2) == dict(cfg.a2.items())
+    assert dict(cfgset.a2) == dict(cfgset.a2.items())
+
+    assert cfg.as_dict() == cfgset.as_dict()
+    assert dict(cfg) == dict(cfgset)

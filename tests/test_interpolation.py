@@ -148,6 +148,19 @@ def test_interpolation_with_literals():  # type: ignore
     assert cfg.interpolatable2 == "say value_of_something abc xyz"
 
 
+def test_interpolation_with_nested():  # type: ignore
+    cfg = config_from_dict({"data.value": 15, "data.nested.value2": 16})
+
+    assert cfg.data == {"value": 15, "nested": {"value2": 16}}
+    assert cfg.data.value == 15
+
+    assert "{data.value}".format(**cfg) == "15"
+    assert "{data.nested.value2}".format(**cfg) == "16"
+
+    assert "{data.value}".format(data=cfg.data) == "15"
+    assert "{data.nested.value2}".format(data=cfg.data) == "16"
+
+
 def test_interpolation_same_variable_1():  # type: ignore
     values_1 = {"var1": "something"}
     values_2 = {"var1": "{var1}/else", "var2": "{var1}"}

@@ -8,7 +8,7 @@ from google.api_core.exceptions import NotFound
 from google.auth.credentials import Credentials
 from google.cloud import secretmanager
 
-from .. import Configuration
+from .. import Configuration, InterpolateType
 
 
 class Cache:
@@ -39,6 +39,7 @@ class GCPSecretManagerConfiguration(Configuration):
         credentials: Credentials = None,
         client_options: ClientOptions = None,
         cache_expiration: int = 5 * 60,
+        interpolate: InterpolateType = False,
     ) -> None:
         """
         Constructor.
@@ -58,6 +59,8 @@ class GCPSecretManagerConfiguration(Configuration):
         self._parent = self._client.project_path(project_id)
         self._cache_expiration = cache_expiration
         self._cache: Dict[str, Cache] = {}
+        self._interpolate = {} if interpolate is True else interpolate
+        self._default_levels = None
 
     def _get_secret(self, key: str) -> Optional[str]:
         now = time.time()
