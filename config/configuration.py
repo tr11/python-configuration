@@ -150,7 +150,7 @@ class Configuration:
         if v == {}:
             raise KeyError(item)
         if isinstance(v, dict):
-            return Configuration(v)
+            return Configuration(v, interpolate=self._interpolate)
         elif self._interpolate is not False:
             d = self.as_dict()
             d.update(cast(Dict[str, str], self._interpolate))
@@ -171,17 +171,37 @@ class Configuration:
         """
         return self.as_dict().get(key, default)
 
-    def as_dict(self) -> dict:
+    def as_dict(self, interpolation: bool = False, nested: bool = False) -> dict:
         """Return the representation as a dictionary."""
-        return self._config
-
-    def as_attrdict(self) -> AttributeDict:
-        """Return the representation as an attribute dictionary."""
-        return AttributeDict(
-            {
-                x: Configuration(v).as_attrdict() if isinstance(v, dict) else v
-                for x, v in self.items(levels=1)
+        if not interpolation:
+            result = self._config
+        else:
+            interpolated_copy = Configuration(cast(dict, self), interpolate=True)
+            result = {}
+            for k in interpolated_copy.keys(levels=1):
+                v = interpolated_copy[cast(str, k)]
+                if isinstance(v, Configuration):
+                    v = v.as_dict(interpolation=True)
+                result[k] = v  # type: ignore
+            result = Configuration(result).as_dict()
+        if nested:
+            result = {
+                k: (
+                    v
+                    if not isinstance(v, (dict, Configuration))
+                    else Configuration(cast(dict, v)).as_dict(nested=True)
+                )
+                for k, v in Configuration(result).items(levels=1)
             }
+        return result
+
+    def as_attrdict(
+        self, interpolation: bool = False, nested: bool = False
+    ) -> AttributeDict:
+        """Return the representation as an attribute dictionary."""
+        d = self.as_dict(interpolation=interpolation, nested=nested)
+        return AttributeDict(
+            {x: AttributeDict(v) if isinstance(v, dict) else v for x, v in d.items()}
         )
 
     def get_bool(self, item: str) -> bool:

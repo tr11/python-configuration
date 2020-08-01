@@ -6,6 +6,12 @@ from pytest import raises
 VALUES = {"var1": "This {var2}", "var2": "is a {var3}", "var3": "test"}
 FAILS = {"var1": "This will fail {var2}", "var2": "{var3}", "var3": "{var1}"}
 MULTI = {"var1": "This is a {var2} {var3}", "var2": "repeat {var3}", "var3": "test"}
+MULTI_NESTED = {
+    "var1": "This is a {var2} {var3}",
+    "var2": "repeat {var3}",
+    "var3": "test",
+    "var4": {"a": "a{b}", "b": "b"},
+}
 ARRAY = {
     "var1": ["This is a {var2} {var3}", "{var2}", "{var3}"],
     "var2": "repeat {var3}",
@@ -269,3 +275,64 @@ def test_interpolation_same_variable_4():  # type: ignore
     )
     assert cfg.var2 == "test/a/b"  # var2(2) --> var1(2) --> var1(1) --> var2(1)
     assert cfg.var1 == "test/a"  # var1(2) --> var1(1) --> var2(1)
+
+
+def test_as_dict_interpolation():  # type: ignore
+    cfg = config_from_dict(MULTI_NESTED, lowercase_keys=True, interpolate=True)
+
+    assert cfg["var4"] == {"a": "a{b}", "b": "b"}
+    assert cfg["var4"].a == "ab"
+
+    assert cfg.as_dict(interpolation=False) == {
+        "var1": "This is a {var2} {var3}",
+        "var2": "repeat {var3}",
+        "var3": "test",
+        "var4.a": "a{b}",
+        "var4.b": "b",
+    }
+
+    assert cfg.as_dict(interpolation=True) == {
+        "var1": "This is a repeat test test",
+        "var2": "repeat test",
+        "var3": "test",
+        "var4.a": "ab",
+        "var4.b": "b",
+    }
+
+
+def test_as_attrdict_interpolation():  # type: ignore
+    cfg = config_from_dict(MULTI_NESTED, lowercase_keys=True, interpolate=True)
+
+    assert cfg["var4"] == {"a": "a{b}", "b": "b"}
+    assert cfg["var4"].a == "ab"
+
+    d = cfg.as_attrdict(interpolation=False)
+    assert d.var1 == "This is a {var2} {var3}"
+    assert d.var2 == "repeat {var3}"
+    assert d.var3 == "test"
+
+    d = cfg.as_attrdict(interpolation=True)
+    assert d.var1 == "This is a repeat test test"
+    assert d.var2 == "repeat test"
+    assert d.var3 == "test"
+
+
+def test_as_dict_interpolation_set():  # type: ignore
+    cfg = config(SET1, SET2, lowercase_keys=True, interpolate=True)
+
+    assert cfg["var3"] == "test"
+    assert cfg["var2"] == "is a test"
+    assert cfg["var1"] == "This is a test"
+    assert cfg.var1 == "This is a test"
+
+    assert cfg.as_dict(interpolation=False) == {
+        "var1": "This {var2}",
+        "var2": "is a {var3}",
+        "var3": "test",
+    }
+
+    assert cfg.as_dict(interpolation=True) == {
+        "var1": "This is a test",
+        "var2": "is a test",
+        "var3": "test",
+    }

@@ -69,14 +69,14 @@ class ConfigurationSet(Configuration):
             result: dict = {}
             for v in values[::-1]:
                 result.update(v)
-            return Configuration(result)
+            return Configuration(result, interpolate=self._interpolate)
         elif isinstance(values[0], Configuration):
             result = {}
             for v in values[::-1]:
                 if not isinstance(v, Configuration):
                     continue
                 result.update(v)
-            return Configuration(result)
+            return Configuration(result, interpolate=self._interpolate)
         elif self._interpolate is not False:
             d = [d.as_dict() for d in self._configs]
             d[0].update(cast(Dict[str, str], self._interpolate))
@@ -125,12 +125,12 @@ class ConfigurationSet(Configuration):
         except Exception:
             return default
 
-    def as_dict(self) -> dict:
+    def as_dict(self, interpolation: bool = False, nested: bool = False) -> dict:
         """Return the representation as a dictionary."""
         result = {}
         for config_ in self._configs[::-1]:
             result.update(config_.as_dict())
-        return result
+        return Configuration(result).as_dict(interpolation=interpolation, nested=nested)
 
     def get_dict(self, item: str) -> dict:
         """
