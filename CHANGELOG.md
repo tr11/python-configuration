@@ -71,7 +71,7 @@ with cfg.dotted_iter():
 - Initial version
 
 [Unreleased]: https://github.com/tr11/python-configuration/compare/0.8.0...HEAD
-[0.7.1]: https://github.com/tr11/python-configuration/compare/0.7.1...0.8.0
+[0.8.0]: https://github.com/tr11/python-configuration/compare/0.7.1...0.8.0
 [0.7.1]: https://github.com/tr11/python-configuration/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/tr11/python-configuration/compare/0.6.1...0.7.0
 [0.6.1]: https://github.com/tr11/python-configuration/compare/0.6.0...0.6.1
