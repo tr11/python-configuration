@@ -1,6 +1,25 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2020-08-01
+### Changed
+- the behavior of the dict-like methods `keys`, `items`, and `values` now give only the first level configuration keys instead of the old behavior of returning all the nested keys. To achieve the same behavior as before, use the `dotter_iter` context manager:
+```python
+cfg.keys()  # returns only the top level keys
+
+with cfg.dotted_iter():
+    cfg.keys()  # returns all the keys at all depths using '.' as a separator 
+```
+
+### Fixed
+- configuration objects are now immutable
+ 
+### Added
+- Attribute dictionaries 
+- Support for *.env*-type files
+- Option for deep interpolation. To activate that mode, use one of the enum values in  `InterpolateEnumType` as the `interpolate_type` parameter.  This allows for hierachical *templates*, in which configuration objects use the values from lower ones to interpolate instead of simply overriding.     
+
+
 ## [0.7.1] - 2020-07-05
 ### Fixed
 - installation with `poetry` because of changes to pytest-black
@@ -51,7 +70,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Initial version
 
-[Unreleased]: https://github.com/tr11/python-configuration/compare/0.7.1...HEAD
+[Unreleased]: https://github.com/tr11/python-configuration/compare/0.8.0...HEAD
+[0.7.1]: https://github.com/tr11/python-configuration/compare/0.7.1...0.8.0
 [0.7.1]: https://github.com/tr11/python-configuration/compare/0.7.0...0.7.1
 [0.7.0]: https://github.com/tr11/python-configuration/compare/0.6.1...0.7.0
 [0.6.1]: https://github.com/tr11/python-configuration/compare/0.6.0...0.6.1
