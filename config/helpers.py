@@ -2,7 +2,7 @@
 
 import string
 from enum import Enum
-from typing import Any, Dict, List, Set, Tuple, Union
+from typing import Any, Dict, Sequence, Set, Tuple, Union
 
 
 TRUTH_TEXT = frozenset(("t", "true", "y", "yes", "on", "1"))
@@ -85,6 +85,13 @@ def clean(key: str, value: Any, mask: str = "******") -> Any:
     return value
 
 
+def getattr_dotted(d: dict, item: str) -> Any:
+    """Return the getattr method but looking through dotted items."""
+    for it in item.split("."):
+        d = d[it]
+    return d
+
+
 def interpolate_standard(text: str, d: dict, found: Set[Tuple[str, ...]]) -> str:
     """
     Return the string interpolated as many times as needed.
@@ -93,6 +100,8 @@ def interpolate_standard(text: str, d: dict, found: Set[Tuple[str, ...]]) -> str
     :param d: dictionary
     :param found: variables found so far
     """
+    from .configuration import Configuration
+
     if not isinstance(text, str):
         return text
 
@@ -108,14 +117,16 @@ def interpolate_standard(text: str, d: dict, found: Set[Tuple[str, ...]]) -> str
     else:
         found.add(variables)
 
-    interpolated = {v: interpolate_standard(d[v], d, found) for v in variables}
+    interpolated = Configuration(
+        {v: interpolate_standard(getattr_dotted(d, v), d, found) for v in variables}
+    ).as_attrdict()  # convert to attribute dict to play well with .format
     return text.format(**interpolated)
 
 
 def interpolate_deep(
     attr: str,
     text: str,
-    d: List[dict],
+    d: Sequence[dict],
     resolved: Dict[str, str],
     levels: Dict[str, int],
     method: InterpolateEnumType,
@@ -154,7 +165,7 @@ def interpolate_deep(
         levels[variable] = level + 1
 
         new_d = (
-            ([{}] * level) + d[level:]
+            ([{}] * level) + d[level:]  # type: ignore
             if method == InterpolateEnumType.DEEP_NO_BACKTRACK
             else d
         )
@@ -165,7 +176,7 @@ def interpolate_deep(
     return text.format(**resolved)
 
 
-def flatten(d: List[dict]) -> dict:
+def flatten(d: Sequence[dict]) -> dict:
     """
     Flatten a list of dictionaries.
 
@@ -177,7 +188,7 @@ def flatten(d: List[dict]) -> dict:
 
 
 def interpolate_object(
-    attr: str, obj: Any, d: List[dict], method: InterpolateEnumType
+    attr: str, obj: Any, d: Sequence[dict], method: InterpolateEnumType
 ) -> Any:
     """
     Return the interpolated object.

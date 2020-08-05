@@ -152,7 +152,7 @@ class Configuration:
         if isinstance(v, dict):
             return Configuration(v)
         elif self._interpolate is not False:
-            d = self.as_dict()
+            d = self.as_attrdict()
             d.update(cast(Dict[str, str], self._interpolate))
             return interpolate_object(item, v, [d], self._interpolate_type)
         else:
@@ -173,7 +173,7 @@ class Configuration:
 
     def as_dict(self) -> dict:
         """Return the representation as a dictionary."""
-        return self._config
+        return deepcopy(self._config)
 
     def as_attrdict(self) -> AttributeDict:
         """Return the representation as an attribute dictionary."""
