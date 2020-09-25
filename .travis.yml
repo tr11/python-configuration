@@ -11,7 +11,7 @@ before_install:
 - source $HOME/.poetry/env
 
 install:
-- poetry install -E yaml -E toml -E azure -E aws
+- poetry install -E yaml -E toml -E azure -E aws -E gcp
 
 script:
 - poetry run pytest
