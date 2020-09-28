@@ -28,7 +28,7 @@ from .helpers import (
     interpolate_object,
 )
 
-if version_info < (3, 8):
+if version_info < (3, 8):  # pragma: no cover
     from collections import OrderedDict
 
 
@@ -304,7 +304,9 @@ class Configuration:
 
     def __reversed__(self) -> Iterator[Tuple[str, Any]]:  # noqa: D105
         if version_info < (3, 8):
-            return OrderedDict(reversed(list(self.items())))  # type: ignore
+            return OrderedDict(  # type: ignore
+                reversed(list(self.items()))
+            )  # pragma: no cover
         else:
             return reversed(dict(self.items()))  # type: ignore
 
