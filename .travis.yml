@@ -6,10 +6,12 @@ python:
 - 3.8
 
 before_install:
-- pip install poetry
+- curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > /tmp/get-poetry.py
+- python /tmp/get-poetry.py --preview --yes
+- source $HOME/.poetry/env
 
 install:
-- poetry install -E yaml -E toml -E azure -E aws
+- poetry install -E yaml -E toml -E azure -E aws -E gcp
 
 script:
 - poetry run pytest

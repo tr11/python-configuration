@@ -3,6 +3,7 @@
 import base64
 from contextlib import contextmanager
 from copy import deepcopy
+from sys import version_info
 from typing import (
     Any,
     Dict,
@@ -26,6 +27,9 @@ from .helpers import (
     clean,
     interpolate_object,
 )
+
+if version_info < (3, 8):
+    from collections import OrderedDict
 
 
 class Configuration:
@@ -299,7 +303,10 @@ class Configuration:
         return iter(dict(self.items()))  # type: ignore
 
     def __reversed__(self) -> Iterator[Tuple[str, Any]]:  # noqa: D105
-        return reversed(dict(self.items()))  # type: ignore
+        if version_info < (3, 8):
+            return OrderedDict(reversed(list(self.items())))  # type: ignore
+        else:
+            return reversed(dict(self.items()))  # type: ignore
 
     def __len__(self) -> int:  # noqa: D105
         return len(self.keys())
