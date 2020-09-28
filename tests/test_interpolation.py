@@ -46,10 +46,7 @@ def test_interpolation():  # type: ignore
     assert cfg.var1 == "This is a test"
 
     cfg = config_from_dict(
-        VALUES,
-        lowercase_keys=True,
-        interpolate=True,
-        interpolate_type="unknown",
+        VALUES, lowercase_keys=True, interpolate=True, interpolate_type="unknown",
     )
 
     with raises(ValueError, match='Invalid interpolation method "unknown"'):
