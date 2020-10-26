@@ -163,7 +163,10 @@ class Configuration:
             return v
 
     def __getattr__(self, item: str) -> Any:  # noqa: D105
-        return self[item]
+        try:
+            return self[item]
+        except KeyError:
+            raise AttributeError(item)
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
         """
