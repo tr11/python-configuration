@@ -42,7 +42,7 @@ def test_attribute_dict_1():  # type: ignore
     }
 
     cfg = config_from_dict(definitions, interpolate=True)
-    d = cfg.as_attrdict()
+    d = cfg.as_attrdict(nested=True)
 
     assert isinstance(d, dict)
     assert isinstance(d, AttributeDict)
