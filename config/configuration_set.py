@@ -68,7 +68,7 @@ class ConfigurationSet(Configuration):
         if all(isinstance(v, Configuration) for v in values):
             result: dict = {}
             for v in values[::-1]:
-                result.update(v)
+                result.update(v.as_dict())
             return Configuration(result)
         elif isinstance(values[0], Configuration):
             result = {}

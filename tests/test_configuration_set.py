@@ -862,3 +862,16 @@ def test_same_as_configuration():  # type: ignore
 
     assert cfg.as_dict() == cfgset.as_dict()
     assert dict(cfg) == dict(cfgset)
+
+
+def test_merging_values():  # type: ignore
+    DICT5_1 = {"a5.b1.c2": 3}
+    DICT5_2 = {"a5.b1.c1": 1, "a5.b1.c2": 2}
+
+    cfg = ConfigurationSet(
+        config_from_dict(DICT5_1),
+        config_from_dict(DICT5_2),
+    )
+
+    assert cfg["a5.b1"] == {"c1": 1, "c2": 3}
+    assert cfg.a5.b1 == {"c1": 1, "c2": 3}
