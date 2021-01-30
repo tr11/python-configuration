@@ -1,13 +1,13 @@
 from collections import namedtuple
 from typing import Any
 import pytest
-from google.api_core.exceptions import NotFound
 from pytest import raises
 
 from config import config_from_dict
 
 try:
     from google.cloud import secretmanager
+    from google.api_core.exceptions import NotFound
     from config.contrib.gcp import GCPSecretManagerConfiguration
 except ImportError:  # pragma: no cover
     secretmanager = None

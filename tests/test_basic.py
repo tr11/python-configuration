@@ -91,7 +91,7 @@ def test_fails():  # type: ignore
     with pytest.raises(KeyError, match="a1.b2.c3.d4"):
         assert cfg["a1.b2.c3.d4"] is Exception
 
-    with pytest.raises(KeyError, match="c4"):
+    with pytest.raises(AttributeError, match="c4"):
         assert cfg.a1.b2.c4 is Exception
 
     with pytest.raises(ValueError, match="Expected a valid True or False expression."):

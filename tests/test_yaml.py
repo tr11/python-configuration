@@ -113,7 +113,7 @@ def test_equality():  # type: ignore
     assert cfg == config_from_dict(DICT)
 
 
-@pytest.mark.skipif("toml is None")
+@pytest.mark.skipif("yaml is None")
 def test_reload_yaml():  # type: ignore
     with tempfile.NamedTemporaryFile() as f:
         f.file.write(YAML.encode())
