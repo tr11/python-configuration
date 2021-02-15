@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Added the `section_prefix` parameter that filters sections by prefix in INI/toml files
+
 ## [0.8.2] - 2021-01-30
 
 ### Fixed

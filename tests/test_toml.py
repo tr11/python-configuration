@@ -114,3 +114,43 @@ def test_reload_toml():  # type: ignore
         f.file.flush()
         cfg.reload()
         assert cfg == config_from_dict({"owner.name": "ABC"})
+
+
+@pytest.mark.skipif("toml is None")
+def test_reload_toml_with_section_prefix():  # type: ignore
+    with tempfile.NamedTemporaryFile() as f:
+        toml_input = """
+[tool.coverage.run]
+branch = false
+parallel = false
+[database]
+server = "192.168.1.1"
+ports = [ 8001, 8001, 8002,]
+"""
+
+        f.file.write(toml_input.encode())
+        f.file.flush()
+
+        cfg = config_from_toml(
+            f.name, section_prefix="tool.coverage.", read_from_file=True
+        )
+        expected = config_from_dict(
+            {
+                "run.branch": False,
+                "run.parallel": False,
+            }
+        )
+
+        assert cfg == expected
+
+        f.file.seek(0)
+        f.file.truncate(0)
+        f.file.write(b"[tool.coverage.report]\nignore_errors = false\n")
+        f.file.flush()
+        cfg.reload()
+        expected = config_from_dict(
+            {
+                "report.ignore_errors": False,
+            }
+        )
+        assert cfg == expected
