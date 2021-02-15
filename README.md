@@ -104,11 +104,13 @@ dict(cfg.logging)
 ```
 
 ## Configuration
+
 There are two general types of objects in this library. The first one is the `Configuration`, which represents a single config source.  The second is a `ConfigurationSet` that allows for multiple `Configuration` objects to be specified.
 
 ### Single Config
 
 #### Python Files
+
 To load a configuration from a Python module, the `config_from_python` can be used.
 The first parameter must be a Python module and can be specified as an absolute path to the Python file or as an importable module.
 
@@ -139,6 +141,7 @@ would result in the configuration
 Note that the single underscore in `BB_C` is not replaced and the last line is not prefixed by `CONFIG`.
 
 #### Dictionaries
+
 Dictionaries are loaded with `config_from_dict` and are converted internally to a flattened `dict`.
 
 ```python
@@ -158,6 +161,7 @@ becomes
 ```
 
 #### Environment Variables
+
 Environment variables starting with `prefix` can be read with `config_from_env`:
 
 ```python
@@ -165,9 +169,11 @@ config_from_env(prefix, separator='_')
 ```
 
 #### Filesystem Paths
+
 Folders with files named as `xxx.yyy.zzz` can be loaded with the `config_from_path` function.  This format is useful to load mounted Kubernetes [ConfigMaps](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#populate-a-volume-with-data-stored-in-a-configmap) or [Secrets](https://kubernetes.io/docs/tasks/inject-data-application/distribute-credentials-secure/#create-a-pod-that-has-access-to-the-secret-data-through-a-volume).
 
 #### JSON, INI, .env, YAML, TOML
+
 JSON, INI, YAML, TOML files are loaded respectively with
 `config_from_json`,
 `config_from_ini`,
@@ -177,12 +183,14 @@ JSON, INI, YAML, TOML files are loaded respectively with
 The parameter `read_from_file` controls whether a string should be interpreted as a filename.
 
 ###### Caveats
+
 In order for `Configuration` objects to act as `dict` and allow the syntax `dict(cfg)`, the `keys()` method is implemented as the typical `dict` keys. If `keys` is an element in the configuration `cfg` then the `dict(cfg)` call will fail. In that case, it's necessary to use the `cfg.as_dict()` method to retrieve the `dict` representation for the `Configuration` object.
 
 The same applies to the methods `values()` and `items()`.
 
 
 ### Configuration Sets
+
 Configuration sets are used to hierarchically load configurations and merge settings. Sets can be loaded by constructing a `ConfigurationSet` object directly or using the simplified `config` function.
 
 To construct a `ConfigurationSet`, pass in as many of the simple `Configuration` objects as needed:
@@ -226,6 +234,7 @@ The `config` function automatically detects the following:
 * the strings `env` or `environment` for Environment Variables
 
 #### Merging Values
+
 `ConfigurationSet` instances are constructed by inspecting each configuration source, taking into account nested dictionaries, and merging at the most granular level.
 For example, the instance obtained from `cfg = config(d1, d2)` for the dictionaries below
 
@@ -244,11 +253,13 @@ Note that the nested dictionaries of `'sub'` in each of `d1` and `d2` do not ove
 
 
 ###### Caveats
+
 As long as the data types are consistent across all the configurations that are part of a `ConfigurationSet`, the behavior should be straightforward.  When different configuration objects are specified with competing data types, the first configuration to define the elements sets its datatype. For example, if in the example above `element` is interpreted as a `dict` from environment variables, but the JSON file specifies it as anything else besides a mapping, then the JSON value will be dropped automatically.
 
 ## Other Features
 
 ###### String Interpolation
+
 When setting the `interpolate` parameter in any `Configuration` instance, the library will perform a string interpolation step using the [str.format](https://docs.python.org/3/library/string.html#formatstrings) syntax.  In particular, this allows to format configuration values automatically:
 
 ```python
@@ -263,6 +274,7 @@ assert cfg.percentage == "123.456%"
 ```
 
 ## Extras
+
 The `config.contrib` package contains extra implementations of the `Configuration` class used for special cases. Currently the following are implemented:
 
 * `AzureKeyVaultConfiguration` in `config.contrib.azure`, which takes Azure Key Vault
