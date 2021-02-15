@@ -278,11 +278,6 @@ used for special cases. Currently the following are implemented:
   pip install python-configuration[gcp]
   ```
 
-## Developing
-
-To develop this library, download the source code and install a local version.
-
-
 ## Features
 
 * Load multiple configuration types
@@ -290,10 +285,12 @@ To develop this library, download the source code and install a local version.
 * Ability to override with environment variables
 * Merge parameters from different configuration types
 
-## Contributing
+## Contributing :tada:
 
 If you'd like to contribute, please fork the repository and use a feature
 branch. Pull requests are welcome.
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the details.
 
 ## Links
 
