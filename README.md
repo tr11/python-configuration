@@ -43,17 +43,27 @@ pip install python-configuration[toml,yaml]
 
 ## Getting started
 
-This library converts the config types above into dictionaries with dotted-based keys. That is, given a config `cfg` from the structure
+`python-configuration` converts the various config types into dictionaries with dotted-based keys. For example, given this JSON configuration
 
-```python
+```json
 {
-    'a': {
-        'b': 'value'
+    "a": {
+        "b": "value"
     }
 }
 ```
 
-we are able to refer to the parameter above as any of
+We can use the `config_from_json` method to parse it:
+
+```python
+from config import config_from_json
+
+cfg = config_from_json("my_config_file.json", read_from_file=True)
+```
+
+(Similar methods exist for all the other supported configuration formats (eg. `config_from_toml`, etc.).)
+
+We are then able to refer to the parameters in the config above using any of:
 
 ```python
 cfg['a.b']
