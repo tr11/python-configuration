@@ -55,3 +55,9 @@ def test_attribute_dict_1():  # type: ignore
 
     d.var3 = "abc"
     assert d.var3 == "abc"
+
+
+def test_tuple():
+    DICT = {"a1": (1, 2)}
+    cfg = config_from_dict(DICT, interpolate=True)
+    assert cfg["a1"] == (1, 2)
