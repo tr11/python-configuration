@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Set, Tuple, Union
 
 TRUTH_TEXT = frozenset(("t", "true", "y", "yes", "on", "1"))
 FALSE_TEXT = frozenset(("f", "false", "n", "no", "off", "0", ""))
-PROTECTED_KEYS = frozenset(("secret", "password", "passwd", "pwd"))
+PROTECTED_KEYS = frozenset(("secret", "password", "passwd", "pwd", "token"))
 
 InterpolateType = Union[bool, Dict[str, str]]
 
