@@ -322,7 +322,7 @@ class FileConfiguration(Configuration):
         """
         Constructor.
 
-        :param data: path to a JSON file or contents
+        :param data: path to a config file, or its contents
         :param read_from_file: whether to read from a file path or to interpret
                the :attr:`data` as the contents of the file.
         :param lowercase_keys: whether to convert every key to lower case.
@@ -392,6 +392,25 @@ def config_from_json(
 class INIConfiguration(FileConfiguration):
     """Configuration from an INI file input."""
 
+    def __init__(
+        self,
+        data: Union[str, TextIO],
+        read_from_file: bool = False,
+        *,
+        section_prefix: str = '',
+        lowercase_keys: bool = False,
+        interpolate: InterpolateType = False,
+        interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+    ):
+        self._section_prefix = section_prefix
+        super().__init__(
+            data=data,
+            read_from_file=read_from_file,
+            lowercase_keys=lowercase_keys,
+            interpolate=interpolate,
+            interpolate_type=interpolate_type
+        )
+
     def _reload(self, data: Union[str, TextIO], read_from_file: bool = False) -> None:
         """Reload the INI data."""
         import configparser
@@ -405,9 +424,10 @@ class INIConfiguration(FileConfiguration):
         cfg = configparser.RawConfigParser()
         cfg.read_string(data)
         result = {
-            section + "." + k: v
+            section[len(self._section_prefix):] + "." + k: v
             for section, values in cfg.items()
             for k, v in values.items()
+            if section.startswith(self._section_prefix)
         }
         self._config = self._flatten_dict(result)
 
@@ -416,6 +436,7 @@ def config_from_ini(
     data: Union[str, TextIO],
     read_from_file: bool = False,
     *,
+    section_prefix: str = "",
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
@@ -433,6 +454,7 @@ def config_from_ini(
     return INIConfiguration(
         data,
         read_from_file,
+        section_prefix=section_prefix,
         lowercase_keys=lowercase_keys,
         interpolate=interpolate,
         interpolate_type=interpolate_type,
@@ -672,6 +694,24 @@ if toml is not None:  # pragma: no branch
 
     class TOMLConfiguration(FileConfiguration):
         """Configuration from a TOML input."""
+        def __init__(
+            self,
+            data: Union[str, TextIO],
+            read_from_file: bool = False,
+            *,
+            section_prefix: str = '',
+            lowercase_keys: bool = False,
+            interpolate: InterpolateType = False,
+            interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+        ):
+            self._section_prefix = section_prefix
+            super().__init__(
+                data=data,
+                read_from_file=read_from_file,
+                lowercase_keys=lowercase_keys,
+                interpolate=interpolate,
+                interpolate_type=interpolate_type
+            )
 
         def _reload(
             self, data: Union[str, TextIO], read_from_file: bool = False
@@ -686,12 +726,20 @@ if toml is not None:  # pragma: no branch
                 data = cast(str, data)
                 loaded = toml.loads(data)
             loaded = cast(dict, loaded)
-            self._config = self._flatten_dict(loaded)
+
+            result = {
+                k[len(self._section_prefix):]: v
+                for k, v in self._flatten_dict(loaded).items()
+                if k.startswith(self._section_prefix)
+            }
+
+            self._config = result
 
     def config_from_toml(
         data: Union[str, TextIO],
         read_from_file: bool = False,
         *,
+        section_prefix: str = '',
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
@@ -708,6 +756,7 @@ if toml is not None:  # pragma: no branch
         return TOMLConfiguration(
             data,
             read_from_file,
+            section_prefix=section_prefix,
             lowercase_keys=lowercase_keys,
             interpolate=interpolate,
             interpolate_type=interpolate_type,
