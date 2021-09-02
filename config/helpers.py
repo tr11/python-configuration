@@ -198,6 +198,9 @@ def interpolate_object(
         else:
             raise ValueError('Invalid interpolation method "%s"' % method)
     elif hasattr(obj, "__iter__"):
-        return [interpolate_object(attr, x, d, method) for x in obj]
+        if isinstance(obj, tuple):
+            return tuple(interpolate_object(attr, x, d, method) for x in obj)
+        else:
+            return [interpolate_object(attr, x, d, method) for x in obj]
     else:
         return obj
