@@ -415,13 +415,19 @@ class INIConfiguration(FileConfiguration):
         """Reload the INI data."""
         import configparser
 
+        lowercase = self._lowercase
+
+        class ConfigParser(configparser.RawConfigParser):
+            def optionxform(self, optionstr: str) -> str:
+                return super().optionxform(optionstr) if lowercase else optionstr
+
         if read_from_file:
             if isinstance(data, str):
                 data = open(data, "rt").read()
             else:
                 data = data.read()
         data = cast(str, data)
-        cfg = configparser.RawConfigParser()
+        cfg = ConfigParser()
         cfg.read_string(data)
         result = {
             section[len(self._section_prefix) :] + "." + k: v
