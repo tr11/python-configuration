@@ -51,7 +51,7 @@ class FakeSecretClient:
 @pytest.mark.skipif("azure is None")
 def test_load_dict():  # type: ignore
     cfg = AzureKeyVaultConfiguration(
-        "fake_id", "fake_secret", "fake_tenant", "fake_vault"
+        "fake_id", "fake_secret", "fake-tenant", "fake_vault"
     )
     cfg._kv_client = FakeSecretClient(DICT)
     assert cfg["foo"] == "foo_val"
@@ -63,7 +63,7 @@ def test_load_dict():  # type: ignore
 def test_expiration(mocker):  # type: ignore
     # with cache
     cfg = AzureKeyVaultConfiguration(
-        "fake_id", "fake_secret", "fake_tenant", "fake_vault"
+        "fake_id", "fake_secret", "fake-tenant", "fake_vault"
     )
     cfg._kv_client = FakeSecretClient(DICT)
 
@@ -74,7 +74,7 @@ def test_expiration(mocker):  # type: ignore
 
     # without cache
     cfg = AzureKeyVaultConfiguration(
-        "fake_id", "fake_secret", "fake_tenant", "fake_vault", cache_expiration=0
+        "fake_id", "fake_secret", "fake-tenant", "fake_vault", cache_expiration=0
     )
     cfg._kv_client = FakeSecretClient(DICT)
 
@@ -87,7 +87,7 @@ def test_expiration(mocker):  # type: ignore
 @pytest.mark.skipif("azure is None")
 def test_deletion():  # type: ignore
     cfg = AzureKeyVaultConfiguration(
-        "fake_id", "fake_secret", "fake_tenant", "fake_vault", cache_expiration=0
+        "fake_id", "fake_secret", "fake-tenant", "fake_vault", cache_expiration=0
     )
     d = DICT.copy()
     cfg._kv_client = FakeSecretClient(d)
@@ -103,7 +103,7 @@ def test_deletion():  # type: ignore
 @pytest.mark.skipif("azure is None")
 def test_missing_key():  # type: ignore
     cfg = AzureKeyVaultConfiguration(
-        "fake_id", "fake_secret", "fake_tenant", "fake_vault", cache_expiration=0
+        "fake_id", "fake_secret", "fake-tenant", "fake_vault", cache_expiration=0
     )
     d = DICT.copy()
     cfg._kv_client = FakeSecretClient(d)
@@ -117,7 +117,7 @@ def test_missing_key():  # type: ignore
 @pytest.mark.skipif("azure is None")
 def test_get_attr():  # type: ignore
     cfg = AzureKeyVaultConfiguration(
-        "fake_id", "fake_secret", "fake_tenant", "fake_vault", cache_expiration=0
+        "fake_id", "fake_secret", "fake-tenant", "fake_vault", cache_expiration=0
     )
     d = DICT.copy()
     cfg._kv_client = FakeSecretClient(d)
@@ -131,7 +131,7 @@ def test_get_attr():  # type: ignore
 @pytest.mark.skipif("azure is None")
 def test_dict():  # type: ignore
     cfg = AzureKeyVaultConfiguration(
-        "fake_id", "fake_secret", "fake_tenant", "fake_vault", cache_expiration=0
+        "fake_id", "fake_secret", "fake-tenant", "fake_vault", cache_expiration=0
     )
     d = DICT.copy()
     cfg._kv_client = FakeSecretClient(d)
@@ -144,7 +144,7 @@ def test_dict():  # type: ignore
 @pytest.mark.skipif("azure is None")
 def test_repr():  # type: ignore
     cfg = AzureKeyVaultConfiguration(
-        "fake_id", "fake_secret", "fake_tenant", "fake_vault", cache_expiration=0
+        "fake_id", "fake_secret", "fake-tenant", "fake_vault", cache_expiration=0
     )
     d = DICT.copy()
     cfg._kv_client = FakeSecretClient(d)
@@ -155,7 +155,7 @@ def test_repr():  # type: ignore
 @pytest.mark.skipif("azure is None")
 def test_str():  # type: ignore
     cfg = AzureKeyVaultConfiguration(
-        "fake_id", "fake_secret", "fake_tenant", "fake_vault", cache_expiration=0
+        "fake_id", "fake_secret", "fake-tenant", "fake_vault", cache_expiration=0
     )
     d = DICT.copy()
     cfg._kv_client = FakeSecretClient(d)
@@ -171,7 +171,7 @@ def test_str():  # type: ignore
 @pytest.mark.skipif("azure is None")
 def test_reload():  # type: ignore
     cfg = AzureKeyVaultConfiguration(
-        "fake_id", "fake_secret", "fake_tenant", "fake_vault"
+        "fake_id", "fake_secret", "fake-tenant", "fake_vault"
     )
     cfg._kv_client = FakeSecretClient(DICT)
     assert cfg == config_from_dict(DICT)
