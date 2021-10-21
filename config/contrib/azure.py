@@ -55,9 +55,7 @@ class AzureKeyVaultConfiguration(Configuration):
             client_secret=az_client_secret,
             tenant_id=az_tenant_id,
         )
-        vault_url = "https://{az_vault_name}.vault.azure.net/".format(
-            az_vault_name=az_vault_name
-        )
+        vault_url = f"https://{az_vault_name}.vault.azure.net/"
         self._kv_client = SecretClient(vault_url=vault_url, credential=credentials)
         self._cache_expiration = cache_expiration
         self._cache: Dict[str, Cache] = {}
@@ -148,7 +146,7 @@ class AzureKeyVaultConfiguration(Configuration):
         self._cache.clear()
 
     def __repr__(self) -> str:  # noqa: D105
-        return "<AzureKeyVaultConfiguration: %r>" % self._kv_client.vault_url
+        return f"<AzureKeyVaultConfiguration: {repr(self._kv_client.vault_url)}>"
 
     @property
     def _config(self) -> Dict[str, Any]:  # type: ignore

@@ -83,7 +83,7 @@ def config(
             elif all(s and s.isidentifier() for s in config_.split(".")):
                 config_ = ("python", config_, *default_args)
             else:
-                raise ValueError('Cannot determine config type from "%s"' % config_)
+                raise ValueError(f'Cannot determine config type from "{config_}"')
 
         if not isinstance(config_, (tuple, list)) or len(config_) == 0:
             raise ValueError(
@@ -142,7 +142,7 @@ def config(
                 if not ignore_missing_paths:
                     raise
         else:
-            raise ValueError('Unknown configuration type "%s"' % type_)
+            raise ValueError(f'Unknown configuration type "{type_}"')
 
     return ConfigurationSet(
         *instances, interpolate=interpolate, interpolate_type=interpolate_type
