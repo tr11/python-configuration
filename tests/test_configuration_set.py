@@ -13,11 +13,11 @@ import json
 try:
     import yaml
 except ImportError:
-    yaml = None  # type: ignore
+    yaml = None
 try:
     import toml
 except ImportError:
-    toml = None  # type: ignore
+    toml = None
 import pytest
 
 

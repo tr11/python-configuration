@@ -1,16 +1,16 @@
 from collections import namedtuple
-from typing import Any
+from typing import Any, Dict
 import pytest
 from pytest import raises
 
 from config import config_from_dict
 
 try:
-    from google.cloud import secretmanager
+    from google.cloud import secretmanager_v1
     from google.api_core.exceptions import NotFound
     from config.contrib.gcp import GCPSecretManagerConfiguration
 except ImportError:  # pragma: no cover
-    secretmanager = None
+    secretmanager_v1 = None  # type: ignore
 
 
 DICT = {
@@ -35,20 +35,15 @@ class FakeSecretClient:
     def __init__(self, dct: dict):
         self._dict = dct
 
-    def project_path(self, project: str) -> str:
-        return f"projects/{project}"
-
-    def secret_version_path(self, project: str, key: str, version: str) -> str:
-        return f"projects/{project}/secrets/{key}/versions/{version}"
-
-    def list_secrets(self, _: str) -> list:
+    def list_secrets(self, request: Dict[str, str]) -> list:
         return [Secret(f"prefix/{x}", "") for x in self._dict.keys()]
 
-    def access_secret_version(self, name: str) -> Secret:
+    def access_secret_version(self, request: Dict[str, str]) -> Secret:
+        name = request["name"]
         try:
             return Secret(name, self._dict[name.split("/")[3]])
         except KeyError:
-            raise NotFound("")
+            raise NotFound("")  # type: ignore
 
 
 def fake_client(val: dict) -> Any:
@@ -58,9 +53,9 @@ def fake_client(val: dict) -> Any:
     return call
 
 
-@pytest.mark.skipif("secretmanager is None")
+@pytest.mark.skipif("secretmanager_v1 is None")
 def test_load_dict():  # type: ignore
-    secretmanager.SecretManagerServiceClient = fake_client(DICT)
+    secretmanager_v1.SecretManagerServiceClient = fake_client(DICT)
     cfg = GCPSecretManagerConfiguration("fake_id")
 
     print(cfg)
@@ -70,10 +65,10 @@ def test_load_dict():  # type: ignore
     assert cfg.get("foo", "default") == "foo_val"
 
 
-@pytest.mark.skipif("secretmanager is None")
+@pytest.mark.skipif("secretmanager_v1 is None")
 def test_expiration(mocker):  # type: ignore
     # with cache
-    secretmanager.SecretManagerServiceClient = fake_client(DICT)
+    secretmanager_v1.SecretManagerServiceClient = fake_client(DICT)
     cfg = GCPSecretManagerConfiguration("fake_id")
 
     spy = mocker.spy(cfg._client, "access_secret_version")
@@ -82,7 +77,7 @@ def test_expiration(mocker):  # type: ignore
     assert spy.call_count == 1
 
     # without cache
-    secretmanager.SecretManagerServiceClient = fake_client(DICT)
+    secretmanager_v1.SecretManagerServiceClient = fake_client(DICT)
     cfg = GCPSecretManagerConfiguration("fake_id", cache_expiration=0)
 
     spy = mocker.spy(cfg._client, "access_secret_version")
@@ -91,10 +86,10 @@ def test_expiration(mocker):  # type: ignore
     assert spy.call_count == 2
 
 
-@pytest.mark.skipif("secretmanager is None")
+@pytest.mark.skipif("secretmanager_v1 is None")
 def test_deletion():  # type: ignore
     d = DICT.copy()
-    secretmanager.SecretManagerServiceClient = fake_client(d)
+    secretmanager_v1.SecretManagerServiceClient = fake_client(d)
     cfg = GCPSecretManagerConfiguration("fake_id", cache_expiration=0)
 
     assert cfg["foo"] == "foo_val"
@@ -105,10 +100,10 @@ def test_deletion():  # type: ignore
         assert cfg["foo"] is KeyError
 
 
-@pytest.mark.skipif("secretmanager is None")
+@pytest.mark.skipif("secretmanager_v1 is None")
 def test_missing_key():  # type: ignore
     d = DICT.copy()
-    secretmanager.SecretManagerServiceClient = fake_client(d)
+    secretmanager_v1.SecretManagerServiceClient = fake_client(d)
     cfg = GCPSecretManagerConfiguration("fake_id", cache_expiration=0)
 
     with raises(KeyError):
@@ -117,10 +112,10 @@ def test_missing_key():  # type: ignore
     assert cfg.get("foo-missing", "default") == "default"
 
 
-@pytest.mark.skipif("secretmanager is None")
+@pytest.mark.skipif("secretmanager_v1 is None")
 def test_get_attr():  # type: ignore
     d = DICT.copy()
-    secretmanager.SecretManagerServiceClient = fake_client(d)
+    secretmanager_v1.SecretManagerServiceClient = fake_client(d)
     cfg = GCPSecretManagerConfiguration("fake_id", cache_expiration=0)
 
     assert cfg.foo == "foo_val"
@@ -129,10 +124,10 @@ def test_get_attr():  # type: ignore
         assert cfg.foo_missing is KeyError
 
 
-@pytest.mark.skipif("secretmanager is None")
+@pytest.mark.skipif("secretmanager_v1 is None")
 def test_dict():  # type: ignore
     d = DICT.copy()
-    secretmanager.SecretManagerServiceClient = fake_client(d)
+    secretmanager_v1.SecretManagerServiceClient = fake_client(d)
     cfg = GCPSecretManagerConfiguration("fake_id", cache_expiration=0)
 
     assert sorted(cfg.keys()) == sorted(d.keys())
@@ -140,19 +135,19 @@ def test_dict():  # type: ignore
     assert sorted(cfg.items()) == sorted(d.items())
 
 
-@pytest.mark.skipif("secretmanager is None")
+@pytest.mark.skipif("secretmanager_v1 is None")
 def test_repr():  # type: ignore
     d = DICT.copy()
-    secretmanager.SecretManagerServiceClient = fake_client(d)
+    secretmanager_v1.SecretManagerServiceClient = fake_client(d)
     cfg = GCPSecretManagerConfiguration("fake_id", cache_expiration=0)
 
     assert repr(cfg) == "<GCPSecretManagerConfiguration: 'fake_id'>"
 
 
-@pytest.mark.skipif("secretmanager is None")
+@pytest.mark.skipif("secretmanager_v1 is None")
 def test_str():  # type: ignore
     d = DICT.copy()
-    secretmanager.SecretManagerServiceClient = fake_client(d)
+    secretmanager_v1.SecretManagerServiceClient = fake_client(d)
     cfg = GCPSecretManagerConfiguration("fake_id", cache_expiration=0)
 
     # str
@@ -163,9 +158,9 @@ def test_str():  # type: ignore
     assert cfg["password"] == "some passwd"
 
 
-@pytest.mark.skipif("secretmanager is None")
+@pytest.mark.skipif("secretmanager_v1 is None")
 def test_reload():  # type: ignore
-    secretmanager.SecretManagerServiceClient = fake_client(DICT)
+    secretmanager_v1.SecretManagerServiceClient = fake_client(DICT)
     cfg = GCPSecretManagerConfiguration("fake_id")
     assert cfg == config_from_dict(DICT)
 

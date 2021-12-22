@@ -6,7 +6,7 @@ try:
     import toml
     from config import config_from_toml
 except ImportError:
-    toml = None  # type: ignore
+    toml = None
     config_from_toml = None  # type: ignore
 
 

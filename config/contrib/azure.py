@@ -71,7 +71,7 @@ class AzureKeyVaultConfiguration(Configuration):
         try:
             secret = self._kv_client.get_secret(key)
             self._cache[key] = Cache(value=secret.value, ts=now)
-            return cast(str, secret.value)
+            return secret.value
         except ResourceNotFoundError:
             if key in self._cache:
                 del self._cache[key]

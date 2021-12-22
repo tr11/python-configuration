@@ -9,11 +9,11 @@ from typing import Any, Dict, Iterable, List, Optional, TextIO, Union, cast
 try:
     import yaml
 except ImportError:  # pragma: no cover
-    yaml = None  # type: ignore
+    yaml = None
 try:
     import toml
 except ImportError:  # pragma: no cover
-    toml = None  # type: ignore
+    toml = None
 
 
 from .configuration import Configuration
@@ -537,8 +537,12 @@ class PythonConfiguration(Configuration):
         if isinstance(module, str):
             if module.endswith(".py"):
                 import importlib.util
+                from importlib import machinery
 
-                spec = importlib.util.spec_from_file_location(module, module)
+                spec = cast(
+                    machinery.ModuleSpec,
+                    importlib.util.spec_from_file_location(module, module),
+                )
                 module = importlib.util.module_from_spec(spec)
                 spec.loader = cast(InspectLoader, spec.loader)
                 spec.loader.exec_module(module)

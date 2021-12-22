@@ -6,7 +6,7 @@ from typing import Any, Dict, ItemsView, KeysView, Optional, Union, ValuesView, 
 from google.api_core.client_options import ClientOptions
 from google.api_core.exceptions import NotFound
 from google.auth.credentials import Credentials
-from google.cloud import secretmanager
+from google.cloud import secretmanager_v1
 
 from .. import Configuration, InterpolateType
 
@@ -37,7 +37,7 @@ class GCPSecretManagerConfiguration(Configuration):
         self,
         project_id: str,
         credentials: Credentials = None,
-        client_options: ClientOptions = None,
+        client_options: Optional[ClientOptions] = None,
         cache_expiration: int = 5 * 60,
         interpolate: InterpolateType = False,
     ) -> None:
@@ -52,11 +52,11 @@ class GCPSecretManagerConfiguration(Configuration):
         :param client_options: GCP client_options
         :param cache_expiration: Cache expiration (in seconds)
         """  # noqa: E501
-        self._client = secretmanager.SecretManagerServiceClient(
+        self._client = secretmanager_v1.SecretManagerServiceClient(
             credentials=credentials, client_options=client_options
         )
         self._project_id = project_id
-        self._parent = self._client.project_path(project_id)
+        self._parent = f"projects/{project_id}"
         self._cache_expiration = cache_expiration
         self._cache: Dict[str, Cache] = {}
         self._interpolate = {} if interpolate is True else interpolate
@@ -68,8 +68,10 @@ class GCPSecretManagerConfiguration(Configuration):
         if from_cache and from_cache.ts + self._cache_expiration > now:
             return from_cache.value
         try:
-            path = self._client.secret_version_path(self._project_id, key, "latest")
-            secret = self._client.access_secret_version(path).payload.data.decode()
+            path = f"projects/{self._project_id}/secrets/{key}/versions/latest"
+            secret = self._client.access_secret_version(
+                request={"name": path}
+            ).payload.data.decode()
             self._cache[key] = Cache(value=secret, ts=now)
             return cast(str, secret)
         except NotFound:
@@ -112,7 +114,10 @@ class GCPSecretManagerConfiguration(Configuration):
         assert not levels  # GCP Secret Manager secrets don't support separators
         return cast(
             KeysView[str],
-            (k.name.split("/")[-1] for k in self._client.list_secrets(self._parent)),
+            (
+                k.name.split("/")[-1]
+                for k in self._client.list_secrets(request={"parent": self._parent})
+            ),
         )
 
     def values(
@@ -124,7 +129,7 @@ class GCPSecretManagerConfiguration(Configuration):
             ValuesView[str],
             (
                 self._get_secret(k.name.split("/")[-1])
-                for k in self._client.list_secrets(self._parent)
+                for k in self._client.list_secrets(request={"parent": self._parent})
             ),
         )
 
@@ -137,7 +142,7 @@ class GCPSecretManagerConfiguration(Configuration):
             ItemsView[str, Any],
             (
                 (k.name.split("/")[-1], self._get_secret(k.name.split("/")[-1]))
-                for k in self._client.list_secrets(self._parent)
+                for k in self._client.list_secrets(request={"parent": self._parent})
             ),
         )
 

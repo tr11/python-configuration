@@ -9,7 +9,7 @@ try:
     from config.contrib.azure import AzureKeyVaultConfiguration
     from azure.core.exceptions import ResourceNotFoundError
 except ImportError:  # pragma: no cover
-    azure = None
+    azure = None  # type: ignore
 
 
 DICT = {
@@ -42,7 +42,7 @@ class FakeSecretClient:
         if key in self._dict:
             return FakeKeySecret(key, self._dict[key])
         else:
-            raise ResourceNotFoundError()
+            raise ResourceNotFoundError()  # type: ignore
 
     def list_properties_of_secrets(self) -> list:
         return [Secret(name=k, value=v) for k, v in self._dict.items()]

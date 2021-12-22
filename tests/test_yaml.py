@@ -7,7 +7,7 @@ try:
     import yaml
     from config import config_from_yaml
 except ImportError:
-    yaml = None  # type: ignore
+    yaml = None
     config_from_yaml = None  # type: ignore
 
 
