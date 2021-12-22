@@ -397,7 +397,7 @@ class INIConfiguration(FileConfiguration):
         data: Union[str, TextIO],
         read_from_file: bool = False,
         *,
-        section_prefix: str = '',
+        section_prefix: str = "",
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
@@ -408,12 +408,18 @@ class INIConfiguration(FileConfiguration):
             read_from_file=read_from_file,
             lowercase_keys=lowercase_keys,
             interpolate=interpolate,
-            interpolate_type=interpolate_type
+            interpolate_type=interpolate_type,
         )
 
     def _reload(self, data: Union[str, TextIO], read_from_file: bool = False) -> None:
         """Reload the INI data."""
         import configparser
+
+        lowercase = self._lowercase
+
+        class ConfigParser(configparser.RawConfigParser):
+            def optionxform(self, optionstr: str) -> str:
+                return super().optionxform(optionstr) if lowercase else optionstr
 
         if read_from_file:
             if isinstance(data, str):
@@ -421,10 +427,10 @@ class INIConfiguration(FileConfiguration):
             else:
                 data = data.read()
         data = cast(str, data)
-        cfg = configparser.RawConfigParser()
+        cfg = ConfigParser()
         cfg.read_string(data)
         result = {
-            section[len(self._section_prefix):] + "." + k: v
+            section[len(self._section_prefix) :] + "." + k: v
             for section, values in cfg.items()
             for k, v in values.items()
             if section.startswith(self._section_prefix)
@@ -694,12 +700,13 @@ if toml is not None:  # pragma: no branch
 
     class TOMLConfiguration(FileConfiguration):
         """Configuration from a TOML input."""
+
         def __init__(
             self,
             data: Union[str, TextIO],
             read_from_file: bool = False,
             *,
-            section_prefix: str = '',
+            section_prefix: str = "",
             lowercase_keys: bool = False,
             interpolate: InterpolateType = False,
             interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
@@ -710,7 +717,7 @@ if toml is not None:  # pragma: no branch
                 read_from_file=read_from_file,
                 lowercase_keys=lowercase_keys,
                 interpolate=interpolate,
-                interpolate_type=interpolate_type
+                interpolate_type=interpolate_type,
             )
 
         def _reload(
@@ -728,7 +735,7 @@ if toml is not None:  # pragma: no branch
             loaded = cast(dict, loaded)
 
             result = {
-                k[len(self._section_prefix):]: v
+                k[len(self._section_prefix) :]: v
                 for k, v in self._flatten_dict(loaded).items()
                 if k.startswith(self._section_prefix)
             }
@@ -739,7 +746,7 @@ if toml is not None:  # pragma: no branch
         data: Union[str, TextIO],
         read_from_file: bool = False,
         *,
-        section_prefix: str = '',
+        section_prefix: str = "",
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,

@@ -8,6 +8,12 @@ All notable changes to this project will be documented in this file.
 
 - Added the `section_prefix` parameter that filters sections by prefix in INI/toml files
 
+## [0.8.3] - 2021-10-11
+
+### Fixed
+
+- configurations from ini file won't be converted to lower case if `lowercase_keys = False`
+
 ## [0.8.2] - 2021-01-30
 
 ### Fixed
