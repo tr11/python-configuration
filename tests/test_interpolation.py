@@ -272,3 +272,19 @@ def test_interpolation_same_variable_4():  # type: ignore
     )
     assert cfg.var2 == "test/a/b"  # var2(2) --> var1(2) --> var1(1) --> var2(1)
     assert cfg.var1 == "test/a"  # var1(2) --> var1(1) --> var2(1)
+
+
+def test_interpolation_dotted():  # type: ignore
+    values_1 = {"a.b": "value"}
+    values_2 = {"var": "{a.b}"}
+
+    cfg = config(values_2, values_1, lowercase_keys=True, interpolate=True,)
+
+    assert cfg.var == "value"
+
+    values_1 = {"a": {"b": "value"}}
+    values_2 = {"var": "{a.b}"}
+
+    cfg = config(values_2, values_1, lowercase_keys=True, interpolate=True,)
+
+    assert cfg.var == "value"
