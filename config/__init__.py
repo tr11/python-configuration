@@ -470,7 +470,32 @@ def config_from_ini(
 class DotEnvConfiguration(FileConfiguration):
     """Configuration from a .env type file input."""
 
-    def _reload(self, data: Union[str, TextIO], read_from_file: bool = False) -> None:
+    def __init__(
+        self,
+        data: Union[str, TextIO],
+        read_from_file: bool = False,
+        prefix: str = "",
+        separator: str = "__",
+        *,
+        lowercase_keys: bool = False,
+        interpolate: InterpolateType = False,
+        interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+    ):
+        self._prefix = prefix
+        self._separator = separator
+        super().__init__(
+            data=data,
+            read_from_file=read_from_file,
+            lowercase_keys=lowercase_keys,
+            interpolate=interpolate,
+            interpolate_type=interpolate_type,
+        )
+
+    def _reload(
+        self,
+        data: Union[str, TextIO],
+        read_from_file: bool = False,
+    ) -> None:
         """Reload the .env data."""
         if read_from_file:
             if isinstance(data, str):
@@ -483,12 +508,23 @@ class DotEnvConfiguration(FileConfiguration):
             for x in data.splitlines()
             if x
         )
+
+        result = {
+            k[len(self._prefix) :].replace(self._separator, ".").strip("."): v
+            for k, v in result.items()
+            if k.startswith(self._prefix)
+        }
+
+        print(self._prefix, self._separator, result)
+
         self._config = self._flatten_dict(result)
 
 
 def config_from_dotenv(
     data: Union[str, TextIO],
     read_from_file: bool = False,
+    prefix: str = "",
+    separator: str = "__",
     *,
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
@@ -507,6 +543,8 @@ def config_from_dotenv(
     return DotEnvConfiguration(
         data,
         read_from_file,
+        prefix=prefix,
+        separator=separator,
         lowercase_keys=lowercase_keys,
         interpolate=interpolate,
         interpolate_type=interpolate_type,
