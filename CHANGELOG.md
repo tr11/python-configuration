@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Added the `section_prefix` parameter that filters sections by prefix in INI/toml files
+- Allow the `ignore_missing_paths` parameter to be specified individually on Configuration Sets
 
 ## [0.8.3] - 2021-10-11
 
@@ -115,7 +116,8 @@ with cfg.dotted_iter():
 
 - Initial version
 
-[unreleased]: https://github.com/tr11/python-configuration/compare/0.8.2...HEAD
+[unreleased]: https://github.com/tr11/python-configuration/compare/0.8.3...HEAD
+[0.8.2]: https://github.com/tr11/python-configuration/compare/0.8.2...0.8.3
 [0.8.2]: https://github.com/tr11/python-configuration/compare/0.8.0...0.8.2
 [0.8.0]: https://github.com/tr11/python-configuration/compare/0.7.1...0.8.0
 [0.7.1]: https://github.com/tr11/python-configuration/compare/0.7.0...0.7.1

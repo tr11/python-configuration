@@ -1,7 +1,11 @@
 from config import (
     config_from_dict,
+    config_from_dotenv,
     config_from_env,
+    config_from_ini,
+    config_from_path,
     config_from_python,
+    config_from_json,
     create_path_from_config,
     Configuration,
     ConfigurationSet,
@@ -599,6 +603,81 @@ def test_allow_missing_paths():  # type: ignore
             entries.append(os.path.join(folder, "file.toml"))
 
         config(*entries, ignore_missing_paths=True)
+
+
+def test_allow_missing_paths_individually():  # type: ignore
+    import os
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as folder:
+        with pytest.raises(FileNotFoundError):
+            config(("path", os.path.join(folder, "sub")))
+        with pytest.raises(FileNotFoundError):
+            config(os.path.join(folder, "file.json"))
+        with pytest.raises(FileNotFoundError):
+            config(os.path.join(folder, "file.ini"))
+        with pytest.raises(FileNotFoundError):
+            config(os.path.join(folder, "file.env"))
+        with pytest.raises(FileNotFoundError):
+            config(os.path.join(folder, "module.py"))
+        with pytest.raises(ModuleNotFoundError):
+            config(("python", folder))
+        if yaml:
+            with pytest.raises(FileNotFoundError):
+                config(os.path.join(folder, "file.yaml"))
+        if toml:
+            with pytest.raises(FileNotFoundError):
+                config(os.path.join(folder, "file.toml"))
+
+        cfg = ConfigurationSet(
+            config_from_json(
+                os.path.join(folder, "file.json"),
+                read_from_file=True,
+                ignore_missing_paths=True,
+            ),
+            config_from_ini(
+                os.path.join(folder, "file.ini"),
+                read_from_file=True,
+                ignore_missing_paths=True,
+            ),
+            config_from_dotenv(
+                os.path.join(folder, "file.env"),
+                read_from_file=True,
+                ignore_missing_paths=True,
+            ),
+            config_from_python(
+                os.path.join(folder, "module.py"), ignore_missing_paths=True
+            ),
+            config_from_python(folder, ignore_missing_paths=True),
+            config_from_path(folder, ignore_missing_paths=True),
+            config_from_env(prefix=PREFIX),
+        )
+
+        assert cfg.as_dict() == config_from_env(prefix=PREFIX)
+
+        if yaml:
+            from config import config_from_yaml
+
+            assert (
+                config_from_yaml(
+                    os.path.join(folder, "file.yaml"),
+                    read_from_file=True,
+                    ignore_missing_paths=True,
+                ).as_dict()
+                == {}
+            )
+
+        if yaml:
+            from config import config_from_toml
+
+            assert (
+                config_from_toml(
+                    os.path.join(folder, "file.toml"),
+                    read_from_file=True,
+                    ignore_missing_paths=True,
+                ).as_dict()
+                == {}
+            )
 
 
 def test_dict_methods_items():  # type: ignore

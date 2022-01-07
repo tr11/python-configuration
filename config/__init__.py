@@ -100,47 +100,59 @@ def config(
             if len(config_) < 2:
                 raise ValueError("No path specified for python module")
             params = list(config_[1:]) + default_args[(len(config_) - 2) :]
-            try:
-                instances.append(config_from_python(*params, **default_kwargs))
-            except (FileNotFoundError, ModuleNotFoundError):
-                if not ignore_missing_paths:
-                    raise
+            instances.append(
+                config_from_python(
+                    *params, **default_kwargs, ignore_missing_paths=ignore_missing_paths
+                )
+            )
         elif type_ == "json":
-            try:
-                instances.append(config_from_json(*config_[1:], **default_kwargs))
-            except FileNotFoundError:
-                if not ignore_missing_paths:
-                    raise
+            instances.append(
+                config_from_json(
+                    *config_[1:],
+                    **default_kwargs,
+                    ignore_missing_paths=ignore_missing_paths,
+                )
+            )
         elif yaml and type_ == "yaml":
-            try:
-                instances.append(config_from_yaml(*config_[1:], **default_kwargs))
-            except FileNotFoundError:
-                if not ignore_missing_paths:
-                    raise
+            instances.append(
+                config_from_yaml(
+                    *config_[1:],
+                    **default_kwargs,
+                    ignore_missing_paths=ignore_missing_paths,
+                )
+            )
         elif toml and type_ == "toml":
-            try:
-                instances.append(config_from_toml(*config_[1:], **default_kwargs))
-            except FileNotFoundError:
-                if not ignore_missing_paths:
-                    raise
+            instances.append(
+                config_from_toml(
+                    *config_[1:],
+                    **default_kwargs,
+                    ignore_missing_paths=ignore_missing_paths,
+                )
+            )
         elif type_ == "ini":
-            try:
-                instances.append(config_from_ini(*config_[1:], **default_kwargs))
-            except FileNotFoundError:
-                if not ignore_missing_paths:
-                    raise
+            instances.append(
+                config_from_ini(
+                    *config_[1:],
+                    **default_kwargs,
+                    ignore_missing_paths=ignore_missing_paths,
+                )
+            )
         elif type_ == "dotenv":
-            try:
-                instances.append(config_from_dotenv(*config_[1:], **default_kwargs))
-            except FileNotFoundError:
-                if not ignore_missing_paths:
-                    raise
+            instances.append(
+                config_from_dotenv(
+                    *config_[1:],
+                    **default_kwargs,
+                    ignore_missing_paths=ignore_missing_paths,
+                )
+            )
         elif type_ == "path":
-            try:
-                instances.append(config_from_path(*config_[1:], **default_kwargs))
-            except FileNotFoundError:
-                if not ignore_missing_paths:
-                    raise
+            instances.append(
+                config_from_path(
+                    *config_[1:],
+                    **default_kwargs,
+                    ignore_missing_paths=ignore_missing_paths,
+                )
+            )
         else:
             raise ValueError(f'Unknown configuration type "{type_}"')
 
@@ -232,6 +244,7 @@ class PathConfiguration(Configuration):
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+        ignore_missing_paths: bool = False,
     ):
         """
         Constructor.
@@ -248,31 +261,39 @@ class PathConfiguration(Configuration):
             interpolate=interpolate,
             interpolate_type=interpolate_type,
         )
+        self._ignore_missing_paths = ignore_missing_paths
         self.reload()
 
     def reload(self) -> None:
         """Reload the path."""
-        path = os.path.normpath(self._path)
-        if not os.path.exists(path) or not os.path.isdir(path):
-            raise FileNotFoundError()
+        try:
+            path = os.path.normpath(self._path)
+            if not os.path.exists(path) or not os.path.isdir(path):
+                raise FileNotFoundError()
 
-        dotted_path_levels = len(path.split("/"))
-        files_keys = (
-            (
-                os.path.join(x[0], y),
-                ".".join(
-                    (x[0].split("/") + [y])[(dotted_path_levels + self._remove_level) :]
-                ),
+            dotted_path_levels = len(path.split("/"))
+            files_keys = (
+                (
+                    os.path.join(x[0], y),
+                    ".".join(
+                        (x[0].split("/") + [y])[
+                            (dotted_path_levels + self._remove_level) :
+                        ]
+                    ),
+                )
+                for x in os.walk(path)
+                for y in x[2]
+                if not x[0].split("/")[-1].startswith("..")
             )
-            for x in os.walk(path)
-            for y in x[2]
-            if not x[0].split("/")[-1].startswith("..")
-        )
 
-        result = {}
-        for filename, key in files_keys:
-            result[key] = open(filename).read()
-
+            result = {}
+            for filename, key in files_keys:
+                result[key] = open(filename).read()
+        except FileNotFoundError:
+            if self._ignore_missing_paths:
+                result = {}
+            else:
+                raise
         super().__init__(
             result,
             lowercase_keys=self._lowercase,
@@ -288,6 +309,7 @@ def config_from_path(
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+    ignore_missing_paths: bool = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from filesystem path.
@@ -304,6 +326,7 @@ def config_from_path(
         lowercase_keys=lowercase_keys,
         interpolate=interpolate,
         interpolate_type=interpolate_type,
+        ignore_missing_paths=ignore_missing_paths,
     )
 
 
@@ -318,6 +341,7 @@ class FileConfiguration(Configuration):
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+        ignore_missing_paths: bool = False,
     ):
         """
         Constructor.
@@ -333,24 +357,43 @@ class FileConfiguration(Configuration):
             interpolate=interpolate,
             interpolate_type=interpolate_type,
         )
-        self._reload(data, read_from_file)
-        self._data = data if read_from_file and isinstance(data, str) else None
+        self._filename = data if read_from_file and isinstance(data, str) else None
+        self._ignore_missing_paths = ignore_missing_paths
+        self._reload_with_check(data, read_from_file)
+
+    def _reload_with_check(
+        self,
+        data: Union[str, TextIO],
+        read_from_file: bool = False,
+    ) -> None:  # pragma: no cover
+        try:
+            self._reload(data, read_from_file)
+        except FileNotFoundError:
+            if not self._ignore_missing_paths:
+                raise
+            self._config = self._flatten_dict({})
 
     def _reload(
-        self, data: Union[str, TextIO], read_from_file: bool = False
+        self,
+        data: Union[str, TextIO],
+        read_from_file: bool = False,
     ) -> None:  # pragma: no cover
         raise NotImplementedError()
 
     def reload(self) -> None:
         """Reload the configuration."""
-        if self._data:  # pragma: no branch
-            self._reload(self._data, True)
+        if self._filename:  # pragma: no branch
+            self._reload_with_check(self._filename, True)
 
 
 class JSONConfiguration(FileConfiguration):
     """Configuration from a JSON input."""
 
-    def _reload(self, data: Union[str, TextIO], read_from_file: bool = False) -> None:
+    def _reload(
+        self,
+        data: Union[str, TextIO],
+        read_from_file: bool = False,
+    ) -> None:
         """Reload the JSON data."""
         if read_from_file:
             if isinstance(data, str):
@@ -369,6 +412,7 @@ def config_from_json(
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+    ignore_missing_paths: bool = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from a JSON file.
@@ -378,6 +422,7 @@ def config_from_json(
            the :attr:`data` as the contents of the JSON file.
     :param lowercase_keys: whether to convert every key to lower case.
     :param interpolate: whether to apply string interpolation when looking for items
+    :param ignore_missing_paths: if true it will not throw on missing paths
     :return: a :class:`Configuration` instance
     """
     return JSONConfiguration(
@@ -386,6 +431,7 @@ def config_from_json(
         lowercase_keys=lowercase_keys,
         interpolate=interpolate,
         interpolate_type=interpolate_type,
+        ignore_missing_paths=ignore_missing_paths,
     )
 
 
@@ -401,6 +447,7 @@ class INIConfiguration(FileConfiguration):
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+        ignore_missing_paths: bool = False,
     ):
         self._section_prefix = section_prefix
         super().__init__(
@@ -409,6 +456,7 @@ class INIConfiguration(FileConfiguration):
             lowercase_keys=lowercase_keys,
             interpolate=interpolate,
             interpolate_type=interpolate_type,
+            ignore_missing_paths=ignore_missing_paths,
         )
 
     def _reload(self, data: Union[str, TextIO], read_from_file: bool = False) -> None:
@@ -446,6 +494,7 @@ def config_from_ini(
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+    ignore_missing_paths: bool = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from an INI file.
@@ -455,6 +504,7 @@ def config_from_ini(
            the :attr:`data` as the contents of the INI file.
     :param lowercase_keys: whether to convert every key to lower case.
     :param interpolate: whether to apply string interpolation when looking for items
+    :param ignore_missing_paths: if true it will not throw on missing paths
     :return: a :class:`Configuration` instance
     """
     return INIConfiguration(
@@ -464,6 +514,7 @@ def config_from_ini(
         lowercase_keys=lowercase_keys,
         interpolate=interpolate,
         interpolate_type=interpolate_type,
+        ignore_missing_paths=ignore_missing_paths,
     )
 
 
@@ -493,6 +544,7 @@ def config_from_dotenv(
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+    ignore_missing_paths: bool = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from a .env type file.
@@ -502,6 +554,7 @@ def config_from_dotenv(
            the :attr:`data` as the contents of the INI file.
     :param lowercase_keys: whether to convert every key to lower case.
     :param interpolate: whether to apply string interpolation when looking for items
+    :param ignore_missing_paths: if true it will not throw on missing paths
     :return: a :class:`Configuration` instance
     """
     return DotEnvConfiguration(
@@ -510,6 +563,7 @@ def config_from_dotenv(
         lowercase_keys=lowercase_keys,
         interpolate=interpolate,
         interpolate_type=interpolate_type,
+        ignore_missing_paths=ignore_missing_paths,
     )
 
 
@@ -525,6 +579,7 @@ class PythonConfiguration(Configuration):
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+        ignore_missing_paths: bool = False,
     ):
         """
         Constructor.
@@ -534,25 +589,31 @@ class PythonConfiguration(Configuration):
         :param separator: separator to replace by dots
         :param lowercase_keys: whether to convert every key to lower case.
         """
-        if isinstance(module, str):
-            if module.endswith(".py"):
-                import importlib.util
-                from importlib import machinery
+        try:
+            if isinstance(module, str):
+                if module.endswith(".py"):
+                    import importlib.util
+                    from importlib import machinery
 
-                spec = cast(
-                    machinery.ModuleSpec,
-                    importlib.util.spec_from_file_location(module, module),
-                )
-                module = importlib.util.module_from_spec(spec)
-                spec.loader = cast(InspectLoader, spec.loader)
-                spec.loader.exec_module(module)
-            else:
-                import importlib
+                    spec = cast(
+                        machinery.ModuleSpec,
+                        importlib.util.spec_from_file_location(module, module),
+                    )
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader = cast(InspectLoader, spec.loader)
+                    spec.loader.exec_module(module)
+                else:
+                    import importlib
 
-                module = importlib.import_module(module)
-        self._module = module
-        self._prefix = prefix
-        self._separator = separator
+                    module = importlib.import_module(module)
+            self._module: Optional[ModuleType] = module
+            self._prefix = prefix
+            self._separator = separator
+        except (FileNotFoundError, ModuleNotFoundError):
+            if not ignore_missing_paths:
+                raise
+            self._module = None
+
         super().__init__(
             {},
             lowercase_keys=lowercase_keys,
@@ -563,17 +624,20 @@ class PythonConfiguration(Configuration):
 
     def reload(self) -> None:
         """Reload the path."""
-        variables = [
-            x
-            for x in dir(self._module)
-            if not x.startswith("__") and x.startswith(self._prefix)
-        ]
-        result = {
-            k[len(self._prefix) :]
-            .replace(self._separator, ".")
-            .strip("."): getattr(self._module, k)
-            for k in variables
-        }
+        if self._module is not None:
+            variables = [
+                x
+                for x in dir(self._module)
+                if not x.startswith("__") and x.startswith(self._prefix)
+            ]
+            result = {
+                k[len(self._prefix) :]
+                .replace(self._separator, ".")
+                .strip("."): getattr(self._module, k)
+                for k in variables
+            }
+        else:
+            result = {}
         super().__init__(
             result,
             lowercase_keys=self._lowercase,
@@ -590,6 +654,7 @@ def config_from_python(
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+    ignore_missing_paths: bool = False,
 ) -> Configuration:
     """
     Create a :class:`Configuration` instance from the objects in a Python module.
@@ -608,6 +673,7 @@ def config_from_python(
         lowercase_keys=lowercase_keys,
         interpolate=interpolate,
         interpolate_type=interpolate_type,
+        ignore_missing_paths=ignore_missing_paths,
     )
 
 
@@ -681,6 +747,7 @@ if yaml is not None:  # pragma: no branch
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+        ignore_missing_paths: bool = False,
     ) -> Configuration:
         """
         Return a Configuration instance from YAML files.
@@ -689,6 +756,7 @@ if yaml is not None:  # pragma: no branch
         :param read_from_file: whether `data` is a file or a YAML formatted string
         :param lowercase_keys: whether to convert every key to lower case.
         :param interpolate: whether to apply string interpolation when looking for items
+        :param ignore_missing_paths: if true it will not throw on missing paths
         :return: a Configuration instance
         """
         return YAMLConfiguration(
@@ -697,6 +765,7 @@ if yaml is not None:  # pragma: no branch
             lowercase_keys=lowercase_keys,
             interpolate=interpolate,
             interpolate_type=interpolate_type,
+            ignore_missing_paths=ignore_missing_paths,
         )
 
 
@@ -714,6 +783,7 @@ if toml is not None:  # pragma: no branch
             lowercase_keys: bool = False,
             interpolate: InterpolateType = False,
             interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+            ignore_missing_paths: bool = False,
         ):
             self._section_prefix = section_prefix
             super().__init__(
@@ -722,6 +792,7 @@ if toml is not None:  # pragma: no branch
                 lowercase_keys=lowercase_keys,
                 interpolate=interpolate,
                 interpolate_type=interpolate_type,
+                ignore_missing_paths=ignore_missing_paths,
             )
 
         def _reload(
@@ -754,6 +825,7 @@ if toml is not None:  # pragma: no branch
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+        ignore_missing_paths: bool = False,
     ) -> Configuration:
         """
         Return a Configuration instance from TOML files.
@@ -762,6 +834,7 @@ if toml is not None:  # pragma: no branch
         :param read_from_file: whether `data` is a file or a TOML formatted string
         :param lowercase_keys: whether to convert every key to lower case.
         :param interpolate: whether to apply string interpolation when looking for items
+        :param ignore_missing_paths: if true it will not throw on missing paths
         :return: a Configuration instance
         """
         return TOMLConfiguration(
@@ -771,4 +844,5 @@ if toml is not None:  # pragma: no branch
             lowercase_keys=lowercase_keys,
             interpolate=interpolate,
             interpolate_type=interpolate_type,
+            ignore_missing_paths=ignore_missing_paths,
         )
