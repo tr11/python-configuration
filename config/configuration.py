@@ -157,7 +157,7 @@ class Configuration:
             return Configuration(v)
         elif self._interpolate is not False:
             d = self.as_dict()
-            d.update(cast(Dict[str, str], self._interpolate))
+            d.update(self._interpolate)
             return interpolate_object(item, v, [d], self._interpolate_type)
         else:
             return v
@@ -307,9 +307,7 @@ class Configuration:
 
     def __reversed__(self) -> Iterator[Tuple[str, Any]]:  # noqa: D105
         if version_info < (3, 8):
-            return OrderedDict(  # type: ignore
-                reversed(list(self.items()))
-            )  # pragma: no cover
+            return OrderedDict(reversed(list(self.items())))  # type: ignore  # pragma: no cover
         else:
             return reversed(dict(self.items()))  # type: ignore
 
@@ -404,7 +402,7 @@ class Configuration:
             self._default_levels = 1
 
     def __repr__(self) -> str:  # noqa: D105
-        return "<Configuration: %s>" % hex(id(self))
+        return "<%s: %s>" % (type(self).__name__, hex(id(self)))
 
     def __str__(self) -> str:  # noqa: D105
         return str({k: clean(k, v) for k, v in sorted(self.as_dict().items())})

@@ -7,13 +7,14 @@ from azure.core.exceptions import ResourceNotFoundError
 from azure.identity import ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
 
+
 from .. import Configuration, InterpolateType
 
 
 class Cache:
     """Cache class."""
 
-    def __init__(self, value: str, ts: float):  # noqa: D107
+    def __init__(self, value: Optional[str], ts: float):  # noqa: D107
         self.value = value
         self.ts = ts
 
@@ -123,7 +124,7 @@ class AzureKeyVaultConfiguration(Configuration):
         return cast(
             ValuesView[str],
             (
-                self._get_secret(k.name)
+                self._get_secret(cast(str, k.name))
                 for k in self._kv_client.list_properties_of_secrets()
             ),
         )
@@ -136,7 +137,7 @@ class AzureKeyVaultConfiguration(Configuration):
         return cast(
             ItemsView[str, Any],
             (
-                (k.name, self._get_secret(k.name))
+                (k.name, self._get_secret(cast(str, k.name)))
                 for k in self._kv_client.list_properties_of_secrets()
             ),
         )
