@@ -21,7 +21,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: poetry
-          cache-dependency-path: poetry.lock
 
       - name: Set Poetry environment
         run: |
