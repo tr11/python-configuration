@@ -25,10 +25,10 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Install dependencies
-        run: poetry install
+        run: poetry install -v -E toml -E yaml -E azure -E aws -E gcp
 
       - name: Run pytest
-        run: poetry run pytest --cov
+        run: poetry run pytest
 
       - name: Coverage report
         run: bash <(curl -s https://codecov.io/bash)
