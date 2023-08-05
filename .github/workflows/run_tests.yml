@@ -30,7 +30,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pypoetry
-          key: poetry-cache-${{ steps.poetry.inputs.version }}-${{ runner.os }}-${{ matrix.python-version }}
+          key: poetry-cache-${{ steps.poetry.with.version }}-${{ runner.os }}-${{ matrix.python-version }}
 
       - name: Install dependencies
         run: poetry install -v -E toml -E yaml -E azure -E aws -E gcp -E vault
