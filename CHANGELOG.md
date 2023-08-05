@@ -4,11 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Allow to pass a `ignore_missing_paths` parameter to each config method
+
 ## [0.9.0] - 2023-08-04
 
 ### Added
 
 - Added the `section_prefix` parameter that filters sections by prefix in INI/toml files
+- Allow the `ignore_missing_paths` parameter to be specified individually on Configuration Sets
 
 ### Fixed
 
