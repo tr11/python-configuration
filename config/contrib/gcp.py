@@ -1,4 +1,4 @@
-"""Configuration from GCP Secret Manager."""
+"""Configuration instances from GCP Secret Manager."""
 
 import time
 from typing import Any, Dict, ItemsView, KeysView, Optional, Union, ValuesView, cast
@@ -89,7 +89,7 @@ class GCPSecretManagerConfiguration(Configuration):
     def __getattr__(self, item: str) -> Any:  # noqa: D105
         secret = self._get_secret(item)
         if secret is None:
-            raise KeyError(item)
+            raise AttributeError(item)
         else:
             return secret
 
