@@ -47,6 +47,13 @@ jobs:
           path: ~/.cache/pypoetry
           key: poetry-cache-${{env.POETRY_VERSION}}-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml') }}
 
+      - name: Cache Poetry cache
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: .venv
+          key: dependencies-${{env.POETRY_VERSION}}-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml') }}
+
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: poetry install -v -E toml -E yaml -E azure -E aws -E gcp -E vault
