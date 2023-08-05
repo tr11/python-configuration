@@ -28,7 +28,7 @@ jobs:
         run: poetry install -v -E toml -E yaml -E azure -E aws -E gcp
 
       - name: Run pytest
-        run: poetry run pytest
+        run: poetry run pytest --cov=./ --cov-report=xml
 
       - name: Coverage report
-        run: bash <(curl -s https://codecov.io/bash)
+        uses: codecov/codecov-action@v1
