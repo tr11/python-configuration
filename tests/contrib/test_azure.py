@@ -124,8 +124,8 @@ def test_get_attr():  # type: ignore
 
     assert cfg.foo == "foo_val"
 
-    with raises(KeyError):
-        assert cfg.foo_missing is KeyError
+    with raises(AttributeError):
+        assert cfg.foo_missing is AttributeError
 
 
 @pytest.mark.skipif("azure is None")

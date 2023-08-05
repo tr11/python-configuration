@@ -57,9 +57,6 @@ def fake_client(val: dict) -> Any:
 def test_load_dict():  # type: ignore
     secretmanager_v1.SecretManagerServiceClient = fake_client(DICT)
     cfg = GCPSecretManagerConfiguration("fake_id")
-
-    print(cfg)
-
     assert cfg["foo"] == "foo_val"
     assert cfg["with_underscore"] == "works"
     assert cfg.get("foo", "default") == "foo_val"
@@ -120,8 +117,8 @@ def test_get_attr():  # type: ignore
 
     assert cfg.foo == "foo_val"
 
-    with raises(KeyError):
-        assert cfg.foo_missing is KeyError
+    with raises(AttributeError):
+        assert cfg.foo_missing is AttributeError
 
 
 @pytest.mark.skipif("secretmanager_v1 is None")

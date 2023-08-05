@@ -1,4 +1,4 @@
-"""Configuration from AWS Secrets Manager."""
+"""Configuration instances from AWS Secrets Manager."""
 
 import json
 import time
