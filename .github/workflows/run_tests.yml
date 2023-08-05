@@ -42,7 +42,6 @@ jobs:
 
       - name: Cache Poetry cache
         uses: actions/cache@v3
-        id: cache
         with:
           path: ~/.cache/pypoetry
           key: poetry-cache-${{env.POETRY_VERSION}}-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml') }}
