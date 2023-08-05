@@ -9,7 +9,7 @@ name = "python-configuration"
 packages = [{ include = "config" }]
 readme = 'README.md'
 repository = "https://github.com/tr11/python-configuration"
-version = "0.8.3"
+version = "0.9.0"
 
 [tool.poetry.dependencies]
 python = "^3.8.1"
