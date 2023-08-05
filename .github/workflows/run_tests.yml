@@ -8,7 +8,6 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11"]
-        poetry-version: ["1.5.1"]
 
     steps:
       - name: Checkout
@@ -21,8 +20,9 @@ jobs:
 
       - name: Install and configure Poetry
         uses: snok/install-poetry@v1
+        id: poetry
         with:
-          version: ${{ matrix.poetry-version }}
+          version: 1.5.1
           virtualenvs-create: true
           virtualenvs-in-project: true
 
@@ -30,7 +30,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pypoetry
-          key: poetry-cache-${{ matrix.poetry-version }}-${{ runner.os }}-${{ matrix.python-version }}
+          key: poetry-cache-${{ steps.poetry.inputs.version }}-${{ runner.os }}-${{ matrix.python-version }}
 
       - name: Install dependencies
         run: poetry install -v -E toml -E yaml -E azure -E aws -E gcp -E vault
