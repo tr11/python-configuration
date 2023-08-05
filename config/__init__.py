@@ -4,7 +4,7 @@ import json
 import os
 from importlib.abc import InspectLoader
 from types import ModuleType
-from typing import Any, Dict, Iterable, List, Optional, TextIO, Union, cast
+from typing import Any, Dict, Iterable, List, Mapping, Optional, TextIO, Union, cast
 
 try:
     import yaml
@@ -60,7 +60,7 @@ def config(
     }
 
     for config_ in configs:
-        if isinstance(config_, dict):
+        if isinstance(config_, Mapping):
             instances.append(config_from_dict(config_, **default_kwargs))
             continue
         elif isinstance(config_, str):
@@ -650,7 +650,7 @@ def config_from_python(
 
 
 def config_from_dict(
-    data: dict,
+    data: Mapping,
     *,
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
@@ -708,7 +708,7 @@ if yaml is not None:  # pragma: no branch
                 loaded = yaml.load(open(data, "rt"), Loader=yaml.FullLoader)
             else:
                 loaded = yaml.load(data, Loader=yaml.FullLoader)
-            if not isinstance(loaded, dict):
+            if not isinstance(loaded, Mapping):
                 raise ValueError("Data should be a dictionary")
             self._config = self._flatten_dict(loaded)
 
