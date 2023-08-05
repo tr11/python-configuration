@@ -6,7 +6,7 @@
 ![wheel](https://img.shields.io/pypi/wheel/python-configuration)
 ![license](https://img.shields.io/pypi/l/python-configuration)
 [![build](https://img.shields.io/travis/tr11/python-configuration)](https://travis-ci.org/tr11/python-configuration)
-[![codecov](https://codecov.io/gh/tr11/python-configuration/branch/master/graph/badge.svg)](https://codecov.io/gh/tr11/python-configuration)
+[![codecov](https://codecov.io/gh/tr11/python-configuration/branch/main/graph/badge.svg?token=5zRYlGnDs7)](https://codecov.io/gh/tr11/python-configuration)
 [![Documentation Status](https://readthedocs.org/projects/python-configuration/badge/?version=latest)](https://python-configuration.readthedocs.io/en/latest/?badge=latest)
 
 This library is intended as a helper mechanism to load configuration files hierarchically.  Supported format types are:
