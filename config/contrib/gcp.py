@@ -73,7 +73,7 @@ class GCPSecretManagerConfiguration(Configuration):
                 request={"name": path}
             ).payload.data.decode()
             self._cache[key] = Cache(value=secret, ts=now)
-            return cast(str, secret)
+            return secret
         except NotFound:
             if key in self._cache:
                 del self._cache[key]

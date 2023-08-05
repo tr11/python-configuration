@@ -69,6 +69,8 @@ class Configuration:
 
     def __eq__(self, other):  # type: ignore
         """Equality operator."""
+        if not isinstance(other, (Configuration, Mapping)):
+            return False
         return self.as_dict() == Configuration(other).as_dict()
 
     def _filter_dict(self, d: Dict[str, Any], prefix: str) -> Dict[str, Any]:
@@ -99,7 +101,7 @@ class Configuration:
         :param d: dict
         :return: a flattened dict
         """
-        nested = {k for k, v in d.items() if isinstance(v, (dict, Configuration))}
+        nested = {k for k, v in d.items() if isinstance(v, (Mapping, Configuration))}
         if self._lowercase:
             result = {
                 k.lower() + "." + ki: vi
@@ -109,7 +111,7 @@ class Configuration:
             result.update(
                 (k.lower(), v)
                 for k, v in d.items()
-                if not isinstance(v, (dict, Configuration))
+                if not isinstance(v, (Mapping, Configuration))
             )
         else:
             result = {
@@ -118,7 +120,9 @@ class Configuration:
                 for ki, vi in self._flatten_dict(d[k]).items()
             }
             result.update(
-                (k, v) for k, v in d.items() if not isinstance(v, (dict, Configuration))
+                (k, v)
+                for k, v in d.items()
+                if not isinstance(v, (Mapping, Configuration))
             )
         return result
 
@@ -153,11 +157,11 @@ class Configuration:
 
         if v == {}:
             raise KeyError(item)
-        if isinstance(v, dict):
+        if isinstance(v, Mapping):
             return Configuration(v)
         elif self._interpolate is not False:
             d = self.as_dict()
-            d.update(cast(Dict[str, str], self._interpolate))
+            d.update(self._interpolate)
             return interpolate_object(item, v, [d], self._interpolate_type)
         else:
             return v
@@ -186,7 +190,7 @@ class Configuration:
         """Return the representation as an attribute dictionary."""
         return AttributeDict(
             {
-                x: Configuration(v).as_attrdict() if isinstance(v, dict) else v
+                x: Configuration(v).as_attrdict() if isinstance(v, Mapping) else v
                 for x, v in self.items(levels=1)
             }
         )
@@ -307,9 +311,7 @@ class Configuration:
 
     def __reversed__(self) -> Iterator[Tuple[str, Any]]:  # noqa: D105
         if version_info < (3, 8):
-            return OrderedDict(  # type: ignore
-                reversed(list(self.items()))
-            )  # pragma: no cover
+            return OrderedDict(reversed(list(self.items())))  # type: ignore  # pragma: no cover
         else:
             return reversed(dict(self.items()))  # type: ignore
 
@@ -404,7 +406,7 @@ class Configuration:
             self._default_levels = 1
 
     def __repr__(self) -> str:  # noqa: D105
-        return "<Configuration: %s>" % hex(id(self))
+        return "<%s: %s>" % (type(self).__name__, hex(id(self)))
 
     def __str__(self) -> str:  # noqa: D105
         return str({k: clean(k, v) for k, v in sorted(self.as_dict().items())})

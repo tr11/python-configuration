@@ -6,26 +6,42 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Allow to pass a `ignore_missing_paths` parameter to each config method
+
+## [0.9.0] - 2023-08-04
+
+### Added
+
 - Added the `section_prefix` parameter that filters sections by prefix in INI/toml files
 - Allow the `ignore_missing_paths` parameter to be specified individually on Configuration Sets
+
+### Fixed
+
+- Errors when passing objects implementing `Mapping` instead of `dict`
+- Comparison to objects that are not a `Mapping`  
+
+### Changed
+
+- Replaced TravisCI with GitHub Actions
+
 
 ## [0.8.3] - 2021-10-11
 
 ### Fixed
 
-- configurations from ini file won't be converted to lower case if `lowercase_keys = False`
+- Configurations from ini file won't be converted to lower case if `lowercase_keys = False`
 
 ## [0.8.2] - 2021-01-30
 
 ### Fixed
 
-- the behavior of merging sets was incorrect since version 0.8.0
+- The behavior of merging sets was incorrect since version 0.8.0
 
 ## [0.8.0] - 2020-08-01
 
 ### Changed
 
-- the behavior of the dict-like methods `keys`, `items`, and `values` now give only the first level configuration keys instead of the old behavior of returning all the nested keys. To achieve the same behavior as before, use the `dotter_iter` context manager:
+- The behavior of the dict-like methods `keys`, `items`, and `values` now give only the first level configuration keys instead of the old behavior of returning all the nested keys. To achieve the same behavior as before, use the `dotter_iter` context manager:
 
 ```python
 cfg.keys()  # returns only the top level keys
@@ -36,7 +52,7 @@ with cfg.dotted_iter():
 
 ### Fixed
 
-- configuration objects are now immutable
+- Configuration objects are now immutable
 
 ### Added
 
@@ -48,7 +64,7 @@ with cfg.dotted_iter():
 
 ### Fixed
 
-- installation with `poetry` because of changes to pytest-black
+- Installation with `poetry` because of changes to pytest-black
 
 ## [0.7.0] - 2020-05-06
 
@@ -116,8 +132,9 @@ with cfg.dotted_iter():
 
 - Initial version
 
-[unreleased]: https://github.com/tr11/python-configuration/compare/0.8.3...HEAD
-[0.8.2]: https://github.com/tr11/python-configuration/compare/0.8.2...0.8.3
+[unreleased]: https://github.com/tr11/python-configuration/compare/0.9.0...HEAD
+[0.9.0]: https://github.com/tr11/python-configuration/compare/0.8.3...0.9.0
+[0.8.3]: https://github.com/tr11/python-configuration/compare/0.8.2...0.8.3
 [0.8.2]: https://github.com/tr11/python-configuration/compare/0.8.0...0.8.2
 [0.8.0]: https://github.com/tr11/python-configuration/compare/0.7.1...0.8.0
 [0.7.1]: https://github.com/tr11/python-configuration/compare/0.7.0...0.7.1

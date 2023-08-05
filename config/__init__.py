@@ -4,7 +4,7 @@ import json
 import os
 from importlib.abc import InspectLoader
 from types import ModuleType
-from typing import Any, Dict, Iterable, List, Optional, TextIO, Union, cast
+from typing import Any, Dict, Iterable, List, Mapping, Optional, TextIO, Union, cast
 
 try:
     import yaml
@@ -60,7 +60,7 @@ def config(
     }
 
     for config_ in configs:
-        if isinstance(config_, dict):
+        if isinstance(config_, Mapping):
             instances.append(config_from_dict(config_, **default_kwargs))
             continue
         elif isinstance(config_, str):
@@ -521,7 +521,34 @@ def config_from_ini(
 class DotEnvConfiguration(FileConfiguration):
     """Configuration from a .env type file input."""
 
-    def _reload(self, data: Union[str, TextIO], read_from_file: bool = False) -> None:
+    def __init__(
+        self,
+        data: Union[str, TextIO],
+        read_from_file: bool = False,
+        prefix: str = "",
+        separator: str = "__",
+        *,
+        lowercase_keys: bool = False,
+        interpolate: InterpolateType = False,
+        interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+        ignore_missing_paths: bool = False,
+    ):
+        self._prefix = prefix
+        self._separator = separator
+        super().__init__(
+            data=data,
+            read_from_file=read_from_file,
+            lowercase_keys=lowercase_keys,
+            interpolate=interpolate,
+            interpolate_type=interpolate_type,
+            ignore_missing_paths=ignore_missing_paths,
+        )
+
+    def _reload(
+        self,
+        data: Union[str, TextIO],
+        read_from_file: bool = False,
+    ) -> None:
         """Reload the .env data."""
         if read_from_file:
             if isinstance(data, str):
@@ -534,12 +561,23 @@ class DotEnvConfiguration(FileConfiguration):
             for x in data.splitlines()
             if x
         )
+
+        result = {
+            k[len(self._prefix) :].replace(self._separator, ".").strip("."): v
+            for k, v in result.items()
+            if k.startswith(self._prefix)
+        }
+
+        print(self._prefix, self._separator, result)
+
         self._config = self._flatten_dict(result)
 
 
 def config_from_dotenv(
     data: Union[str, TextIO],
     read_from_file: bool = False,
+    prefix: str = "",
+    separator: str = "__",
     *,
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
@@ -560,6 +598,8 @@ def config_from_dotenv(
     return DotEnvConfiguration(
         data,
         read_from_file,
+        prefix=prefix,
+        separator=separator,
         lowercase_keys=lowercase_keys,
         interpolate=interpolate,
         interpolate_type=interpolate_type,
@@ -678,7 +718,7 @@ def config_from_python(
 
 
 def config_from_dict(
-    data: dict,
+    data: Mapping,
     *,
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
@@ -736,7 +776,7 @@ if yaml is not None:  # pragma: no branch
                 loaded = yaml.load(open(data, "rt"), Loader=yaml.FullLoader)
             else:
                 loaded = yaml.load(data, Loader=yaml.FullLoader)
-            if not isinstance(loaded, dict):
+            if not isinstance(loaded, Mapping):
                 raise ValueError("Data should be a dictionary")
             self._config = self._flatten_dict(loaded)
 

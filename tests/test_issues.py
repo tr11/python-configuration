@@ -1,4 +1,10 @@
-from config import ConfigurationSet, config, config_from_dict
+from config import (
+    Configuration,
+    ConfigurationSet,
+    EnvConfiguration,
+    config,
+    config_from_dict,
+)
 
 
 def test_issue_49():  # type: ignore
@@ -51,3 +57,24 @@ def test_issue_63_b():  # type: ignore
             },
             "ANOTHER_APP": {"spam": "egg"},
         }
+
+
+def test_issue_77():  # type: ignore
+    env = EnvConfiguration(prefix="whatever")
+    print(repr(env))
+    assert repr(env).startswith("<EnvConfiguration")
+
+
+def test_issue_78():  # type: ignore
+    c = Configuration({})
+    c == None
+
+
+def test_issue_79():  # type: ignore
+    import collections
+
+    conf = Configuration({})
+    data = collections.ChainMap({"abc": {"def": "ghi"}})
+    conf.update(data)
+
+    assert conf["abc.def"] == "ghi"
