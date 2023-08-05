@@ -1,6 +1,13 @@
 name: Tests
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  POETRY_VERSION: 1.5.1
 
 jobs:
   testing:
@@ -22,7 +29,7 @@ jobs:
         uses: snok/install-poetry@v1
         id: poetry
         with:
-          version: 1.5.1
+          version: ${{env.POETRY_VERSION}}
           virtualenvs-create: true
           virtualenvs-in-project: true
 
@@ -30,7 +37,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pypoetry
-          key: poetry-cache-${{ steps.poetry.with.version }}-${{ runner.os }}-${{ matrix.python-version }}
+          key: poetry-cache-${{env.POETRY_VERSION}}-${{ runner.os }}-${{ matrix.python-version }}
 
       - name: Install dependencies
         run: poetry install -v -E toml -E yaml -E azure -E aws -E gcp -E vault
