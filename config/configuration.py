@@ -391,6 +391,21 @@ class Configuration:
         """
         raise NotImplementedError()
 
+    def validate(
+        self, schema: Any, raise_on_error: bool = False, **kwargs: Mapping[str, Any]
+    ) -> bool:
+        try:
+            from jsonschema import validate, ValidationError
+        except ImportError:  # pragma: no cover
+            raise RuntimeError("Validation requires the `jsonschema` library.")
+        try:
+            validate(self.as_dict(), schema, **kwargs)
+        except ValidationError as err:
+            if raise_on_error:
+                raise err
+            return False
+        return True
+
     @contextmanager
     def dotted_iter(self) -> Iterator["Configuration"]:
         """

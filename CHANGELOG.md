@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Allow to pass a `ignore_missing_paths` parameter to each config method
+- Support for Hashicorp Vault credentials (in `config.contrib`)
+
+### Changed
+
+- Added a `validate` method to validate `Configuration` instances against a [json schema](https://json-schema.org/understanding-json-schema/basics.html#basics).
 
 ## [0.9.0] - 2023-08-04
 
