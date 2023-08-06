@@ -26,6 +26,7 @@ and optionally
 * Azure Key Vault credentials
 * AWS Secrets Manager credentials
 * GCP Secret Manager credentials
+* Hashicorp Vault credentials
 
 ## Installing
 
