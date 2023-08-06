@@ -9,7 +9,7 @@ name = "python-configuration"
 packages = [{ include = "config" }]
 readme = 'README.md'
 repository = "https://github.com/tr11/python-configuration"
-version = "0.9.0"
+version = "0.9.1"
 
 [tool.poetry.dependencies]
 python = "^3.8.1"
@@ -62,7 +62,7 @@ envlist = py38, py39, py310, py311
 [testenv]
 allowlist_externals = poetry
 commands =
-    poetry install -v -E toml -E yaml -E azure -E aws -E gcp -E vault
+    poetry install -v -E toml -E yaml -E azure -E aws -E gcp -E vault -E validation
     poetry run pytest
 """
 
