@@ -26,6 +26,7 @@ and optionally
 * Azure Key Vault credentials
 * AWS Secrets Manager credentials
 * GCP Secret Manager credentials
+* Hashicorp Vault credentials
 
 ## Installing
 
@@ -276,12 +277,61 @@ When setting the `interpolate` parameter in any `Configuration` instance, the li
 cfg = config_from_dict({
     "percentage": "{val:.3%}",
     "with_sign": "{val:+f}",
-    "val": 1.23456}, interpolate=True)
+    "val": 1.23456,
+    }, interpolate=True)
 
 assert cfg.val == 1.23456
 assert cfg.with_sign == "+1.234560"
 assert cfg.percentage == "123.456%"
 ```
+
+###### Validation
+
+Validation relies on the [jsonchema](https://github.com/python-jsonschema/jsonschema) library, which is automatically installed using the extra `validation`. To use it, call the `validate` method on any `Configuration` instance in a manner similar to what is described on the `jsonschema` library:
+
+```python
+schema = {
+    "type" : "object",
+    "properties" : {
+        "price" : {"type" : "number"},
+        "name" : {"type" : "string"},
+    },
+}
+
+cfg = config_from_dict({"name" : "Eggs", "price" : 34.99})
+assert cfg.validate(schema)
+
+cfg = config_from_dict({"name" : "Eggs", "price" : "Invalid"})
+assert not cfg.validate(schema)
+
+# pass the `raise_on_error` parameter to get the traceback of validation failures
+cfg.validate(schema, raise_on_error=True)
+# ValidationError: 'Invalid' is not of type 'number'
+```
+
+To use the [format](https://python-jsonschema.readthedocs.io/en/latest/validate/#validating-formats) feature of the `jsonschema` library, the extra dependencies must be installed separately as explained in the documentation of `jsonschema`.   
+
+```python
+from jsonschema import Draft202012Validator
+
+schema = {
+    "type" : "object",
+    "properties" : {
+        "ip" : {"format" : "ipv4"},
+    },
+}
+
+cfg = config_from_dict({"ip": "10.0.0.1"})
+assert cfg.validate(schema, format_checker=Draft202012Validator.FORMAT_CHECKER)
+
+cfg = config_from_dict({"ip": "10"})
+assert not cfg.validate(schema, format_checker=Draft202012Validator.FORMAT_CHECKER)
+
+# with the `raise_on_error` parameter:
+c.validate(schema, raise_on_error=True, format_checker=Draft202012Validator.FORMAT_CHECKER)
+# ValidationError: '10' is not a 'ipv4'
+```
+
 
 ## Extras
 
@@ -309,6 +359,14 @@ The `config.contrib` package contains extra implementations of the `Configuratio
 
   ```shell
   pip install python-configuration[gcp]
+  ```
+
+* `HashicorpVaultConfiguration` in `config.contrib.vault`, which takes Hashicorp Vault
+  credentials into a `Configuration`-compatible instance. To install the needed dependencies
+  execute
+
+  ```shell
+  pip install python-configuration[vault]
   ```
 
 ## Features

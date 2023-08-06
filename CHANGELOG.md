@@ -4,9 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+
+## [0.9.1] - 2023-08-06
+
 ### Added
 
 - Allow to pass a `ignore_missing_paths` parameter to each config method
+- Support for Hashicorp Vault credentials (in `config.contrib`)
+- Added a `validate` method to validate `Configuration` instances against a [json schema](https://json-schema.org/understanding-json-schema/basics.html#basics).
+
 
 ## [0.9.0] - 2023-08-04
 
@@ -31,11 +37,13 @@ All notable changes to this project will be documented in this file.
 
 - Configurations from ini file won't be converted to lower case if `lowercase_keys = False`
 
+
 ## [0.8.2] - 2021-01-30
 
 ### Fixed
 
 - The behavior of merging sets was incorrect since version 0.8.0
+
 
 ## [0.8.0] - 2020-08-01
 
@@ -60,11 +68,13 @@ with cfg.dotted_iter():
 - Support for _.env_-type files
 - Option for deep interpolation. To activate that mode, use one of the enum values in `InterpolateEnumType` as the `interpolate_type` parameter. This allows for hierachical _templates_, in which configuration objects use the values from lower ones to interpolate instead of simply overriding.
 
+
 ## [0.7.1] - 2020-07-05
 
 ### Fixed
 
 - Installation with `poetry` because of changes to pytest-black
+
 
 ## [0.7.0] - 2020-05-06
 
@@ -72,11 +82,13 @@ with cfg.dotted_iter():
 
 - New string interpolation feature
 
+
 ## [0.6.1] - 2020-04-24
 
 ### Changed
 
 - Added a `separator` argument to `config` function
+
 
 ## [0.6.0] - 2020-01-22
 
@@ -85,6 +97,7 @@ with cfg.dotted_iter():
 - Added missing `dict` methods so a `Configuration` instance acts like a dictionary for most use cases
 - Added a `reload` method to refresh a `Configuration` instance (can be used to reload a configuration from a file that may have changed).
 - Added a `configs` method to expose the underlying instances of a `ConfigurationSet`
+
 
 ## [0.5.0] - 2020-01-08
 
@@ -98,12 +111,14 @@ with cfg.dotted_iter():
 
 - Changed the `__repr__` and `__str__` methods so possibly sensitive values are not printed by default.
 
+
 ## [0.4.0] - 2019-10-11
 
 ### Added
 
 - Allow path-based failures using the `config` function.
 - Added a levels option to the dict-like objects.
+
 
 ## [0.3.1] - 2019-08-20
 
@@ -113,11 +128,13 @@ with cfg.dotted_iter():
 - TravisCI support
 - Codecov
 
+
 ## [0.3.0] - 2019-08-16
 
 ### Changed
 
 - Changed the old behavior in which every key was converted to lower case.
+
 
 ## [0.2.0] - 2019-07-16
 
@@ -126,13 +143,15 @@ with cfg.dotted_iter():
 - Added Sphinx documentation
 - Added a `remove_levels` parameter to the config function
 
+
 ## [0.1.0] - 2019-01-16
 
 ### Added
 
 - Initial version
 
-[unreleased]: https://github.com/tr11/python-configuration/compare/0.9.0...HEAD
+[unreleased]: https://github.com/tr11/python-configuration/compare/0.9.1...HEAD
+[0.9.1]: https://github.com/tr11/python-configuration/compare/0.9.0...0.9.1
 [0.9.0]: https://github.com/tr11/python-configuration/compare/0.8.3...0.9.0
 [0.8.3]: https://github.com/tr11/python-configuration/compare/0.8.2...0.8.3
 [0.8.2]: https://github.com/tr11/python-configuration/compare/0.8.0...0.8.2
