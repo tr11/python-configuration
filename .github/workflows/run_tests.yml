@@ -49,7 +49,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: poetry install -v -E toml -E yaml -E azure -E aws -E gcp -E vault
+        run: poetry install -v --all-extras
 
       - name: Run pytest
         run: poetry run pytest --cov=./ --cov-report=xml
