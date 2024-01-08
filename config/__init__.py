@@ -767,17 +767,19 @@ class YAMLConfiguration(FileConfiguration):
     """Configuration from a YAML input."""
 
     def __init__(
-            self,
-            data: Union[str, TextIO],
-            read_from_file: bool = False,
-            *,
-            lowercase_keys: bool = False,
-            interpolate: InterpolateType = False,
-            interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
-            ignore_missing_paths: bool = False,
+        self,
+        data: Union[str, TextIO],
+        read_from_file: bool = False,
+        *,
+        lowercase_keys: bool = False,
+        interpolate: InterpolateType = False,
+        interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+        ignore_missing_paths: bool = False,
     ):
         if yaml is None:
-            raise ImportError("Dependency <yaml> is not found, but required by this class.")
+            raise ImportError(
+                "Dependency <yaml> is not found, but required by this class."
+            )
         super().__init__(
             data=data,
             read_from_file=read_from_file,
@@ -787,9 +789,7 @@ class YAMLConfiguration(FileConfiguration):
             ignore_missing_paths=ignore_missing_paths,
         )
 
-    def _reload(
-        self, data: Union[str, TextIO], read_from_file: bool = False
-    ) -> None:
+    def _reload(self, data: Union[str, TextIO], read_from_file: bool = False) -> None:
         """Reload the YAML data."""
         if read_from_file and isinstance(data, str):
             loaded = yaml.load(open(data, "rt"), Loader=yaml.FullLoader)
@@ -844,7 +844,9 @@ class TOMLConfiguration(FileConfiguration):
         ignore_missing_paths: bool = False,
     ):
         if toml is None:
-            raise ImportError("Dependency <toml> is not found, but required by this class.")
+            raise ImportError(
+                "Dependency <toml> is not found, but required by this class."
+            )
 
         self._section_prefix = section_prefix
         super().__init__(
@@ -856,9 +858,7 @@ class TOMLConfiguration(FileConfiguration):
             ignore_missing_paths=ignore_missing_paths,
         )
 
-    def _reload(
-        self, data: Union[str, TextIO], read_from_file: bool = False
-    ) -> None:
+    def _reload(self, data: Union[str, TextIO], read_from_file: bool = False) -> None:
         """Reload the TOML data."""
         if read_from_file:
             if isinstance(data, str):
