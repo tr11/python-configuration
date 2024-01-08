@@ -763,101 +763,77 @@ def create_path_from_config(
     return cfg
 
 
-if yaml is not None:  # pragma: no branch
+class YAMLConfiguration(FileConfiguration):
+    """Configuration from a YAML input."""
 
-    class YAMLConfiguration(FileConfiguration):
-        """Configuration from a YAML input."""
-
-        def _reload(
-            self, data: Union[str, TextIO], read_from_file: bool = False
-        ) -> None:
-            """Reload the YAML data."""
-            if read_from_file and isinstance(data, str):
-                loaded = yaml.load(open(data, "rt"), Loader=yaml.FullLoader)
-            else:
-                loaded = yaml.load(data, Loader=yaml.FullLoader)
-            if not isinstance(loaded, Mapping):
-                raise ValueError("Data should be a dictionary")
-            self._config = self._flatten_dict(loaded)
-
-    def config_from_yaml(
-        data: Union[str, TextIO],
-        read_from_file: bool = False,
-        *,
-        lowercase_keys: bool = False,
-        interpolate: InterpolateType = False,
-        interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
-        ignore_missing_paths: bool = False,
-    ) -> Configuration:
-        """
-        Return a Configuration instance from YAML files.
-
-        :param data: string or file
-        :param read_from_file: whether `data` is a file or a YAML formatted string
-        :param lowercase_keys: whether to convert every key to lower case.
-        :param interpolate: whether to apply string interpolation when looking for items
-        :param ignore_missing_paths: if true it will not throw on missing paths
-        :return: a Configuration instance
-        """
-        return YAMLConfiguration(
-            data,
-            read_from_file,
+    def __init__(
+            self,
+            data: Union[str, TextIO],
+            read_from_file: bool = False,
+            *,
+            lowercase_keys: bool = False,
+            interpolate: InterpolateType = False,
+            interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+            ignore_missing_paths: bool = False,
+    ):
+        if yaml is None:
+            raise ImportError("Dependency <yaml> is not found, but required by this class.")
+        super().__init__(
+            data=data,
+            read_from_file=read_from_file,
             lowercase_keys=lowercase_keys,
             interpolate=interpolate,
             interpolate_type=interpolate_type,
             ignore_missing_paths=ignore_missing_paths,
         )
 
+    def _reload(
+        self, data: Union[str, TextIO], read_from_file: bool = False
+    ) -> None:
+        """Reload the YAML data."""
+        if read_from_file and isinstance(data, str):
+            loaded = yaml.load(open(data, "rt"), Loader=yaml.FullLoader)
+        else:
+            loaded = yaml.load(data, Loader=yaml.FullLoader)
+        if not isinstance(loaded, Mapping):
+            raise ValueError("Data should be a dictionary")
+        self._config = self._flatten_dict(loaded)
 
-if toml is not None:  # pragma: no branch
 
-    class TOMLConfiguration(FileConfiguration):
-        """Configuration from a TOML input."""
+def config_from_yaml(
+    data: Union[str, TextIO],
+    read_from_file: bool = False,
+    *,
+    lowercase_keys: bool = False,
+    interpolate: InterpolateType = False,
+    interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+    ignore_missing_paths: bool = False,
+) -> Configuration:
+    """
+    Return a Configuration instance from YAML files.
 
-        def __init__(
-            self,
-            data: Union[str, TextIO],
-            read_from_file: bool = False,
-            *,
-            section_prefix: str = "",
-            lowercase_keys: bool = False,
-            interpolate: InterpolateType = False,
-            interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
-            ignore_missing_paths: bool = False,
-        ):
-            self._section_prefix = section_prefix
-            super().__init__(
-                data=data,
-                read_from_file=read_from_file,
-                lowercase_keys=lowercase_keys,
-                interpolate=interpolate,
-                interpolate_type=interpolate_type,
-                ignore_missing_paths=ignore_missing_paths,
-            )
+    :param data: string or file
+    :param read_from_file: whether `data` is a file or a YAML formatted string
+    :param lowercase_keys: whether to convert every key to lower case.
+    :param interpolate: whether to apply string interpolation when looking for items
+    :param ignore_missing_paths: if true it will not throw on missing paths
+    :return: a Configuration instance
+    """
+    return YAMLConfiguration(
+        data,
+        read_from_file,
+        lowercase_keys=lowercase_keys,
+        interpolate=interpolate,
+        interpolate_type=interpolate_type,
+        ignore_missing_paths=ignore_missing_paths,
+    )
 
-        def _reload(
-            self, data: Union[str, TextIO], read_from_file: bool = False
-        ) -> None:
-            """Reload the TOML data."""
-            if read_from_file:
-                if isinstance(data, str):
-                    loaded = toml.load(open(data, "rt"))
-                else:
-                    loaded = toml.load(data)
-            else:
-                data = cast(str, data)
-                loaded = toml.loads(data)
-            loaded = cast(dict, loaded)
 
-            result = {
-                k[len(self._section_prefix) :]: v
-                for k, v in self._flatten_dict(loaded).items()
-                if k.startswith(self._section_prefix)
-            }
+class TOMLConfiguration(FileConfiguration):
+    """Configuration from a TOML input."""
 
-            self._config = result
-
-    def config_from_toml(
+    def __init__(
+        self,
         data: Union[str, TextIO],
         read_from_file: bool = False,
         *,
@@ -866,23 +842,69 @@ if toml is not None:  # pragma: no branch
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
         ignore_missing_paths: bool = False,
-    ) -> Configuration:
-        """
-        Return a Configuration instance from TOML files.
+    ):
+        if toml is None:
+            raise ImportError("Dependency <toml> is not found, but required by this class.")
 
-        :param data: string or file
-        :param read_from_file: whether `data` is a file or a TOML formatted string
-        :param lowercase_keys: whether to convert every key to lower case.
-        :param interpolate: whether to apply string interpolation when looking for items
-        :param ignore_missing_paths: if true it will not throw on missing paths
-        :return: a Configuration instance
-        """
-        return TOMLConfiguration(
-            data,
-            read_from_file,
-            section_prefix=section_prefix,
+        self._section_prefix = section_prefix
+        super().__init__(
+            data=data,
+            read_from_file=read_from_file,
             lowercase_keys=lowercase_keys,
             interpolate=interpolate,
             interpolate_type=interpolate_type,
             ignore_missing_paths=ignore_missing_paths,
         )
+
+    def _reload(
+        self, data: Union[str, TextIO], read_from_file: bool = False
+    ) -> None:
+        """Reload the TOML data."""
+        if read_from_file:
+            if isinstance(data, str):
+                loaded = toml.load(open(data, "rt"))
+            else:
+                loaded = toml.load(data)
+        else:
+            data = cast(str, data)
+            loaded = toml.loads(data)
+        loaded = cast(dict, loaded)
+
+        result = {
+            k[len(self._section_prefix) :]: v
+            for k, v in self._flatten_dict(loaded).items()
+            if k.startswith(self._section_prefix)
+        }
+
+        self._config = result
+
+
+def config_from_toml(
+    data: Union[str, TextIO],
+    read_from_file: bool = False,
+    *,
+    section_prefix: str = "",
+    lowercase_keys: bool = False,
+    interpolate: InterpolateType = False,
+    interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
+    ignore_missing_paths: bool = False,
+) -> Configuration:
+    """
+    Return a Configuration instance from TOML files.
+
+    :param data: string or file
+    :param read_from_file: whether `data` is a file or a TOML formatted string
+    :param lowercase_keys: whether to convert every key to lower case.
+    :param interpolate: whether to apply string interpolation when looking for items
+    :param ignore_missing_paths: if true it will not throw on missing paths
+    :return: a Configuration instance
+    """
+    return TOMLConfiguration(
+        data,
+        read_from_file,
+        section_prefix=section_prefix,
+        lowercase_keys=lowercase_keys,
+        interpolate=interpolate,
+        interpolate_type=interpolate_type,
+        ignore_missing_paths=ignore_missing_paths,
+    )

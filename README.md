@@ -9,24 +9,27 @@
 [![codecov](https://codecov.io/gh/tr11/python-configuration/branch/main/graph/badge.svg?token=5zRYlGnDs7)](https://codecov.io/gh/tr11/python-configuration)
 [![Documentation Status](https://readthedocs.org/projects/python-configuration/badge/?version=latest)](https://python-configuration.readthedocs.io/en/latest/?badge=latest)
 
-This library is intended as a helper mechanism to load configuration files hierarchically.  Supported format types are:
+This library is intended as a helper mechanism to load configuration files hierarchically.
 
-* Python files
-* Dictionaries
-* Environment variables
-* Filesystem paths
-* JSON files
-* INI files
-* dotenv type files
+## Supported Formats
 
-and optionally
+The `python-configuration` library supports the following configuration formats and sources:
 
-* YAML files
-* TOML files
-* Azure Key Vault credentials
-* AWS Secrets Manager credentials
-* GCP Secret Manager credentials
-* Hashicorp Vault credentials
+- Python files: ...
+- Dictionaries: ...
+- Environment variables: ...
+- Filesystem paths: ...
+- JSON files: ...
+- INI files: ... 
+- dotenv type files: ...
+- Optional support for:
+  - YAML files: requires `yaml`
+  - TOML files: requires `toml`
+  - Azure Key Vault credentials: ...
+  - AWS Secrets Manager credentials: ...
+  - GCP Secret Manager credentials: ...
+  - Hashicorp Vault credentials: ...
+
 
 ## Installing
 
@@ -42,6 +45,8 @@ To include the optional TOML and/or YAML loaders, install the optional dependenc
 pip install python-configuration[toml,yaml]
 ```
 
+Without the optional dependencies, the TOML and YAML loaders will not be available, 
+and attempting to use them will raise an exception.
 ## Getting started
 
 `python-configuration` converts the various config types into dictionaries with dotted-based keys. For example, given this JSON configuration
