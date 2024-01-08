@@ -31,8 +31,7 @@ def config(
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
 ) -> ConfigurationSet:
-    """
-    Create a :class:`ConfigurationSet` instance from an iterable of configs.
+    """Create a :class:`ConfigurationSet` instance from an iterable of configs.
 
     :param configs: iterable of configurations
     :param prefix: prefix to filter environment variables with
@@ -88,7 +87,7 @@ def config(
         if not isinstance(config_, (tuple, list)) or len(config_) == 0:
             raise ValueError(
                 "configuration parameters must be a list of dictionaries,"
-                " strings, or non-empty tuples/lists"
+                " strings, or non-empty tuples/lists",
             )
         type_ = config_[0]
         if type_ == "dict":
@@ -102,8 +101,10 @@ def config(
             params = list(config_[1:]) + default_args[(len(config_) - 2) :]
             instances.append(
                 config_from_python(
-                    *params, **default_kwargs, ignore_missing_paths=ignore_missing_paths
-                )
+                    *params,
+                    **default_kwargs,
+                    ignore_missing_paths=ignore_missing_paths,
+                ),
             )
         elif type_ == "json":
             instances.append(
@@ -111,7 +112,7 @@ def config(
                     *config_[1:],
                     **default_kwargs,
                     ignore_missing_paths=ignore_missing_paths,
-                )
+                ),
             )
         elif yaml and type_ == "yaml":
             instances.append(
@@ -119,7 +120,7 @@ def config(
                     *config_[1:],
                     **default_kwargs,
                     ignore_missing_paths=ignore_missing_paths,
-                )
+                ),
             )
         elif toml and type_ == "toml":
             instances.append(
@@ -127,7 +128,7 @@ def config(
                     *config_[1:],
                     **default_kwargs,
                     ignore_missing_paths=ignore_missing_paths,
-                )
+                ),
             )
         elif type_ == "ini":
             instances.append(
@@ -135,7 +136,7 @@ def config(
                     *config_[1:],
                     **default_kwargs,
                     ignore_missing_paths=ignore_missing_paths,
-                )
+                ),
             )
         elif type_ == "dotenv":
             instances.append(
@@ -143,7 +144,7 @@ def config(
                     *config_[1:],
                     **default_kwargs,
                     ignore_missing_paths=ignore_missing_paths,
-                )
+                ),
             )
         elif type_ == "path":
             instances.append(
@@ -151,13 +152,15 @@ def config(
                     *config_[1:],
                     **default_kwargs,
                     ignore_missing_paths=ignore_missing_paths,
-                )
+                ),
             )
         else:
             raise ValueError(f'Unknown configuration type "{type_}"')
 
     return ConfigurationSet(
-        *instances, interpolate=interpolate, interpolate_type=interpolate_type
+        *instances,
+        interpolate=interpolate,
+        interpolate_type=interpolate_type,
     )
 
 
@@ -173,8 +176,7 @@ class EnvConfiguration(Configuration):
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ):
-        """
-        Constructor.
+        """Class Constructor.
 
         :param prefix: prefix to filter environment variables with
         :param separator: separator to replace by dots
@@ -215,8 +217,7 @@ def config_from_env(
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
 ) -> Configuration:
-    """
-    Create a :class:`EnvConfiguration` instance from environment variables.
+    """Create a :class:`EnvConfiguration` instance from environment variables.
 
     :param prefix: prefix to filter environment variables with
     :param separator: separator to replace by dots
@@ -246,8 +247,7 @@ class PathConfiguration(Configuration):
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
         ignore_missing_paths: bool = False,
     ):
-        """
-        Constructor.
+        """Class Constructor.
 
         :param path: path to read from
         :param remove_level: how many levels to remove from the resulting config
@@ -278,7 +278,7 @@ class PathConfiguration(Configuration):
                     ".".join(
                         (x[0].split("/") + [y])[
                             (dotted_path_levels + self._remove_level) :
-                        ]
+                        ],
                     ),
                 )
                 for x in os.walk(path)
@@ -288,7 +288,8 @@ class PathConfiguration(Configuration):
 
             result = {}
             for filename, key in files_keys:
-                result[key] = open(filename).read()
+                with open(filename) as f:
+                    result[key] = f.read()
         except FileNotFoundError:
             if self._ignore_missing_paths:
                 result = {}
@@ -311,8 +312,7 @@ def config_from_path(
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ignore_missing_paths: bool = False,
 ) -> Configuration:
-    """
-    Create a :class:`Configuration` instance from filesystem path.
+    """Create a :class:`Configuration` instance from filesystem path.
 
     :param path: path to read from
     :param remove_level: how many levels to remove from the resulting config
@@ -343,8 +343,7 @@ class FileConfiguration(Configuration):
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
         ignore_missing_paths: bool = False,
     ):
-        """
-        Constructor.
+        """Class Constructor.
 
         :param data: path to a config file, or its contents
         :param read_from_file: whether to read from a file path or to interpret
@@ -397,7 +396,8 @@ class JSONConfiguration(FileConfiguration):
         """Reload the JSON data."""
         if read_from_file:
             if isinstance(data, str):
-                result = json.load(open(data, "rt"))
+                with open(data, "rt") as f:
+                    result = json.load(f)
             else:
                 result = json.load(data)
         else:
@@ -414,8 +414,7 @@ def config_from_json(
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ignore_missing_paths: bool = False,
 ) -> Configuration:
-    """
-    Create a :class:`Configuration` instance from a JSON file.
+    """Create a :class:`Configuration` instance from a JSON file.
 
     :param data: path to a JSON file or contents
     :param read_from_file: whether to read from a file path or to interpret
@@ -449,6 +448,7 @@ class INIConfiguration(FileConfiguration):
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
         ignore_missing_paths: bool = False,
     ):
+        """Class Constructor."""
         self._section_prefix = section_prefix
         super().__init__(
             data=data,
@@ -471,7 +471,8 @@ class INIConfiguration(FileConfiguration):
 
         if read_from_file:
             if isinstance(data, str):
-                data = open(data, "rt").read()
+                with open(data, "rt") as f:
+                    data = f.read()
             else:
                 data = data.read()
         data = cast(str, data)
@@ -496,8 +497,7 @@ def config_from_ini(
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ignore_missing_paths: bool = False,
 ) -> Configuration:
-    """
-    Create a :class:`Configuration` instance from an INI file.
+    """Create a :class:`Configuration` instance from an INI file.
 
     :param data: path to an INI file or contents
     :param read_from_file: whether to read from a file path or to interpret
@@ -533,6 +533,7 @@ class DotEnvConfiguration(FileConfiguration):
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
         ignore_missing_paths: bool = False,
     ):
+        """Class Constructor."""
         self._prefix = prefix
         self._separator = separator
         super().__init__(
@@ -552,7 +553,8 @@ class DotEnvConfiguration(FileConfiguration):
         """Reload the .env data."""
         if read_from_file:
             if isinstance(data, str):
-                data = open(data, "rt").read()
+                with open(data, "rt") as f:
+                    data = f.read()
             else:
                 data = data.read()
         data = cast(str, data)
@@ -568,8 +570,6 @@ class DotEnvConfiguration(FileConfiguration):
             if k.startswith(self._prefix)
         }
 
-        print(self._prefix, self._separator, result)
-
         self._config = self._flatten_dict(result)
 
 
@@ -584,8 +584,7 @@ def config_from_dotenv(
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ignore_missing_paths: bool = False,
 ) -> Configuration:
-    """
-    Create a :class:`Configuration` instance from a .env type file.
+    """Create a :class:`Configuration` instance from a .env type file.
 
     :param data: path to a .env type file or contents
     :param read_from_file: whether to read from a file path or to interpret
@@ -621,8 +620,7 @@ class PythonConfiguration(Configuration):
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
         ignore_missing_paths: bool = False,
     ):
-        """
-        Constructor.
+        """Class Constructor.
 
         :param module: a module or path string
         :param prefix: prefix to use to filter object names
@@ -696,8 +694,7 @@ def config_from_python(
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ignore_missing_paths: bool = False,
 ) -> Configuration:
-    """
-    Create a :class:`Configuration` instance from the objects in a Python module.
+    """Create a :class:`Configuration` instance from the objects in a Python module.
 
     :param module: a module or path string
     :param prefix: prefix to use to filter object names
@@ -724,8 +721,7 @@ def config_from_dict(
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
 ) -> Configuration:
-    """
-    Create a :class:`Configuration` instance from a dictionary.
+    """Create a :class:`Configuration` instance from a dictionary.
 
     :param data: dictionary with string keys
     :param lowercase_keys: whether to convert every key to lower case.
@@ -741,10 +737,11 @@ def config_from_dict(
 
 
 def create_path_from_config(
-    path: str, cfg: Configuration, remove_level: int = 1
+    path: str,
+    cfg: Configuration,
+    remove_level: int = 1,
 ) -> Configuration:
-    """
-    Output a path configuration from a :class:`Configuration` instance.
+    """Output a path configuration from a :class:`Configuration` instance.
 
     :param path: path to create the config files in
     :param cfg: :class:`Configuration` instance
@@ -776,9 +773,10 @@ class YAMLConfiguration(FileConfiguration):
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
         ignore_missing_paths: bool = False,
     ):
-        if yaml is None:
+        """Class Constructor."""
+        if yaml is None:  # pragma: no cover
             raise ImportError(
-                "Dependency <yaml> is not found, but required by this class."
+                "Dependency <yaml> is not found, but required by this class.",
             )
         super().__init__(
             data=data,
@@ -792,7 +790,8 @@ class YAMLConfiguration(FileConfiguration):
     def _reload(self, data: Union[str, TextIO], read_from_file: bool = False) -> None:
         """Reload the YAML data."""
         if read_from_file and isinstance(data, str):
-            loaded = yaml.load(open(data, "rt"), Loader=yaml.FullLoader)
+            with open(data, "rt") as f:
+                loaded = yaml.load(f, Loader=yaml.FullLoader)
         else:
             loaded = yaml.load(data, Loader=yaml.FullLoader)
         if not isinstance(loaded, Mapping):
@@ -809,8 +808,7 @@ def config_from_yaml(
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ignore_missing_paths: bool = False,
 ) -> Configuration:
-    """
-    Return a Configuration instance from YAML files.
+    """Return a Configuration instance from YAML files.
 
     :param data: string or file
     :param read_from_file: whether `data` is a file or a YAML formatted string
@@ -843,9 +841,10 @@ class TOMLConfiguration(FileConfiguration):
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
         ignore_missing_paths: bool = False,
     ):
-        if toml is None:
+        """Class Constructor."""
+        if toml is None:  # pragma: no cover
             raise ImportError(
-                "Dependency <toml> is not found, but required by this class."
+                "Dependency <toml> is not found, but required by this class.",
             )
 
         self._section_prefix = section_prefix
@@ -862,7 +861,8 @@ class TOMLConfiguration(FileConfiguration):
         """Reload the TOML data."""
         if read_from_file:
             if isinstance(data, str):
-                loaded = toml.load(open(data, "rt"))
+                with open(data, "rt") as f:
+                    loaded = toml.load(f)
             else:
                 loaded = toml.load(data)
         else:
@@ -889,8 +889,7 @@ def config_from_toml(
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ignore_missing_paths: bool = False,
 ) -> Configuration:
-    """
-    Return a Configuration instance from TOML files.
+    """Return a Configuration instance from TOML files.
 
     :param data: string or file
     :param read_from_file: whether `data` is a file or a TOML formatted string

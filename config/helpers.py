@@ -4,7 +4,6 @@ import string
 from enum import Enum
 from typing import Any, Dict, List, Set, Tuple, Union
 
-
 TRUTH_TEXT = frozenset(("t", "true", "y", "yes", "on", "1"))
 FALSE_TEXT = frozenset(("f", "false", "n", "no", "off", "0", ""))
 PROTECTED_KEYS = frozenset(("secret", "password", "passwd", "pwd", "token"))
@@ -33,15 +32,14 @@ class AttributeDict(dict):
             return self[key]
         except KeyError:
             # to conform with __getattr__ spec
-            raise AttributeError(key)
+            raise AttributeError(key) from None
 
     def __setattr__(self, key: Any, value: Any) -> None:  # noqa: D105
         self[key] = value
 
 
 def as_bool(s: Any) -> bool:
-    """
-    Boolean value from an object.
+    """Boolean value from an object.
 
     Return the boolean value ``True`` if the case-lowered value of string
     input ``s`` is a `truthy string`. If ``s`` is already one of the
@@ -58,8 +56,7 @@ def as_bool(s: Any) -> bool:
 
 
 def clean(key: str, value: Any, mask: str = "******") -> Any:
-    """
-    Mask a value if needed.
+    """Mask a value if needed.
 
     :param key: key
     :param value: value to hide
@@ -80,14 +77,13 @@ def clean(key: str, value: Any, mask: str = "******") -> Any:
             return value
         else:
             return url._replace(
-                netloc="{}:{}@{}".format(url.username, mask, url.hostname)
+                netloc="{}:{}@{}".format(url.username, mask, url.hostname),
             ).geturl()
     return value
 
 
 def interpolate_standard(text: str, d: dict, found: Set[Tuple[str, ...]]) -> str:
-    """
-    Return the string interpolated as many times as needed.
+    """Return the string interpolated as many times as needed.
 
     :param text: string possibly containing an interpolation pattern
     :param d: dictionary
@@ -97,7 +93,7 @@ def interpolate_standard(text: str, d: dict, found: Set[Tuple[str, ...]]) -> str
         return text
 
     variables = tuple(
-        sorted(x[1] for x in string.Formatter().parse(text) if x[1] is not None)
+        sorted(x[1] for x in string.Formatter().parse(text) if x[1] is not None),
     )
 
     if not variables:
@@ -120,8 +116,7 @@ def interpolate_deep(
     levels: Dict[str, int],
     method: InterpolateEnumType,
 ) -> str:
-    """
-    Return the string interpolated as many times as needed.
+    """Return the string interpolated as many times as needed.
 
     :param attr: attribute name
     :param text: string possibly containing an interpolation pattern
@@ -159,15 +154,19 @@ def interpolate_deep(
             else d
         )
         resolved[variable] = interpolate_deep(
-            attr, d[level][variable], new_d, resolved, levels, method
+            attr,
+            d[level][variable],
+            new_d,
+            resolved,
+            levels,
+            method,
         )
 
     return text.format(**resolved)
 
 
 def flatten(d: List[dict]) -> dict:
-    """
-    Flatten a list of dictionaries.
+    """Flatten a list of dictionaries.
 
     :param d: dictionary list
     """
@@ -177,10 +176,12 @@ def flatten(d: List[dict]) -> dict:
 
 
 def interpolate_object(
-    attr: str, obj: Any, d: List[dict], method: InterpolateEnumType
+    attr: str,
+    obj: Any,
+    d: List[dict],
+    method: InterpolateEnumType,
 ) -> Any:
-    """
-    Return the interpolated object.
+    """Return the interpolated object.
 
     :param attr: attribute name
     :param obj: object to interpolate

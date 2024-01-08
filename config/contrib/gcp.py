@@ -20,8 +20,7 @@ class Cache:
 
 
 class GCPSecretManagerConfiguration(Configuration):
-    """
-    GCP Secret Manager Configuration class.
+    """GCP Secret Manager Configuration class.
 
     The GCP Secret Manager Configuration class takes GCP Secret Manager credentials and
     behaves like a drop-in replacement for the regular Configuration class.
@@ -41,8 +40,7 @@ class GCPSecretManagerConfiguration(Configuration):
         cache_expiration: int = 5 * 60,
         interpolate: InterpolateType = False,
     ) -> None:
-        """
-        Constructor.
+        """Class Constructor.
 
         See https://googleapis.dev/python/secretmanager/latest/gapic/v1/api.html#google.cloud.secretmanager_v1.SecretManagerServiceClient
         for more details on credentials and options.
@@ -53,7 +51,8 @@ class GCPSecretManagerConfiguration(Configuration):
         :param cache_expiration: Cache expiration (in seconds)
         """  # noqa: E501
         self._client = secretmanager_v1.SecretManagerServiceClient(
-            credentials=credentials, client_options=client_options
+            credentials=credentials,
+            client_options=client_options,
         )
         self._project_id = project_id
         self._parent = f"projects/{project_id}"
@@ -70,7 +69,7 @@ class GCPSecretManagerConfiguration(Configuration):
         try:
             path = f"projects/{self._project_id}/secrets/{key}/versions/latest"
             secret = self._client.access_secret_version(
-                request={"name": path}
+                request={"name": path},
             ).payload.data.decode()
             self._cache[key] = Cache(value=secret, ts=now)
             return secret
@@ -94,8 +93,7 @@ class GCPSecretManagerConfiguration(Configuration):
             return secret
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
-        """
-        Get the configuration values corresponding to :attr:`key`.
+        """Get the configuration values corresponding to :attr:`key`.
 
         :param key: key to retrieve
         :param default: default value in case the key is missing
@@ -108,7 +106,8 @@ class GCPSecretManagerConfiguration(Configuration):
             return secret
 
     def keys(
-        self, levels: Optional[int] = None
+        self,
+        levels: Optional[int] = None,
     ) -> Union["Configuration", Any, KeysView[str]]:
         """Return a set-like object providing a view on the configuration keys."""
         assert not levels  # GCP Secret Manager secrets don't support separators
@@ -121,7 +120,8 @@ class GCPSecretManagerConfiguration(Configuration):
         )
 
     def values(
-        self, levels: Optional[int] = None
+        self,
+        levels: Optional[int] = None,
     ) -> Union["Configuration", Any, ValuesView[Any]]:
         """Return a set-like object providing a view on the configuration values."""
         assert not levels  # GCP Secret Manager secrets don't support separators
@@ -134,7 +134,8 @@ class GCPSecretManagerConfiguration(Configuration):
         )
 
     def items(
-        self, levels: Optional[int] = None
+        self,
+        levels: Optional[int] = None,
     ) -> Union["Configuration", Any, ItemsView[str, Any]]:
         """Return a set-like object providing a view on the configuration items."""
         assert not levels  # GCP Secret Manager secrets don't support separators

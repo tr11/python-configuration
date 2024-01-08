@@ -7,7 +7,6 @@ from azure.core.exceptions import ResourceNotFoundError
 from azure.identity import ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
 
-
 from .. import Configuration, InterpolateType
 
 
@@ -20,8 +19,7 @@ class Cache:
 
 
 class AzureKeyVaultConfiguration(Configuration):
-    """
-    Azure Configuration class.
+    """Azure Configuration class.
 
     The Azure Configuration class takes Azure KeyVault credentials and
     behaves like a drop-in replacement for the regular Configuration class.
@@ -42,8 +40,7 @@ class AzureKeyVaultConfiguration(Configuration):
         cache_expiration: int = 5 * 60,
         interpolate: InterpolateType = False,
     ) -> None:
-        """
-        Constructor.
+        """Class Constructor.
 
         :param az_client_id: Client ID
         :param az_client_secret: Client Secret
@@ -93,8 +90,7 @@ class AzureKeyVaultConfiguration(Configuration):
             return secret
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
-        """
-        Get the configuration values corresponding to :attr:`key`.
+        """Get the configuration values corresponding to :attr:`key`.
 
         :param key: key to retrieve
         :param default: default value in case the key is missing
@@ -107,7 +103,8 @@ class AzureKeyVaultConfiguration(Configuration):
             return secret
 
     def keys(
-        self, levels: Optional[int] = None
+        self,
+        levels: Optional[int] = None,
     ) -> Union["Configuration", Any, KeysView[str]]:
         """Return a set-like object providing a view on the configuration keys."""
         assert not levels  # Azure Key Vaults don't support separators
@@ -117,7 +114,8 @@ class AzureKeyVaultConfiguration(Configuration):
         )
 
     def values(
-        self, levels: Optional[int] = None
+        self,
+        levels: Optional[int] = None,
     ) -> Union["Configuration", Any, ValuesView[Any]]:
         """Return a set-like object providing a view on the configuration values."""
         assert not levels  # Azure Key Vaults don't support separators
@@ -130,7 +128,8 @@ class AzureKeyVaultConfiguration(Configuration):
         )
 
     def items(
-        self, levels: Optional[int] = None
+        self,
+        levels: Optional[int] = None,
     ) -> Union["Configuration", Any, ItemsView[str, Any]]:
         """Return a set-like object providing a view on the configuration items."""
         assert not levels  # Azure Key Vaults don't support separators

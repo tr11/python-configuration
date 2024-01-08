@@ -16,7 +16,6 @@ from typing import (
 import hvac
 from hvac.exceptions import InvalidPath
 
-
 from .. import Configuration, InterpolateType, config_from_dict
 
 
@@ -29,8 +28,7 @@ class Cache:
 
 
 class HashicorpVaultConfiguration(Configuration):
-    """
-    Hashicorp Vault Configuration class.
+    """Hashicorp Vault Configuration class.
 
     The Hashicorp Vault Configuration class takes Vault credentials and
     behaves like a drop-in replacement for the regular Configuration class.
@@ -48,8 +46,7 @@ class HashicorpVaultConfiguration(Configuration):
         interpolate: InterpolateType = False,
         **kwargs: Mapping[str, Any],
     ) -> None:
-        """
-        Constructor.
+        """Class Constructor.
 
         See https://developer.hashicorp.com/vault/docs/get-started/developer-qs.
         """  # noqa: E501
@@ -97,8 +94,7 @@ class HashicorpVaultConfiguration(Configuration):
             return Configuration(secret)
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
-        """
-        Get the configuration values corresponding to :attr:`key`.
+        """Get the configuration values corresponding to :attr:`key`.
 
         :param key: key to retrieve
         :param default: default value in case the key is missing
@@ -110,7 +106,8 @@ class HashicorpVaultConfiguration(Configuration):
             return default
 
     def keys(
-        self, levels: Optional[int] = None
+        self,
+        levels: Optional[int] = None,
     ) -> Union["Configuration", Any, KeysView[str]]:
         """Return a set-like object providing a view on the configuration keys."""
         assert not levels  # Vault secrets don't support separators
@@ -120,7 +117,8 @@ class HashicorpVaultConfiguration(Configuration):
         )
 
     def values(
-        self, levels: Optional[int] = None
+        self,
+        levels: Optional[int] = None,
     ) -> Union["Configuration", Any, ValuesView[Any]]:
         """Return a set-like object providing a view on the configuration values."""
         assert not levels  # GCP Secret Manager secrets don't support separators
@@ -133,7 +131,8 @@ class HashicorpVaultConfiguration(Configuration):
         )
 
     def items(
-        self, levels: Optional[int] = None
+        self,
+        levels: Optional[int] = None,
     ) -> Union["Configuration", Any, ItemsView[str, Any]]:
         """Return a set-like object providing a view on the configuration items."""
         assert not levels  # GCP Secret Manager secrets don't support separators

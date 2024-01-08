@@ -5,9 +5,7 @@ import time
 from typing import Any, Dict, Optional
 
 import boto3
-
 from botocore.exceptions import ClientError
-
 
 from .. import Configuration, InterpolateType
 
@@ -21,8 +19,7 @@ class Cache:
 
 
 class AWSSecretsManagerConfiguration(Configuration):
-    """
-    AWS Configuration class.
+    """AWS Configuration class.
 
     The AWS Configuration class takes AWS Secrets Manager credentials and
     behaves like a drop-in replacement for the regular Configuration class.
@@ -40,8 +37,7 @@ class AWSSecretsManagerConfiguration(Configuration):
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
     ) -> None:
-        """
-        Constructor.
+        """Class Constructor.
 
         :param secret_name: Name of the secret
         :param aws_access_key_id:  AWS Access Key ID
@@ -74,31 +70,31 @@ class AWSSecretsManagerConfiguration(Configuration):
             return self._secret.value
         try:
             get_secret_value_response = self._client.get_secret_value(
-                SecretId=self._secret_name
+                SecretId=self._secret_name,
             )
         except ClientError as e:  # pragma: no cover
             if e.response["Error"]["Code"] == "DecryptionFailureException":
                 # Secrets Manager can't decrypt the protected secret text using
                 # the provided KMS key.
                 # Deal with the exception here, and/or rethrow at your discretion.
-                raise RuntimeError("Cannot read the AWS secret")
+                raise RuntimeError("Cannot read the AWS secret") from None
             elif e.response["Error"]["Code"] == "InternalServiceErrorException":
                 # An error occurred on the server side.
                 # Deal with the exception here, and/or rethrow at your discretion.
-                raise RuntimeError("Cannot read the AWS secret")
+                raise RuntimeError("Cannot read the AWS secret") from None
             elif e.response["Error"]["Code"] == "InvalidParameterException":
                 # You provided an invalid value for a parameter.
                 # Deal with the exception here, and/or rethrow at your discretion.
-                raise RuntimeError("Cannot read the AWS secret")
+                raise RuntimeError("Cannot read the AWS secret") from None
             elif e.response["Error"]["Code"] == "InvalidRequestException":
                 # You provided a parameter value that is not valid for the current
                 # state of the resource.
                 # Deal with the exception here, and/or rethrow at your discretion.
-                raise RuntimeError("Cannot read the AWS secret")
+                raise RuntimeError("Cannot read the AWS secret") from None
             elif e.response["Error"]["Code"] == "ResourceNotFoundException":
                 # We can't find the resource that you asked for.
                 # Deal with the exception here, and/or rethrow at your discretion.
-                raise RuntimeError("Cannot read the AWS secret")
+                raise RuntimeError("Cannot read the AWS secret") from None
         else:
             # Decrypts secret using the associated KMS CMK.
             # Depending on whether the secret is a string or binary, one of these

@@ -1,8 +1,8 @@
 """ConfigurationSet class."""
 
+import contextlib
 from typing import (
     Any,
-    Dict,
     ItemsView,
     Iterable,
     KeysView,
@@ -11,7 +11,6 @@ from typing import (
     Optional,
     Union,
     ValuesView,
-    cast,
 )
 
 from .configuration import Configuration
@@ -19,8 +18,7 @@ from .helpers import InterpolateEnumType, InterpolateType, clean, interpolate_ob
 
 
 class ConfigurationSet(Configuration):
-    """
-    Configuration Sets.
+    """Configuration Sets.
 
     A class that combines multiple :class:`Configuration` instances
     in a hierarchical manner.
@@ -30,25 +28,26 @@ class ConfigurationSet(Configuration):
         self,
         *configs: Configuration,
         interpolate: InterpolateType = False,
-        interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD
+        interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ):  # noqa: D107
+        """Class Constructor."""
         self._interpolate = {} if interpolate is True else interpolate
         self._interpolate_type = interpolate_type
         try:
             self._configs: List[Configuration] = list(configs)
         except Exception:  # pragma: no cover
             raise ValueError(
-                "configs should be a non-empty iterable of Configuration objects"
-            )
+                "configs should be a non-empty iterable of Configuration objects",
+            ) from None
         if not self._configs:  # pragma: no cover
             raise ValueError(
-                "configs should be a non-empty iterable of Configuration objects"
+                "configs should be a non-empty iterable of Configuration objects",
             )
         if not all(
             isinstance(x, Configuration) for x in self._configs
         ):  # pragma: no cover
             raise ValueError(
-                "configs should be a non-empty iterable of Configuration objects"
+                "configs should be a non-empty iterable of Configuration objects",
             )
         self._writable = False
         self._default_levels = 1
@@ -113,8 +112,7 @@ class ConfigurationSet(Configuration):
         return self._from_configs("__getattr__", item)
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
-        """
-        Get the configuration values corresponding to :attr:`key`.
+        """Get the configuration values corresponding to :attr:`key`.
 
         :param key: key to retrieve
         :param default: default value in case the key is missing
@@ -133,15 +131,15 @@ class ConfigurationSet(Configuration):
         return result
 
     def get_dict(self, item: str) -> dict:
-        """
-        Get the item values as a dictionary.
+        """Get the item values as a dictionary.
 
         :param item: key
         """
-        return Configuration({k: v for k, v in dict(self[item]).items()}).as_dict()
+        return Configuration(dict(dict(self[item]).items())).as_dict()
 
     def keys(
-        self, levels: Optional[int] = None
+        self,
+        levels: Optional[int] = None,
     ) -> Union["Configuration", Any, KeysView[str]]:
         """Return a set-like object providing a view on the configuration keys."""
         if self._default_levels:
@@ -150,7 +148,8 @@ class ConfigurationSet(Configuration):
             return cfg.keys(levels)
 
     def values(
-        self, levels: Optional[int] = None
+        self,
+        levels: Optional[int] = None,
     ) -> Union["Configuration", Any, ValuesView[Any]]:
         """Return a set-like object providing a view on the configuration values."""
         if self._default_levels:
@@ -159,7 +158,8 @@ class ConfigurationSet(Configuration):
             return cfg.values(levels)
 
     def items(
-        self, levels: Optional[int] = None
+        self,
+        levels: Optional[int] = None,
     ) -> Union["Configuration", Any, ItemsView[str, Any]]:
         """Return a set-like object providing a view on the configuration items."""
         if self._default_levels:
@@ -202,10 +202,8 @@ class ConfigurationSet(Configuration):
     def reload(self) -> None:
         """Reload the underlying configuration instances."""
         for cfg in self._configs:
-            try:
+            with contextlib.suppress(NotImplementedError):
                 cfg.reload()
-            except NotImplementedError:
-                pass
 
     def __repr__(self) -> str:  # noqa: D105
         return "<ConfigurationSet: %s>" % hex(id(self))

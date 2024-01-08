@@ -33,8 +33,7 @@ if version_info < (3, 8):  # pragma: no cover
 
 
 class Configuration:
-    """
-    Configuration class.
+    """Configuration class.
 
     The Configuration class takes a dictionary input with keys such as
 
@@ -55,8 +54,7 @@ class Configuration:
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ):
-        """
-        Constructor.
+        """Class Constructor.
 
         :param config_: a mapping of configuration values. Keys need to be strings.
         :param lowercase_keys: whether to convert every key to lower case.
@@ -74,8 +72,7 @@ class Configuration:
         return self.as_dict() == Configuration(other).as_dict()
 
     def _filter_dict(self, d: Dict[str, Any], prefix: str) -> Dict[str, Any]:
-        """
-        Filter a dictionary and return the items that are prefixed by :attr:`prefix`.
+        """Filter a dictionary and return the items that are prefixed by :attr:`prefix`.
 
         :param d: dictionary
         :param prefix: prefix to filter on
@@ -95,8 +92,7 @@ class Configuration:
             }
 
     def _flatten_dict(self, d: Mapping[str, Any]) -> Dict[str, Any]:
-        """
-        Flatten one level of a dictionary.
+        """Flatten one level of a dictionary.
 
         :param d: dict
         :return: a flattened dict
@@ -127,12 +123,11 @@ class Configuration:
         return result
 
     def _get_subset(self, prefix: str) -> Union[Dict[str, Any], Any]:
-        """
-        Return the subset of the config dictionary whose keys start with :attr:`prefix`.
+        """Return the subset of the config dictionary whose keys start with :attr:`prefix`.
 
         :param prefix: string
         :return: dict
-        """
+        """  # noqa: E501
         d = {
             k[(len(prefix) + 1) :]: v
             for k, v in self._config.items()
@@ -170,11 +165,10 @@ class Configuration:
         try:
             return self[item]
         except KeyError:
-            raise AttributeError(item)
+            raise AttributeError(item) from None
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
-        """
-        Get the configuration values corresponding to :attr:`key`.
+        """Get the configuration values corresponding to :attr:`key`.
 
         :param key: key to retrieve
         :param default: default value in case the key is missing
@@ -192,20 +186,18 @@ class Configuration:
             {
                 x: Configuration(v).as_attrdict() if isinstance(v, Mapping) else v
                 for x, v in self.items(levels=1)
-            }
+            },
         )
 
     def get_bool(self, item: str) -> bool:
-        """
-        Get the item value as a bool.
+        """Get the item value as a bool.
 
         :param item: key
         """
         return as_bool(self[item])
 
     def get_str(self, item: str, fmt: str = "{}") -> str:
-        """
-        Get the item value as an int.
+        """Get the item value as an int.
 
         :param item: key
         :param fmt: format to use
@@ -213,40 +205,35 @@ class Configuration:
         return fmt.format(self[item])
 
     def get_int(self, item: str) -> int:
-        """
-        Get the item value as an int.
+        """Get the item value as an int.
 
         :param item: key
         """
         return int(self[item])
 
     def get_float(self, item: str) -> float:
-        """
-        Get the item value as a float.
+        """Get the item value as a float.
 
         :param item: key
         """
         return float(self[item])
 
     def get_list(self, item: str) -> List[Any]:
-        """
-        Get the item value as a list.
+        """Get the item value as a list.
 
         :param item: key
         """
         return list(self[item])
 
     def get_dict(self, item: str) -> dict:
-        """
-        Get the item values as a dictionary.
+        """Get the item values as a dictionary.
 
         :param item: key
         """
         return dict(self._get_subset(item))
 
     def base64encode(self, item: str) -> bytes:
-        """
-        Get the item value as a Base64 encoded bytes instance.
+        """Get the item value as a Base64 encoded bytes instance.
 
         :param item: key
         """
@@ -255,8 +242,7 @@ class Configuration:
         return base64.b64encode(b)
 
     def base64decode(self, item: str) -> bytes:
-        """
-        Get the item value as a Base64 decoded bytes instance.
+        """Get the item value as a Base64 decoded bytes instance.
 
         :param item: key
         """
@@ -265,7 +251,8 @@ class Configuration:
         return base64.b64decode(b, validate=True)
 
     def keys(
-        self, levels: Optional[int] = None
+        self,
+        levels: Optional[int] = None,
     ) -> Union["Configuration", Any, KeysView[str]]:
         """Return a set-like object providing a view on the configuration keys."""
         assert levels is None or levels > 0
@@ -279,12 +266,13 @@ class Configuration:
                     {
                         ".".join(x.split(".")[:levels])
                         for x in set(self.as_dict().keys())
-                    }
+                    },
                 ),
             )
 
     def values(
-        self, levels: Optional[int] = None
+        self,
+        levels: Optional[int] = None,
     ) -> Union["Configuration", Any, ValuesView[Any]]:
         """Return a set-like object providing a view on the configuration values."""
         assert levels is None or levels > 0
@@ -295,7 +283,8 @@ class Configuration:
             return dict(self.items(levels=levels)).values()
 
     def items(
-        self, levels: Optional[int] = None
+        self,
+        levels: Optional[int] = None,
     ) -> Union["Configuration", Any, ItemsView[str, Any]]:
         """Return a set-like object providing a view on the configuration items."""
         assert levels is None or levels > 0
@@ -311,7 +300,9 @@ class Configuration:
 
     def __reversed__(self) -> Iterator[Tuple[str, Any]]:  # noqa: D105
         if version_info < (3, 8):
-            return OrderedDict(reversed(list(self.items())))  # type: ignore  # pragma: no cover
+            return OrderedDict(
+                reversed(list(self.items())),
+            )  # type: ignore  # pragma: no cover
         else:
             return reversed(dict(self.items()))  # type: ignore
 
@@ -322,8 +313,7 @@ class Configuration:
         self.update({key: value})
 
     def __delitem__(self, prefix: str) -> None:  # noqa: D105
-        """
-        Filter a dictionary and delete the items that are prefixed by :attr:`prefix`.
+        """Filter a dictionary and delete the items that are prefixed by :attr:`prefix`.
 
         :param prefix: prefix to filter on to delete keys
         """
@@ -353,8 +343,7 @@ class Configuration:
         return Configuration(self._config)
 
     def pop(self, prefix: str, value: Any = None) -> Any:
-        """
-        Remove keys with the specified prefix and return the corresponding value.
+        """Remove keys with the specified prefix and return the corresponding value.
 
         If the prefix is not found a KeyError is raised.
         """
@@ -367,8 +356,7 @@ class Configuration:
         return value
 
     def setdefault(self, key: str, default: Any = None) -> Any:
-        """
-        Insert key with a value of default if key is not in the Configuration.
+        """Insert key with a value of default if key is not in the Configuration.
 
         Return the value for key if key is in the Configuration, else default.
         """
@@ -383,8 +371,7 @@ class Configuration:
         self._config.update(self._flatten_dict(other))
 
     def reload(self) -> None:  # pragma: no cover
-        """
-        Reload the configuration.
+        """Reload the configuration.
 
         This method is not implemented for simple Configuration objects and is
         intended only to be used in subclasses.
@@ -392,12 +379,18 @@ class Configuration:
         raise NotImplementedError()
 
     def validate(
-        self, schema: Any, raise_on_error: bool = False, **kwargs: Mapping[str, Any]
+        self,
+        schema: Any,
+        raise_on_error: bool = False,
+        **kwargs: Mapping[str, Any],
     ) -> bool:
+        """Validate the current config using JSONSchema."""
         try:
-            from jsonschema import validate, ValidationError
+            from jsonschema import ValidationError, validate
         except ImportError:  # pragma: no cover
-            raise RuntimeError("Validation requires the `jsonschema` library.")
+            raise RuntimeError(
+                "Validation requires the `jsonschema` library.",
+            ) from None
         try:
             validate(self.as_dict(), schema, **kwargs)
         except ValidationError as err:
@@ -408,8 +401,7 @@ class Configuration:
 
     @contextmanager
     def dotted_iter(self) -> Iterator["Configuration"]:
-        """
-        Context manager for dotted iteration.
+        """Context manager for dotted iteration.
 
         This context manager changes all the iterator-related functions
         to include every nested (dotted) key instead of just the top level.
