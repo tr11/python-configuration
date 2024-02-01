@@ -11,6 +11,8 @@ try:
 except ImportError:  # pragma: no cover
     yaml = None
 try:
+    import tomllib as toml
+except ImportError # tomllib not in > 3.11
     import toml
 except ImportError:  # pragma: no cover
     toml = None
