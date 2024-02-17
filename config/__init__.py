@@ -2,8 +2,8 @@
 
 import json
 import os
-from importlib.abc import InspectLoader
 import sys
+from importlib.abc import InspectLoader
 from types import ModuleType
 from typing import Any, Dict, Iterable, List, Mapping, Optional, TextIO, Union, cast
 
@@ -14,14 +14,14 @@ except ImportError:  # pragma: no cover
 
 if sys.version_info[1] < 11:
     try:
-        import toml  # type: ignore [no-redef,unused-ignore]
+        import toml
 
         toml_readtype = "rt"
     except ImportError:  # pragma: no cover
-        toml = None  # type: ignore [assignment,unused-ignore]
+        toml = None
         toml_readtype = ""
 else:
-    import tomllib as toml  # type: ignore [import-not-found,unused-ignore]
+    import tomllib as toml
 
     toml_readtype = "rb"
 
