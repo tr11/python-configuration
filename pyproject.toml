@@ -48,6 +48,9 @@ version-file = "src/config/_version.py"
 [tool.hatch.build.targets.wheel]
 packages = ["src/config"]
 
+[tool.hatch.publish.index]
+disable = true
+
 [tool.hatch.envs.default]
 
 [tool.hatch.envs.docs]
