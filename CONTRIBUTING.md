@@ -1,6 +1,6 @@
 # Contributing to python-configuration
 
-:+1::tada: First off, thanks for taking the time to contribute! :tada::+1:
+First off, thanks for taking the time to contribute!
 
 ## Setting up a dev environment
 
@@ -12,14 +12,23 @@
     cd python-configuration
     ```
 
-1. Use [`poetry`](https://python-poetry.org/docs/) to install the dependencies:
+1. Use [`hatch`](https://hatch.pypa.io/) to generate a version file and install the dependencies
 
-    ```shell
-    poetry install
-    ```
+```shell
+hatch build --hooks-only  # generate a version file from the git commit
+# or
+hatch build
+```
 
 ### Running the tests
 
+To run the tests (which include linting and type checks), run:
 ```shell
-poetry run pytest
+hatch run test:test 
 ```
+
+Before opening a PR, make sure to run 
+```shell
+hatch run testing:test 
+```
+which executes the previous test command on all Python versions supported by the library.

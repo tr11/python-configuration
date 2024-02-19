@@ -1,6 +1,7 @@
 # python-configuration
 > A library to load configuration parameters hierarchically from multiple sources and formats
 
+[![Hatch project](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch)
 [![version](https://img.shields.io/pypi/v/python-configuration)](https://pypi.org/project/python-configuration/)
 ![python](https://img.shields.io/pypi/pyversions/python-configuration)
 ![wheel](https://img.shields.io/pypi/wheel/python-configuration)
@@ -15,20 +16,20 @@ This library is intended as a helper mechanism to load configuration files hiera
 
 The `python-configuration` library supports the following configuration formats and sources:
 
-- Python files: ...
-- Dictionaries: ...
-- Environment variables: ...
-- Filesystem paths: ...
-- JSON files: ...
-- INI files: ... 
-- dotenv type files: ...
+- Python files
+- Dictionaries
+- Environment variables
+- Filesystem paths
+- JSON files
+- INI files 
+- dotenv type files
 - Optional support for:
   - YAML files: requires `yaml`
-  - TOML files: requires `toml`
-  - Azure Key Vault credentials: ...
-  - AWS Secrets Manager credentials: ...
-  - GCP Secret Manager credentials: ...
-  - Hashicorp Vault credentials: ...
+  - TOML files: requires `tomli` for Python < 3.11
+  - Azure Key Vault credentials: requires `azure-keyvault`
+  - AWS Secrets Manager credentials: requires `boto3`
+  - GCP Secret Manager credentials: requires `google-cloud-secret-manager`
+  - Hashicorp Vault credentials: requires `hvac`
 
 
 ## Installing
@@ -45,8 +46,9 @@ To include the optional TOML and/or YAML loaders, install the optional dependenc
 pip install python-configuration[toml,yaml]
 ```
 
-Without the optional dependencies, the TOML and YAML loaders will not be available, 
+Without the optional dependencies, the TOML (Python < 3.11) and YAML loaders will not be available, 
 and attempting to use them will raise an exception.
+
 ## Getting started
 
 `python-configuration` converts the various config types into dictionaries with dotted-based keys. For example, given this JSON configuration
@@ -381,7 +383,7 @@ The `config.contrib` package contains extra implementations of the `Configuratio
 * Ability to override with environment variables
 * Merge parameters from different configuration types
 
-## Contributing :tada:
+## Contributing
 
 If you'd like to contribute, please fork the repository and use a feature branch. Pull requests are welcome.
 

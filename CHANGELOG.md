@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Use the standard lib for `toml` in Python >= 3.11
+- Switched to `hatch` instead of `poetry`
 
 ## [0.9.1] - 2023-08-06
 

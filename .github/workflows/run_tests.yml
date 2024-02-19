@@ -10,9 +10,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  POETRY_VERSION: 1.7.1
-
 jobs:
   testing:
     runs-on: ubuntu-latest
@@ -28,35 +25,15 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Load cached Poetry installation
-        id: poetry
-        uses: actions/cache@v3
-        with:
-          path: ~/.local
-          key: poetry-install-${{env.POETRY_VERSION}}-${{ runner.os }}-${{ matrix.python-version }}
-
-      - name: Install and configure Poetry
-        uses: snok/install-poetry@v1
-        if: steps.poetry.outputs.cache-hit != 'true'
-        with:
-          version: ${{env.POETRY_VERSION}}
-          virtualenvs-create: true
-          virtualenvs-in-project: false
-
-      - name: Cache Poetry cache
-        uses: actions/cache@v3
-        id: cache
-        with:
-          path: ~/.cache/pypoetry
-          key: poetry-cache-${{env.POETRY_VERSION}}-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml') }}
-
-      - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: poetry install -v --all-extras
+      
+      - name: Install hatch
+        run: |
+          python -m pip install hatch
 
       - name: Run pytest
-        run: poetry run pytest --cov=./ --cov-report=xml
+        run: |
+          hatch build --hooks-only
+          hatch run +py=${{ matrix.python-version }} testing:test --cov=./ --cov-report=xml
 
       - name: Coverage report
         uses: codecov/codecov-action@v1

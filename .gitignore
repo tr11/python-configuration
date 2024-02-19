@@ -18,4 +18,3 @@ cover
 .mypy_cache
 .idea
 .vscode
-poetry.lock

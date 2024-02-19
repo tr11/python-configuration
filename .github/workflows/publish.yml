@@ -1,0 +1,38 @@
+name: Publish to PyPI
+
+on:
+  release:
+    types: 
+      - published
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: 3.11
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install hatch
+        run: |
+          python -m pip install hatch
+
+      - name: Build package
+        run: hatch build
+
+      - name: Publish
+        run: hatch build
+        env:
+          HATCH_INDEX_USER: ${{ vars.HATCH_INDEX_USER }}
+          HATCH_INDEX_AUTH: ${{ secrets.HATCH_INDEX_AUTH }}
