@@ -78,16 +78,7 @@ def test_load_toml_file():  # type: ignore
     with tempfile.NamedTemporaryFile() as f:
         f.file.write(TOML.encode())
         f.file.flush()
-
-        # Two different toml libraries are in use
-        import sys
-
-        if sys.version_info[1] < 11:
-            read_type = "rt"
-        else:
-            read_type = "rb"
-
-        cfg = config_from_toml(open(f.name, read_type), read_from_file=True)
+        cfg = config_from_toml(open(f.name, "rb"), read_from_file=True)
     assert cfg["a1.b1.c1"] == 1
     assert cfg["a1.b1"].as_dict() == {"c1": 1, "c2": 2, "c3": 3}
     assert cfg["a1.b2"].as_dict() == {"c1": "a", "c2": True, "c3": 1.1}

@@ -12,18 +12,14 @@ try:
 except ImportError:  # pragma: no cover
     yaml = None
 
-if sys.version_info[1] < 11:
+if sys.version_info < (3, 11):  # pragma: no cover
     try:
-        import toml
+        import tomli as toml
 
-        toml_readtype = "rt"
-    except ImportError:  # pragma: no cover
-        toml = None
-        toml_readtype = ""
-else:
+    except ImportError:
+        toml = None  # type: ignore
+else:  # pragma: no cover
     import tomllib as toml
-
-    toml_readtype = "rb"
 
 
 from .configuration import Configuration
@@ -871,7 +867,7 @@ class TOMLConfiguration(FileConfiguration):
         """Reload the TOML data."""
         if read_from_file:
             if isinstance(data, str):
-                with open(data, toml_readtype) as f:
+                with open(data, "rb") as f:
                     loaded = toml.load(f)
             else:
                 loaded = toml.load(data)  # type: ignore [arg-type,unused-ignore]
