@@ -2,6 +2,7 @@
 
 import json
 import os
+import sys
 from importlib.abc import InspectLoader
 from types import ModuleType
 from typing import Any, Dict, Iterable, List, Mapping, Optional, TextIO, Union, cast
@@ -10,10 +11,15 @@ try:
     import yaml
 except ImportError:  # pragma: no cover
     yaml = None
-try:
-    import toml
-except ImportError:  # pragma: no cover
-    toml = None
+
+if sys.version_info < (3, 11):  # pragma: no cover
+    try:
+        import tomli as toml
+
+    except ImportError:
+        toml = None  # type: ignore
+else:  # pragma: no cover
+    import tomllib as toml
 
 
 from .configuration import Configuration
@@ -861,10 +867,10 @@ class TOMLConfiguration(FileConfiguration):
         """Reload the TOML data."""
         if read_from_file:
             if isinstance(data, str):
-                with open(data, "rt") as f:
+                with open(data, "rb") as f:
                     loaded = toml.load(f)
             else:
-                loaded = toml.load(data)
+                loaded = toml.load(data)  # type: ignore [arg-type,unused-ignore]
         else:
             data = cast(str, data)
             loaded = toml.loads(data)
