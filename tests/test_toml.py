@@ -1,9 +1,12 @@
-import pytest
-from config import config_from_dict
 import tempfile
+
+import pytest
+
+from config import config_from_dict
 
 try:
     import toml
+
     from config import config_from_toml
 except ImportError:
     toml = None
@@ -75,7 +78,16 @@ def test_load_toml_file():  # type: ignore
     with tempfile.NamedTemporaryFile() as f:
         f.file.write(TOML.encode())
         f.file.flush()
-        cfg = config_from_toml(open(f.name, "rt"), read_from_file=True)
+
+        # Two different toml libraries are in use
+        import sys
+
+        if sys.version_info[1] < 11:
+            read_type = "rt"
+        else:
+            read_type = "rb"
+
+        cfg = config_from_toml(open(f.name, read_type), read_from_file=True)
     assert cfg["a1.b1.c1"] == 1
     assert cfg["a1.b1"].as_dict() == {"c1": 1, "c2": 2, "c3": 3}
     assert cfg["a1.b2"].as_dict() == {"c1": "a", "c2": True, "c3": 1.1}
@@ -132,13 +144,15 @@ ports = [ 8001, 8001, 8002,]
         f.file.flush()
 
         cfg = config_from_toml(
-            f.name, section_prefix="tool.coverage.", read_from_file=True
+            f.name,
+            section_prefix="tool.coverage.",
+            read_from_file=True,
         )
         expected = config_from_dict(
             {
                 "run.branch": False,
                 "run.parallel": False,
-            }
+            },
         )
 
         assert cfg == expected
@@ -151,6 +165,6 @@ ports = [ 8001, 8001, 8002,]
         expected = config_from_dict(
             {
                 "report.ignore_errors": False,
-            }
+            },
         )
         assert cfg == expected
