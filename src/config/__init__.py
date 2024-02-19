@@ -22,10 +22,10 @@ else:  # pragma: no cover
     import tomllib as toml
 
 
+from ._version import __version__, __version_tuple__  # noqa: F401
 from .configuration import Configuration
 from .configuration_set import ConfigurationSet
 from .helpers import InterpolateEnumType, InterpolateType
-from ._version import __version__, __version_tuple__
 
 
 def config(

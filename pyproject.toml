@@ -56,12 +56,7 @@ scripts = { build = "" }
 
 [tool.hatch.envs.lint]
 detached = true
-dependencies = [
-    "black>=23.7.0",
-    "mypy>=1.4.1",
-    "pydocstyle>=6.0",
-    "ruff>=0.0.284",
-]
+dependencies = ["mypy>=1.4.1", "pydocstyle>=6.0", "ruff>=0.0.284"]
 features = ["cloud", "file-formats", "validation"]
 
 [tool.hatch.envs.lint.scripts]
@@ -72,7 +67,6 @@ docs = "pydocstyle src"
 [tool.hatch.envs.test]
 template = "lint"
 dependencies = [
-    "pytest-black>=0.3.12",
     "pytest-cov>=4.1.0",
     "pytest-mock>=3.5.0",
     "pytest-mypy>=0.10.3",
@@ -95,12 +89,9 @@ template = "test"
 path = ".venv"
 features = ["cloud", "file-formats", "validation"]
 
-
 [tool.ruff]
 line-length = 88
-exclude = ["tests", "docs"]
-
-[tool.ruff.lint]
+exclude = ["tests", "docs", "src/config/_version.py"]
 ignore = ['D203', 'D213']
 select = [
     'F',
@@ -158,7 +149,7 @@ directory = 'cover'
 [tool.pytest.ini_options]
 minversion = "6.0"
 pythonpath = ["src"]
-addopts = '--cov --cov-report=html --cov-report term-missing --ruff --mypy --black'
+addopts = '--cov --cov-report=html --cov-report term-missing --ruff --mypy'
 filterwarnings = [
     'ignore::pytest.PytestDeprecationWarning',
     'ignore::DeprecationWarning',
