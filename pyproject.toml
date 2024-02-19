@@ -52,6 +52,7 @@ packages = ["src/config"]
 
 [tool.hatch.envs.docs]
 dependencies = ["sphinx>=7.1.2", "sphinx-autodoc-typehints>=1.24.0"]
+scripts = { build = "" }
 
 [tool.hatch.envs.lint]
 detached = true
@@ -97,6 +98,10 @@ features = ["cloud", "file-formats", "validation"]
 
 [tool.ruff]
 line-length = 88
+exclude = ["tests", "docs"]
+
+[tool.ruff.lint]
+ignore = ['D203', 'D213']
 select = [
     'F',
     'E',
@@ -112,7 +117,7 @@ select = [
     'Q',
     'SIM',
 ]
-exclude = ["tests", "docs"]
+
 
 [tool.mypy]
 warn_return_any = true
