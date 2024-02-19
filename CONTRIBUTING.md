@@ -12,7 +12,13 @@ First off, thanks for taking the time to contribute!
     cd python-configuration
     ```
 
-1. Use [`hatch`](https://hatch.pypa.io/) to install the dependencies
+1. Use [`hatch`](https://hatch.pypa.io/) to generate a version file and install the dependencies
+
+```shell
+hatch build --hooks-only  # generate a version file from the git commit
+# or
+hatch build
+```
 
 ### Running the tests
 

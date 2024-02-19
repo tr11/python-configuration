@@ -31,7 +31,9 @@ jobs:
           python -m pip install hatch
 
       - name: Run pytest
-        run: hatch run +py=${{ matrix.python-version }} testing:test --cov=./ --cov-report=xml
+        run: |
+          hatch build --hooks-only
+          hatch run +py=${{ matrix.python-version }} testing:test --cov=./ --cov-report=xml
 
       - name: Coverage report
         uses: codecov/codecov-action@v1
