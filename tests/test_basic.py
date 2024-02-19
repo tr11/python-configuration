@@ -34,6 +34,13 @@ PROTECTED = {
 }
 
 
+def test_version_is_defined():  # type: ignore
+    from config import __version__, __version_tuple__
+
+    assert isinstance(__version__, str)
+    assert isinstance(__version_tuple__, tuple)
+
+
 def test_load_dict():  # type: ignore
     cfg = config_from_dict(DICT, lowercase_keys=True)
     assert cfg["a1.b1.c1"] == 1

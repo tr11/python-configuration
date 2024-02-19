@@ -25,6 +25,7 @@ else:  # pragma: no cover
 from .configuration import Configuration
 from .configuration_set import ConfigurationSet
 from .helpers import InterpolateEnumType, InterpolateType
+from ._version import __version__, __version_tuple__
 
 
 def config(
