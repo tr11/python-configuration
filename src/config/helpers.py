@@ -58,10 +58,13 @@ def as_bool(s: Any) -> bool:
 def clean(key: str, value: Any, mask: str = "******") -> Any:
     """Mask a value if needed.
 
-    :param key: key
-    :param value: value to hide
-    :param mask: string to use in case value should be hidden
-    :return: clear value or mask
+    Params:
+        key: key.
+        value: value to hide.
+        mask: string to use in case value should be hidden.
+
+    Returns:
+        clear value or mask.
     """
     key = key.lower()
     # check for protected keys
@@ -85,9 +88,10 @@ def clean(key: str, value: Any, mask: str = "******") -> Any:
 def interpolate_standard(text: str, d: dict, found: Set[Tuple[str, ...]]) -> str:
     """Return the string interpolated as many times as needed.
 
-    :param text: string possibly containing an interpolation pattern
-    :param d: dictionary
-    :param found: variables found so far
+    Params:
+       text: string possibly containing an interpolation pattern
+       d: dictionary
+       found: variables found so far
     """
     if not isinstance(text, str):
         return text
@@ -118,11 +122,12 @@ def interpolate_deep(
 ) -> str:
     """Return the string interpolated as many times as needed.
 
-    :param attr: attribute name
-    :param text: string possibly containing an interpolation pattern
-    :param d: dictionary
-    :param resolved: variables resolved so far
-    :param levels: last level to read the variable from
+    Params:
+       attr: attribute name
+       text: string possibly containing an interpolation pattern
+       d: dictionary
+       resolved: variables resolved so far
+       levels: last level to read the variable from
     """
     if not isinstance(text, str):
         return text
@@ -168,7 +173,8 @@ def interpolate_deep(
 def flatten(d: List[dict]) -> dict:
     """Flatten a list of dictionaries.
 
-    :param d: dictionary list
+    Params:
+       d: dictionary list
     """
     result = {}
     [result.update(dict_) for dict_ in d[::-1]]
@@ -183,10 +189,11 @@ def interpolate_object(
 ) -> Any:
     """Return the interpolated object.
 
-    :param attr: attribute name
-    :param obj: object to interpolate
-    :param d: dictionary
-    :param method: interpolation method
+    Params:
+       attr: attribute name
+       obj: object to interpolate
+       d: dictionary
+       method: interpolation method
     """
     if isinstance(obj, str):
         if method == InterpolateEnumType.STANDARD:

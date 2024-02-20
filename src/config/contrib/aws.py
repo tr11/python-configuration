@@ -39,14 +39,14 @@ class AWSSecretsManagerConfiguration(Configuration):
     ) -> None:
         """Class Constructor.
 
-        :param secret_name: Name of the secret
-        :param aws_access_key_id:  AWS Access Key ID
-        :param aws_secret_access_key: AWS Secret Access Key
-        :param aws_session_token:  AWS Temporary Session Token
-        :param region_name: Region Name
-        :param profile_name: Profile Name
-        :param cache_expiration: Cache expiration (in seconds)
-        :param lowercase_keys: whether to convert every key to lower case.
+        secret_name: Name of the secret
+        aws_access_key_id:  AWS Access Key ID
+        aws_secret_access_key: AWS Secret Access Key
+        aws_session_token:  AWS Temporary Session Token
+        region_name: Region Name
+        profile_name: Profile Name
+        cache_expiration: Cache expiration (in seconds)
+        lowercase_keys: whether to convert every key to lower case.
         """
         self._session = boto3.session.Session(
             aws_access_key_id=aws_access_key_id,

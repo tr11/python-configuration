@@ -94,11 +94,14 @@ class HashicorpVaultConfiguration(Configuration):
             return Configuration(secret)
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
-        """Get the configuration values corresponding to :attr:`key`.
+        """Get the configuration values corresponding to `key`.
 
-        :param key: key to retrieve
-        :param default: default value in case the key is missing
-        :return: the value found or a default
+        Params:
+            key: key to retrieve.
+            default: default value in case the key is missing.
+
+        Returns:
+            the value found or a default.
         """
         try:
             return self[key]

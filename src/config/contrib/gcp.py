@@ -45,10 +45,10 @@ class GCPSecretManagerConfiguration(Configuration):
         See https://googleapis.dev/python/secretmanager/latest/gapic/v1/api.html#google.cloud.secretmanager_v1.SecretManagerServiceClient
         for more details on credentials and options.
 
-        :param project_id: GCP Project ID
-        :param credentials: GCP credentials
-        :param client_options: GCP client_options
-        :param cache_expiration: Cache expiration (in seconds)
+           project_id: GCP Project ID
+           credentials: GCP credentials
+           client_options: GCP client_options
+           cache_expiration: Cache expiration (in seconds)
         """  # noqa: E501
         self._client = secretmanager_v1.SecretManagerServiceClient(
             credentials=credentials,
@@ -93,11 +93,14 @@ class GCPSecretManagerConfiguration(Configuration):
             return secret
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
-        """Get the configuration values corresponding to :attr:`key`.
+        """Get the configuration values corresponding to `key`.
 
-        :param key: key to retrieve
-        :param default: default value in case the key is missing
-        :return: the value found or a default
+        Params:
+            key: key to retrieve.
+            default: default value in case the key is missing.
+
+        Returns:
+            the value found or a default.
         """
         secret = self._get_secret(key)
         if secret is None:

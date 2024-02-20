@@ -29,7 +29,7 @@ vault = ["hvac>=1.1.1"]
 toml = ["tomli>=2.0.1"]
 yaml = ["pyyaml>=6.0"]
 # utilities
-validation = ["jsonschema>=4.18.6"]
+validation = ["jsonschema>=4.21.1"]
 # groups
 cloud = ["python-configuration[aws,azure,gcp,vault]"]
 file-formats = ["python-configuration[toml,yaml]"]
@@ -54,12 +54,16 @@ disable = true
 [tool.hatch.envs.default]
 
 [tool.hatch.envs.docs]
-dependencies = ["sphinx>=7.1.2", "sphinx-autodoc-typehints>=1.24.0"]
-scripts = { build = "" }
+dependencies = [
+    "mkdocs>=1.5.3",
+    "mkdocstrings>=0.24.0",
+    "mkdocs-material>=9.5.9",
+]
+
 
 [tool.hatch.envs.lint]
 detached = true
-dependencies = ["mypy>=1.4.1", "pydocstyle>=6.0", "ruff>=0.0.284"]
+dependencies = ["mypy>=1.8.0", "pydocstyle>=6.3.0", "ruff>=0.2.2"]
 features = ["cloud", "file-formats", "validation"]
 
 [tool.hatch.envs.lint.scripts]
@@ -71,14 +75,14 @@ docs = "pydocstyle src"
 template = "lint"
 dependencies = [
     "pytest-cov>=4.1.0",
-    "pytest-mock>=3.5.0",
+    "pytest-mock>=3.12.0",
     "pytest-mypy>=0.10.3",
     "pytest-ruff>=0.2.1",
-    "pytest>=7.4.0",
+    "pytest>=8.0.1",
 ]
 
 [tool.hatch.envs.test.scripts]
-test = "pytest {args:tests}"
+test = "pytest"
 
 [tool.hatch.envs.testing]
 description = "Testing Environment to run all\nthe tests across different\nPython versions."
@@ -95,7 +99,12 @@ features = ["cloud", "file-formats", "validation"]
 [tool.ruff]
 line-length = 88
 exclude = ["tests", "docs", "src/config/_version.py"]
-ignore = ['D203', 'D213']
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint]
+ignore = ['D203', 'D212']
 select = [
     'F',
     'E',
@@ -111,7 +120,6 @@ select = [
     'Q',
     'SIM',
 ]
-
 
 [tool.mypy]
 warn_return_any = true
@@ -150,7 +158,7 @@ omit = ['src/config/_version.py']
 directory = 'cover'
 
 [tool.pytest.ini_options]
-minversion = "6.0"
+minversion = "8.0"
 pythonpath = ["src"]
 addopts = '--cov --cov-report=html --cov-report term-missing --ruff --mypy'
 filterwarnings = [

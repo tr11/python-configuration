@@ -42,11 +42,11 @@ class AzureKeyVaultConfiguration(Configuration):
     ) -> None:
         """Class Constructor.
 
-        :param az_client_id: Client ID
-        :param az_client_secret: Client Secret
-        :param az_tenant_id: Tenant ID
-        :param az_vault_name: Vault Name
-        :param cache_expiration: Cache expiration (in seconds)
+        az_client_id: Client ID
+        az_client_secret: Client Secret
+        az_tenant_id: Tenant ID
+        az_vault_name: Vault Name
+        cache_expiration: Cache expiration (in seconds)
         """
         credentials = ClientSecretCredential(
             client_id=az_client_id,
@@ -90,11 +90,14 @@ class AzureKeyVaultConfiguration(Configuration):
             return secret
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
-        """Get the configuration values corresponding to :attr:`key`.
+        """Get the configuration values corresponding to `key`.
 
-        :param key: key to retrieve
-        :param default: default value in case the key is missing
-        :return: the value found or a default
+        Params:
+            key: key to retrieve.
+            default: default value in case the key is missing.
+
+        Returns:
+            the value found or a default.
         """
         secret = self._get_secret(key)
         if secret is None:

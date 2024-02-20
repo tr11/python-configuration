@@ -56,8 +56,9 @@ class Configuration:
     ):
         """Class Constructor.
 
-        :param config_: a mapping of configuration values. Keys need to be strings.
-        :param lowercase_keys: whether to convert every key to lower case.
+        Params:
+            config_: a mapping of configuration values. Keys need to be strings.
+            lowercase_keys: whether to convert every key to lower case.
         """
         self._lowercase = lowercase_keys
         self._interpolate = {} if interpolate is True else interpolate
@@ -72,10 +73,11 @@ class Configuration:
         return self.as_dict() == Configuration(other).as_dict()
 
     def _filter_dict(self, d: Dict[str, Any], prefix: str) -> Dict[str, Any]:
-        """Filter a dictionary and return the items that are prefixed by :attr:`prefix`.
+        """Filter a dictionary and return the items that are prefixed by `prefix`.
 
-        :param d: dictionary
-        :param prefix: prefix to filter on
+        Params:
+            d: dictionary.
+            prefix: prefix to filter on.
         """
         if self._lowercase:
             return {
@@ -94,8 +96,11 @@ class Configuration:
     def _flatten_dict(self, d: Mapping[str, Any]) -> Dict[str, Any]:
         """Flatten one level of a dictionary.
 
-        :param d: dict
-        :return: a flattened dict
+        Params:
+            d: dict.
+
+        Returns:
+            a flattened dict.
         """
         nested = {k for k, v in d.items() if isinstance(v, (Mapping, Configuration))}
         if self._lowercase:
@@ -123,10 +128,13 @@ class Configuration:
         return result
 
     def _get_subset(self, prefix: str) -> Union[Dict[str, Any], Any]:
-        """Return the subset of the config dictionary whose keys start with :attr:`prefix`.
+        """Return the subset of the config dictionary whose keys start with `prefix`.
 
-        :param prefix: string
-        :return: dict
+        Params:
+            prefix: string.
+
+        Returns:
+            dict.
         """  # noqa: E501
         d = {
             k[(len(prefix) + 1) :]: v
@@ -168,11 +176,14 @@ class Configuration:
             raise AttributeError(item) from None
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
-        """Get the configuration values corresponding to :attr:`key`.
+        """Get the configuration values corresponding to `key`.
 
-        :param key: key to retrieve
-        :param default: default value in case the key is missing
-        :return: the value found or a default
+        Params:
+            key: key to retrieve.
+            default: default value in case the key is missing.
+
+        Returns:
+            the value found or a default.
         """
         return self.as_dict().get(key, default)
 
@@ -192,50 +203,57 @@ class Configuration:
     def get_bool(self, item: str) -> bool:
         """Get the item value as a bool.
 
-        :param item: key
+        Params:
+            item: key
         """
         return as_bool(self[item])
 
     def get_str(self, item: str, fmt: str = "{}") -> str:
         """Get the item value as an int.
 
-        :param item: key
-        :param fmt: format to use
+        Params:
+            item: key
+            fmt: format to use
         """
         return fmt.format(self[item])
 
     def get_int(self, item: str) -> int:
         """Get the item value as an int.
 
-        :param item: key
+        Params:
+            item: key
         """
         return int(self[item])
 
     def get_float(self, item: str) -> float:
         """Get the item value as a float.
 
-        :param item: key
+        Params:
+            item: key
         """
         return float(self[item])
 
     def get_list(self, item: str) -> List[Any]:
         """Get the item value as a list.
 
-        :param item: key
+        Params:
+            item: key
         """
         return list(self[item])
 
     def get_dict(self, item: str) -> dict:
         """Get the item values as a dictionary.
 
-        :param item: key
+        Params:
+            item: key
         """
         return dict(self._get_subset(item))
 
     def base64encode(self, item: str) -> bytes:
         """Get the item value as a Base64 encoded bytes instance.
 
-        :param item: key
+        Params:
+            item: key
         """
         b = self[item]
         b = b if isinstance(b, bytes) else b.encode()
@@ -244,7 +262,8 @@ class Configuration:
     def base64decode(self, item: str) -> bytes:
         """Get the item value as a Base64 decoded bytes instance.
 
-        :param item: key
+        Params:
+            item: key
         """
         b = self[item]
         b = b if isinstance(b, bytes) else b.encode()
@@ -313,9 +332,10 @@ class Configuration:
         self.update({key: value})
 
     def __delitem__(self, prefix: str) -> None:  # noqa: D105
-        """Filter a dictionary and delete the items that are prefixed by :attr:`prefix`.
+        """Filter a dictionary and delete the items that are prefixed by `prefix`.
 
-        :param prefix: prefix to filter on to delete keys
+        Params:
+            prefix: prefix to filter on to delete keys
         """
         remove = []
         for k in self._config:
@@ -401,7 +421,8 @@ class Configuration:
 
     @contextmanager
     def dotted_iter(self) -> Iterator["Configuration"]:
-        """Context manager for dotted iteration.
+        """
+        Context manager for dotted iteration.
 
         This context manager changes all the iterator-related functions
         to include every nested (dotted) key instead of just the top level.

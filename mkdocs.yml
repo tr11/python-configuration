@@ -1,0 +1,52 @@
+site_name: Python Configuration Docs
+repo_url: "https://github.com/tr11/python-configuration"
+repo_name: "tr11/python-configuration"
+copyright: Copyright &copy; 2024 Tiago Requeijo
+
+theme:
+  name: material
+  palette:
+  - media: "(prefers-color-scheme)"
+    toggle:
+      icon: material/brightness-auto
+      name: Switch to light mode
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    primary: teal
+    accent: purple
+    toggle:
+      icon: material/weather-sunny
+      name: Switch to dark mode
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: black
+    accent: lime
+    toggle:
+      icon: material/weather-night
+      name: Switch to system preference
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+
+nav:
+- Home: index.md
+- Contributing: CONTRIBUTING.md
+- Change Log: changelog.md
+- Reference: reference.md
+
+plugins:
+- search
+- autorefs
+- mkdocstrings:
+    handlers:
+      python:
+        paths: [src]
+
+extra:
+  social:
+  - icon: fontawesome/brands/github
+    link: https://github.com/tr11/python-configuration
+  - icon: fontawesome/brands/python
+    link: https://pypi.org/project/python-configuration/

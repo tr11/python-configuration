@@ -38,22 +38,23 @@ def config(
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
 ) -> ConfigurationSet:
-    """Create a :class:`ConfigurationSet` instance from an iterable of configs.
+    """Create a [ConfigurationSet][config.configuration_set.ConfigurationSet] instance from an iterable of configs.
 
-    :param configs: iterable of configurations
-    :param prefix: prefix to filter environment variables with
-    :param remove_level: how many levels to remove from the resulting config
-    :param lowercase_keys: whether to convert every key to lower case.
-    :param ignore_missing_paths: whether to ignore failures from missing files/folders.
-    :param separator: separator for Python modules and environment variables.
-    :param interpolate: whether to apply string interpolation when looking for items
+    Params:
+       configs: iterable of configurations
+       prefix: prefix to filter environment variables with
+       remove_level: how many levels to remove from the resulting config
+       lowercase_keys: whether to convert every key to lower case.
+       ignore_missing_paths: whether to ignore failures from missing files/folders.
+       separator: separator for Python modules and environment variables.
+       interpolate: whether to apply string interpolation when looking for items
 
-    Note that the :py:attr:`separator` parameter  impacts Python modules and and
+    Note that the `separator` parameter  impacts Python modules and
     environment variables at the same time. To pass different separators to Python
     modules and environments, use the longer version
     ``('python', 'path-to-module', prefix, separator)``
     and ``('env', prefix, separator)`` .
-    """
+    """  # noqa: E501
     instances = []
     default_args: List[str] = [prefix]
     if separator is not None:
@@ -185,9 +186,9 @@ class EnvConfiguration(Configuration):
     ):
         """Class Constructor.
 
-        :param prefix: prefix to filter environment variables with
-        :param separator: separator to replace by dots
-        :param lowercase_keys: whether to convert every key to lower case.
+        prefix: prefix to filter environment variables with
+        separator: separator to replace by dots
+        lowercase_keys: whether to convert every key to lower case.
         """
         self._prefix = prefix
         self._separator = separator
@@ -224,14 +225,17 @@ def config_from_env(
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
 ) -> Configuration:
-    """Create a :class:`EnvConfiguration` instance from environment variables.
+    """Create a [EnvConfiguration][config.EnvConfiguration] instance from environment variables.
 
-    :param prefix: prefix to filter environment variables with
-    :param separator: separator to replace by dots
-    :param lowercase_keys: whether to convert every key to lower case.
-    :param interpolate: whether to apply string interpolation when looking for items
-    :return: a :class:`Configuration` instance
-    """
+    Params:
+        prefix: prefix to filter environment variables with.
+        separator: separator to replace by dots.
+        lowercase_keys: whether to convert every key to lower case.
+        interpolate: whether to apply string interpolation when looking for items.
+
+    Returns:
+        a [Configuration][config.configuration.Configuration] instance.
+    """  # noqa: E501
     return EnvConfiguration(
         prefix,
         separator,
@@ -256,9 +260,9 @@ class PathConfiguration(Configuration):
     ):
         """Class Constructor.
 
-        :param path: path to read from
-        :param remove_level: how many levels to remove from the resulting config
-        :param lowercase_keys: whether to convert every key to lower case.
+        path: path to read from
+        remove_level: how many levels to remove from the resulting config
+        lowercase_keys: whether to convert every key to lower case.
         """
         self._path = path
         self._remove_level = remove_level
@@ -319,14 +323,17 @@ def config_from_path(
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ignore_missing_paths: bool = False,
 ) -> Configuration:
-    """Create a :class:`Configuration` instance from filesystem path.
+    """Create a [Configuration][config.configuration.Configuration] instance from filesystem path.
 
-    :param path: path to read from
-    :param remove_level: how many levels to remove from the resulting config
-    :param lowercase_keys: whether to convert every key to lower case.
-    :param interpolate: whether to apply string interpolation when looking for items
-    :return: a :class:`Configuration` instance
-    """
+    Params:
+        path: path to read from.
+        remove_level: how many levels to remove from the resulting config.
+        lowercase_keys: whether to convert every key to lower case.
+        interpolate: whether to apply string interpolation when looking for items.
+
+    Returns:
+        a [Configuration][config.configuration.Configuration] instance.
+    """  # noqa: E501
     return PathConfiguration(
         path,
         remove_level,
@@ -352,10 +359,10 @@ class FileConfiguration(Configuration):
     ):
         """Class Constructor.
 
-        :param data: path to a config file, or its contents
-        :param read_from_file: whether to read from a file path or to interpret
-               the :attr:`data` as the contents of the file.
-        :param lowercase_keys: whether to convert every key to lower case.
+        data: path to a config file, or its contents
+        read_from_file: whether to read from a file path or to interpret
+            the `data` as the contents of the file.
+        lowercase_keys: whether to convert every key to lower case.
         """
         super().__init__(
             {},
@@ -421,16 +428,19 @@ def config_from_json(
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ignore_missing_paths: bool = False,
 ) -> Configuration:
-    """Create a :class:`Configuration` instance from a JSON file.
+    """Create a [Configuration][config.configuration.Configuration] instance from a JSON file.
 
-    :param data: path to a JSON file or contents
-    :param read_from_file: whether to read from a file path or to interpret
-           the :attr:`data` as the contents of the JSON file.
-    :param lowercase_keys: whether to convert every key to lower case.
-    :param interpolate: whether to apply string interpolation when looking for items
-    :param ignore_missing_paths: if true it will not throw on missing paths
-    :return: a :class:`Configuration` instance
-    """
+    Params:
+        data: path to a JSON file or contents.
+        read_from_file: whether to read from a file path or to interpret.
+            the `data` as the contents of the JSON file.
+        lowercase_keys: whether to convert every key to lower case.
+        interpolate: whether to apply string interpolation when looking for items.
+        ignore_missing_paths: if true it will not throw on missing paths.
+
+    Returns:
+        a [Configuration][config.configuration.Configuration] instance.
+    """  # noqa: E501
     return JSONConfiguration(
         data,
         read_from_file,
@@ -504,16 +514,19 @@ def config_from_ini(
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ignore_missing_paths: bool = False,
 ) -> Configuration:
-    """Create a :class:`Configuration` instance from an INI file.
+    """Create a [Configuration][config.configuration.Configuration] instance from an INI file.
 
-    :param data: path to an INI file or contents
-    :param read_from_file: whether to read from a file path or to interpret
-           the :attr:`data` as the contents of the INI file.
-    :param lowercase_keys: whether to convert every key to lower case.
-    :param interpolate: whether to apply string interpolation when looking for items
-    :param ignore_missing_paths: if true it will not throw on missing paths
-    :return: a :class:`Configuration` instance
-    """
+    Params:
+        data: path to an INI file or contents.
+        read_from_file: whether to read from a file path or to interpret.
+            the `data` as the contents of the INI file.
+        lowercase_keys: whether to convert every key to lower case.
+        interpolate: whether to apply string interpolation when looking for items.
+        ignore_missing_paths: if true it will not throw on missing paths.
+
+    Returns:
+        a [Configuration][config.configuration.Configuration] instance.
+    """  # noqa: E501
     return INIConfiguration(
         data,
         read_from_file,
@@ -591,16 +604,19 @@ def config_from_dotenv(
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ignore_missing_paths: bool = False,
 ) -> Configuration:
-    """Create a :class:`Configuration` instance from a .env type file.
+    """Create a [Configuration][config.configuration.Configuration] instance from a .env type file.
 
-    :param data: path to a .env type file or contents
-    :param read_from_file: whether to read from a file path or to interpret
-           the :attr:`data` as the contents of the INI file.
-    :param lowercase_keys: whether to convert every key to lower case.
-    :param interpolate: whether to apply string interpolation when looking for items
-    :param ignore_missing_paths: if true it will not throw on missing paths
-    :return: a :class:`Configuration` instance
-    """
+    Params:
+        data: path to a .env type file or contents.
+        read_from_file: whether to read from a file path or to interpret.
+            the `data` as the contents of the INI file.
+        lowercase_keys: whether to convert every key to lower case.
+        interpolate: whether to apply string interpolation when looking for items.
+        ignore_missing_paths: if true it will not throw on missing paths.
+
+    Returns:
+        a [Configuration][config.configuration.Configuration] instance.
+    """  # noqa: E501
     return DotEnvConfiguration(
         data,
         read_from_file,
@@ -629,10 +645,10 @@ class PythonConfiguration(Configuration):
     ):
         """Class Constructor.
 
-        :param module: a module or path string
-        :param prefix: prefix to use to filter object names
-        :param separator: separator to replace by dots
-        :param lowercase_keys: whether to convert every key to lower case.
+        module: a module or path string
+        prefix: prefix to use to filter object names
+        separator: separator to replace by dots
+        lowercase_keys: whether to convert every key to lower case.
         """
         try:
             if isinstance(module, str):
@@ -701,15 +717,18 @@ def config_from_python(
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
     ignore_missing_paths: bool = False,
 ) -> Configuration:
-    """Create a :class:`Configuration` instance from the objects in a Python module.
+    """Create a [Configuration][config.configuration.Configuration] instance from the objects in a Python module.
 
-    :param module: a module or path string
-    :param prefix: prefix to use to filter object names
-    :param separator: separator to replace by dots
-    :param lowercase_keys: whether to convert every key to lower case.
-    :param interpolate: whether to apply string interpolation when looking for items
-    :return: a :class:`Configuration` instance
-    """
+    Params:
+        module: a module or path string.
+        prefix: prefix to use to filter object names.
+        separator: separator to replace by dots.
+        lowercase_keys: whether to convert every key to lower case.
+        interpolate: whether to apply string interpolation when looking for items.
+
+    Returns:
+        a [Configuration][config.configuration.Configuration] instance.
+    """  # noqa: E501
     return PythonConfiguration(
         module,
         prefix,
@@ -728,13 +747,16 @@ def config_from_dict(
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
 ) -> Configuration:
-    """Create a :class:`Configuration` instance from a dictionary.
+    """Create a [Configuration][config.configuration.Configuration] instance from a dictionary.
 
-    :param data: dictionary with string keys
-    :param lowercase_keys: whether to convert every key to lower case.
-    :param interpolate: whether to apply string interpolation when looking for items
-    :return: a :class:`Configuration` instance
-    """
+    Params:
+        data: dictionary with string keys.
+        lowercase_keys: whether to convert every key to lower case.
+        interpolate: whether to apply string interpolation when looking for items.
+
+    Returns:
+        a [Configuration][config.configuration.Configuration] instance.
+    """  # noqa: E501
     return Configuration(
         data,
         lowercase_keys=lowercase_keys,
@@ -748,11 +770,13 @@ def create_path_from_config(
     cfg: Configuration,
     remove_level: int = 1,
 ) -> Configuration:
-    """Output a path configuration from a :class:`Configuration` instance.
+    """
+    Output a path configuration from a [Configuration][config.Configuration] instance.
 
-    :param path: path to create the config files in
-    :param cfg: :class:`Configuration` instance
-    :param remove_level: how many levels to remove
+    Args:
+        path: path to create the config files in.
+        cfg: [Configuration][config.Configuration] instance.
+        remove_level: how many levels to remove.
     """
     import os.path
 
@@ -817,12 +841,15 @@ def config_from_yaml(
 ) -> Configuration:
     """Return a Configuration instance from YAML files.
 
-    :param data: string or file
-    :param read_from_file: whether `data` is a file or a YAML formatted string
-    :param lowercase_keys: whether to convert every key to lower case.
-    :param interpolate: whether to apply string interpolation when looking for items
-    :param ignore_missing_paths: if true it will not throw on missing paths
-    :return: a Configuration instance
+    Params:
+        data: string or file.
+        read_from_file: whether `data` is a file or a YAML formatted string.
+        lowercase_keys: whether to convert every key to lower case.
+        interpolate: whether to apply string interpolation when looking for items.
+        ignore_missing_paths: if true it will not throw on missing paths.
+
+    Returns:
+        a Configuration instance.
     """
     return YAMLConfiguration(
         data,
@@ -898,12 +925,15 @@ def config_from_toml(
 ) -> Configuration:
     """Return a Configuration instance from TOML files.
 
-    :param data: string or file
-    :param read_from_file: whether `data` is a file or a TOML formatted string
-    :param lowercase_keys: whether to convert every key to lower case.
-    :param interpolate: whether to apply string interpolation when looking for items
-    :param ignore_missing_paths: if true it will not throw on missing paths
-    :return: a Configuration instance
+    Params:
+        data: string or file.
+        read_from_file: whether `data` is a file or a TOML formatted string.
+        lowercase_keys: whether to convert every key to lower case.
+        interpolate: whether to apply string interpolation when looking for items.
+        ignore_missing_paths: if true it will not throw on missing paths.
+
+    Returns:
+        a Configuration instance.
     """
     return TOMLConfiguration(
         data,

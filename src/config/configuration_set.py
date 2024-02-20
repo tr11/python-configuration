@@ -20,8 +20,8 @@ from .helpers import InterpolateEnumType, InterpolateType, clean, interpolate_ob
 class ConfigurationSet(Configuration):
     """Configuration Sets.
 
-    A class that combines multiple :class:`Configuration` instances
-    in a hierarchical manner.
+    A class that combines multiple [Configuration][config.configuration.Configuration]
+    instances in a hierarchical manner.
     """
 
     def __init__(
@@ -112,11 +112,14 @@ class ConfigurationSet(Configuration):
         return self._from_configs("__getattr__", item)
 
     def get(self, key: str, default: Any = None) -> Union[dict, Any]:
-        """Get the configuration values corresponding to :attr:`key`.
+        """Get the configuration values corresponding to `key`.
 
-        :param key: key to retrieve
-        :param default: default value in case the key is missing
-        :return: the value found or a default
+        Params:
+            key: key to retrieve.
+            default: default value in case the key is missing.
+
+        Returns:
+            the value found or a default
         """
         try:
             return self[key]
@@ -133,7 +136,7 @@ class ConfigurationSet(Configuration):
     def get_dict(self, item: str) -> dict:
         """Get the item values as a dictionary.
 
-        :param item: key
+        item: key
         """
         return Configuration(dict(dict(self[item]).items())).as_dict()
 
