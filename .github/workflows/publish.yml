@@ -34,5 +34,4 @@ jobs:
       - name: Publish
         run: hatch publish
         env:
-          HATCH_INDEX_USER: ${{ vars.HATCH_INDEX_USER }}
           HATCH_INDEX_AUTH: ${{ secrets.HATCH_INDEX_AUTH }}
