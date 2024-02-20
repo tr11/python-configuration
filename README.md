@@ -8,7 +8,7 @@
 ![license](https://img.shields.io/pypi/l/python-configuration)
 [![tests](https://github.com/tr11/python-configuration/actions/workflows/run_tests.yml/badge.svg)](https://github.com/tr11/python-configuration/actions/workflows/run_tests.yml)
 [![codecov](https://codecov.io/gh/tr11/python-configuration/branch/main/graph/badge.svg?token=5zRYlGnDs7)](https://codecov.io/gh/tr11/python-configuration)
-[![Documentation Status](https://readthedocs.org/projects/python-configuration/badge/?version=latest)](https://python-configuration.readthedocs.io/en/latest/?badge=latest)
+[![Documentation](https://github.com/tr11/python-configuration/actions/workflows/docs.yml/badge.svg)](https://github.com/tr11/python-configuration/actions/workflows/docs.yml)
 
 This library is intended as a helper mechanism to load configuration files hierarchically.
 
