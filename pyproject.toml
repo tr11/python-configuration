@@ -19,6 +19,12 @@ classifiers = [
 ]
 dependencies = []
 
+[project.urls]
+Homepage = "https://tr11.github.io/python-configuration/"
+Documentation = "https://tr11.github.io/python-configuration/"
+Issues = "https://github.com/tr11/python-configuration/issues"
+Source = "https://github.com/tr11/python-configuration"
+
 [project.optional-dependencies]
 # cloud
 aws = ["boto3>=1.28.20"]
@@ -33,11 +39,6 @@ validation = ["jsonschema>=4.21.1"]
 # groups
 cloud = ["python-configuration[aws,azure,gcp,vault]"]
 file-formats = ["python-configuration[toml,yaml]"]
-
-[project.urls]
-Documentation = "https://github.com/tr11/python-configuration"
-Issues = "https://github.com/tr11/python-configuration/issues"
-Source = "https://github.com/tr11/python-configuration"
 
 [tool.hatch.version]
 source = "vcs"
