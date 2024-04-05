@@ -6,6 +6,7 @@ import sys
 from importlib.abc import InspectLoader
 from types import ModuleType
 from typing import Any, Dict, Iterable, List, Mapping, Optional, TextIO, Union, cast
+from pathlib import Path
 
 try:
     import yaml
@@ -349,7 +350,7 @@ class FileConfiguration(Configuration):
 
     def __init__(
         self,
-        data: Union[str, TextIO],
+        data: Union[str, Path, TextIO],
         read_from_file: bool = False,
         *,
         lowercase_keys: bool = False,
@@ -370,13 +371,13 @@ class FileConfiguration(Configuration):
             interpolate=interpolate,
             interpolate_type=interpolate_type,
         )
-        self._filename = data if read_from_file and isinstance(data, str) else None
+        self._filename = data if read_from_file and isinstance(data, (str, Path)) else None
         self._ignore_missing_paths = ignore_missing_paths
         self._reload_with_check(data, read_from_file)
 
     def _reload_with_check(
         self,
-        data: Union[str, TextIO],
+        data: Union[str, Path, TextIO],
         read_from_file: bool = False,
     ) -> None:  # pragma: no cover
         try:
@@ -388,7 +389,7 @@ class FileConfiguration(Configuration):
 
     def _reload(
         self,
-        data: Union[str, TextIO],
+        data: Union[str, Path, TextIO],
         read_from_file: bool = False,
     ) -> None:  # pragma: no cover
         raise NotImplementedError()
@@ -404,12 +405,12 @@ class JSONConfiguration(FileConfiguration):
 
     def _reload(
         self,
-        data: Union[str, TextIO],
+        data: Union[str, Path, TextIO],
         read_from_file: bool = False,
     ) -> None:
         """Reload the JSON data."""
         if read_from_file:
-            if isinstance(data, str):
+            if isinstance(data, (str, Path)):
                 with open(data, "rt") as f:
                     result = json.load(f)
             else:
@@ -420,7 +421,7 @@ class JSONConfiguration(FileConfiguration):
 
 
 def config_from_json(
-    data: Union[str, TextIO],
+    data: Union[str, Path, TextIO],
     read_from_file: bool = False,
     *,
     lowercase_keys: bool = False,
@@ -456,7 +457,7 @@ class INIConfiguration(FileConfiguration):
 
     def __init__(
         self,
-        data: Union[str, TextIO],
+        data: Union[str, Path, TextIO],
         read_from_file: bool = False,
         *,
         section_prefix: str = "",
@@ -476,7 +477,7 @@ class INIConfiguration(FileConfiguration):
             ignore_missing_paths=ignore_missing_paths,
         )
 
-    def _reload(self, data: Union[str, TextIO], read_from_file: bool = False) -> None:
+    def _reload(self, data: Union[str, Path, TextIO], read_from_file: bool = False) -> None:
         """Reload the INI data."""
         import configparser
 
@@ -487,7 +488,7 @@ class INIConfiguration(FileConfiguration):
                 return super().optionxform(optionstr) if lowercase else optionstr
 
         if read_from_file:
-            if isinstance(data, str):
+            if isinstance(data, (str, Path)):
                 with open(data, "rt") as f:
                     data = f.read()
             else:
@@ -505,7 +506,7 @@ class INIConfiguration(FileConfiguration):
 
 
 def config_from_ini(
-    data: Union[str, TextIO],
+    data: Union[str, Path, TextIO],
     read_from_file: bool = False,
     *,
     section_prefix: str = "",
@@ -543,7 +544,7 @@ class DotEnvConfiguration(FileConfiguration):
 
     def __init__(
         self,
-        data: Union[str, TextIO],
+        data: Union[str, Path, TextIO],
         read_from_file: bool = False,
         prefix: str = "",
         separator: str = "__",
@@ -567,12 +568,12 @@ class DotEnvConfiguration(FileConfiguration):
 
     def _reload(
         self,
-        data: Union[str, TextIO],
+        data: Union[str, Path, TextIO],
         read_from_file: bool = False,
     ) -> None:
         """Reload the .env data."""
         if read_from_file:
-            if isinstance(data, str):
+            if isinstance(data, (str, Path)):
                 with open(data, "rt") as f:
                     data = f.read()
             else:
@@ -594,7 +595,7 @@ class DotEnvConfiguration(FileConfiguration):
 
 
 def config_from_dotenv(
-    data: Union[str, TextIO],
+    data: Union[str, Path, TextIO],
     read_from_file: bool = False,
     prefix: str = "",
     separator: str = "__",
@@ -634,7 +635,7 @@ class PythonConfiguration(Configuration):
 
     def __init__(
         self,
-        module: Union[str, ModuleType],
+        module: Union[str, Path, ModuleType],
         prefix: str = "",
         separator: str = "_",
         *,
@@ -651,7 +652,7 @@ class PythonConfiguration(Configuration):
         lowercase_keys: whether to convert every key to lower case.
         """
         try:
-            if isinstance(module, str):
+            if isinstance(module, (str, Path)):
                 if module.endswith(".py"):
                     import importlib.util
                     from importlib import machinery
@@ -708,7 +709,7 @@ class PythonConfiguration(Configuration):
 
 
 def config_from_python(
-    module: Union[str, ModuleType],
+    module: Union[str, Path, ModuleType],
     prefix: str = "",
     separator: str = "_",
     *,
@@ -796,7 +797,7 @@ class YAMLConfiguration(FileConfiguration):
 
     def __init__(
         self,
-        data: Union[str, TextIO],
+        data: Union[str, Path, TextIO],
         read_from_file: bool = False,
         *,
         lowercase_keys: bool = False,
@@ -818,9 +819,9 @@ class YAMLConfiguration(FileConfiguration):
             ignore_missing_paths=ignore_missing_paths,
         )
 
-    def _reload(self, data: Union[str, TextIO], read_from_file: bool = False) -> None:
+    def _reload(self, data: Union[str, Path, TextIO], read_from_file: bool = False) -> None:
         """Reload the YAML data."""
-        if read_from_file and isinstance(data, str):
+        if read_from_file and isinstance(data, (str, Path)):
             with open(data, "rt") as f:
                 loaded = yaml.load(f, Loader=yaml.FullLoader)
         else:
@@ -831,7 +832,7 @@ class YAMLConfiguration(FileConfiguration):
 
 
 def config_from_yaml(
-    data: Union[str, TextIO],
+    data: Union[str, Path, TextIO],
     read_from_file: bool = False,
     *,
     lowercase_keys: bool = False,
@@ -866,7 +867,7 @@ class TOMLConfiguration(FileConfiguration):
 
     def __init__(
         self,
-        data: Union[str, TextIO],
+        data: Union[str, Path, TextIO],
         read_from_file: bool = False,
         *,
         section_prefix: str = "",
@@ -891,10 +892,10 @@ class TOMLConfiguration(FileConfiguration):
             ignore_missing_paths=ignore_missing_paths,
         )
 
-    def _reload(self, data: Union[str, TextIO], read_from_file: bool = False) -> None:
+    def _reload(self, data: Union[str, Path, TextIO], read_from_file: bool = False) -> None:
         """Reload the TOML data."""
         if read_from_file:
-            if isinstance(data, str):
+            if isinstance(data, (str, Path)):
                 with open(data, "rb") as f:
                     loaded = toml.load(f)
             else:
@@ -914,7 +915,7 @@ class TOMLConfiguration(FileConfiguration):
 
 
 def config_from_toml(
-    data: Union[str, TextIO],
+    data: Union[str, Path, TextIO],
     read_from_file: bool = False,
     *,
     section_prefix: str = "",
