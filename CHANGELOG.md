@@ -4,10 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.11.0] - 2024-04-23
+
+### Changed
+
+- Allow passing a `pathlib.Path` parameter to methods that read configuration files
+- Support comments in .env files
+
+
 ## [0.10.0] - 2024-02-19
+
+### Changed
 
 - Use the standard lib for `toml` in Python >= 3.11
 - Switched to `hatch` instead of `poetry`
+
 
 ## [0.9.1] - 2023-08-06
 
@@ -154,7 +165,9 @@ with cfg.dotted_iter():
 
 - Initial version
 
-[unreleased]: https://github.com/tr11/python-configuration/compare/0.9.1...HEAD
+[unreleased]: https://github.com/tr11/python-configuration/compare/0.11.0...HEAD
+[0.11.0]: https://github.com/tr11/python-configuration/compare/0.10.0...0.11.0
+[0.10.0]: https://github.com/tr11/python-configuration/compare/0.9.1...0.10.0
 [0.9.1]: https://github.com/tr11/python-configuration/compare/0.9.0...0.9.1
 [0.9.0]: https://github.com/tr11/python-configuration/compare/0.8.3...0.9.0
 [0.8.3]: https://github.com/tr11/python-configuration/compare/0.8.2...0.8.3
