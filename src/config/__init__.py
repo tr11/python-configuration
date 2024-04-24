@@ -26,7 +26,7 @@ else:  # pragma: no cover
 from ._version import __version__, __version_tuple__  # noqa: F401
 from .configuration import Configuration
 from .configuration_set import ConfigurationSet
-from .helpers import InterpolateEnumType, InterpolateType
+from .helpers import InterpolateEnumType, InterpolateType, parse_env_line
 
 
 def config(
@@ -586,9 +586,7 @@ class DotEnvConfiguration(FileConfiguration):
                 data = data.read()
         data = cast(str, data)
         result: Dict[str, Any] = dict(
-            (y.strip() for y in x.split("=", 1))  # type: ignore
-            for x in data.splitlines()
-            if x
+            parse_env_line(x) for x in data.splitlines() if x and not x.startswith("#")
         )
 
         result = {
@@ -612,6 +610,8 @@ def config_from_dotenv(
     ignore_missing_paths: bool = False,
 ) -> Configuration:
     """Create a [Configuration][config.configuration.Configuration] instance from a .env type file.
+
+    Lines starting with a # are ignored and treated as comments.
 
     Params:
         data: path to a .env type file or contents.

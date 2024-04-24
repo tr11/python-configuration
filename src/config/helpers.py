@@ -212,3 +212,12 @@ def interpolate_object(
             return [interpolate_object(attr, x, d, method) for x in obj]
     else:
         return obj
+
+
+def parse_env_line(line: str) -> Tuple[str, str]:
+    """Split an env line into variable and value."""
+    try:
+        key, value = tuple(y.strip() for y in line.split("=", 1))
+    except ValueError:
+        raise ValueError("Invalid line %s" % line) from None
+    return key.strip(), value.strip()

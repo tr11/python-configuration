@@ -1,9 +1,11 @@
+import pytest
 from config import (
     Configuration,
     ConfigurationSet,
     EnvConfiguration,
     config,
     config_from_dict,
+    config_from_dotenv,
 )
 
 
@@ -78,3 +80,11 @@ def test_issue_79():  # type: ignore
     conf.update(data)
 
     assert conf["abc.def"] == "ghi"
+
+
+def test_issue_100():  # type: ignore
+    invalid = """# key 1\nVALID=1\n## key2\nINVALID\n"""
+    with pytest.raises(ValueError) as err:
+        config_from_dotenv(invalid, lowercase_keys=True)
+    assert 'Invalid line INVALID' in str(err)
+

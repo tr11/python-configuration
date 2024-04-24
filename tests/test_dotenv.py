@@ -1,3 +1,4 @@
+import pytest
 from config import config_from_dotenv, config_from_dict
 import tempfile
 
@@ -17,6 +18,14 @@ PREFIX__KEY4__B = 2
 PREFIX__KEY4__C = 3
 """
 
+DOTENV_WITH_COMMENTS = """
+# key 1
+KEY1 = abc
+# key 2
+KEY2 = def
+# key 3
+KEY3 = 1.1
+"""
 
 DICT = {
     "key1": "abc",
@@ -83,3 +92,21 @@ def test_load_dotenv():  # type: ignore
     cfg = config_from_dotenv(DOTENV_WITH_PREFIXES, lowercase_keys=True, prefix="PREFIX")
     print(cfg.as_dict())
     assert cfg == config_from_dict(DICT_WITH_PREFIXES)
+
+
+def test_load_dotenv_comments():  # type: ignore
+    cfg = config_from_dotenv(DOTENV_WITH_COMMENTS, lowercase_keys=True)
+    assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+
+
+def test_load_dotenv_comments_invalid():  # type: ignore
+    invalid = """
+# key 1
+VALID=1
+## key2
+INVALID
+"""
+    with pytest.raises(ValueError) as err:
+        config_from_dotenv(invalid, lowercase_keys=True)
+    assert 'Invalid line INVALID' in str(err)
+
