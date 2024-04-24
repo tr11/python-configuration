@@ -1,7 +1,7 @@
 from config import config_from_dict, config_from_json
 import tempfile
 import json
-
+from pathlib import Path
 
 DICT = {
     "a1.b1.c1": 1,
@@ -43,6 +43,17 @@ def test_load_json_filename():  # type: ignore
         f.file.write(JSON.encode())
         f.file.flush()
         cfg = config_from_json(f.name, read_from_file=True)
+    assert cfg["a1.b1.c1"] == 1
+    assert cfg["a1.b1"].as_dict() == {"c1": 1, "c2": 2, "c3": 3}
+    assert cfg["a1.b2"].as_dict() == {"c1": "a", "c2": True, "c3": 1.1}
+    assert cfg == config_from_dict(DICT)
+
+
+def test_load_json_filename_2():  # type: ignore
+    with tempfile.NamedTemporaryFile() as f:
+        f.file.write(JSON.encode())
+        f.file.flush()
+        cfg = config_from_json(Path(f.name), read_from_file=True)
     assert cfg["a1.b1.c1"] == 1
     assert cfg["a1.b1"].as_dict() == {"c1": 1, "c2": 2, "c3": 3}
     assert cfg["a1.b2"].as_dict() == {"c1": "a", "c2": True, "c3": 1.1}
