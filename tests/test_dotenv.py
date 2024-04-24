@@ -1,5 +1,5 @@
 import pytest
-from config import config_from_dotenv, config_from_dict
+from config import config, config_from_dotenv, config_from_dict
 import tempfile
 
 DOTENV = """
@@ -66,6 +66,18 @@ def test_load_dotenv_filename():  # type: ignore
         f.file.flush()
         cfg = config_from_dotenv(f.name, read_from_file=True, lowercase_keys=True)
     assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+
+
+def test_load_dotenv_config():  # type: ignore
+    with tempfile.NamedTemporaryFile(suffix='.env') as f:
+        f.file.write(DOTENV_WITH_PREFIXES.encode())
+        f.file.flush()
+        cfg = config(f.name, lowercase_keys=True, prefix="PREFIX")
+
+    print(cfg)
+    print(config_from_dict(DICT_WITH_PREFIXES))
+    assert cfg == config_from_dict(DICT_WITH_PREFIXES)
+
 
 
 def test_reload():  # type: ignore
