@@ -4,9 +4,9 @@ import json
 import os
 import sys
 from importlib.abc import InspectLoader
+from pathlib import Path
 from types import ModuleType
 from typing import Any, Dict, Iterable, List, Mapping, Optional, TextIO, Union, cast
-from pathlib import Path
 
 try:
     import yaml
@@ -371,7 +371,9 @@ class FileConfiguration(Configuration):
             interpolate=interpolate,
             interpolate_type=interpolate_type,
         )
-        self._filename = data if read_from_file and isinstance(data, (str, Path)) else None
+        self._filename = (
+            data if read_from_file and isinstance(data, (str, Path)) else None
+        )
         self._ignore_missing_paths = ignore_missing_paths
         self._reload_with_check(data, read_from_file)
 
@@ -477,7 +479,11 @@ class INIConfiguration(FileConfiguration):
             ignore_missing_paths=ignore_missing_paths,
         )
 
-    def _reload(self, data: Union[str, Path, TextIO], read_from_file: bool = False) -> None:
+    def _reload(
+        self,
+        data: Union[str, Path, TextIO],
+        read_from_file: bool = False,
+    ) -> None:
         """Reload the INI data."""
         import configparser
 
@@ -653,6 +659,7 @@ class PythonConfiguration(Configuration):
         """
         try:
             if isinstance(module, (str, Path)):
+                module = str(module)
                 if module.endswith(".py"):
                     import importlib.util
                     from importlib import machinery
@@ -819,7 +826,11 @@ class YAMLConfiguration(FileConfiguration):
             ignore_missing_paths=ignore_missing_paths,
         )
 
-    def _reload(self, data: Union[str, Path, TextIO], read_from_file: bool = False) -> None:
+    def _reload(
+        self,
+        data: Union[str, Path, TextIO],
+        read_from_file: bool = False,
+    ) -> None:
         """Reload the YAML data."""
         if read_from_file and isinstance(data, (str, Path)):
             with open(data, "rt") as f:
@@ -892,7 +903,11 @@ class TOMLConfiguration(FileConfiguration):
             ignore_missing_paths=ignore_missing_paths,
         )
 
-    def _reload(self, data: Union[str, Path, TextIO], read_from_file: bool = False) -> None:
+    def _reload(
+        self,
+        data: Union[str, Path, TextIO],
+        read_from_file: bool = False,
+    ) -> None:
         """Reload the TOML data."""
         if read_from_file:
             if isinstance(data, (str, Path)):
