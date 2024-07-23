@@ -87,7 +87,7 @@ def config(
                 config_ = ("toml", config_, True)
             elif config_.endswith(".ini"):
                 config_ = ("ini", config_, True)
-            elif config_.endswith(".env"):
+            elif config_.endswith(".env") or config_.startswith(".env"):
                 config_ = ("dotenv", config_, True, *default_args)
             elif os.path.isdir(config_):
                 config_ = ("path", config_, remove_level)

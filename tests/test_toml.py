@@ -1,16 +1,20 @@
 from pathlib import Path
+import sys
 import tempfile
 
 import pytest
 
-from config import config_from_dict
+from config import config_from_dict, config
 
 try:
-    import toml
-
+    if sys.version_info < (3, 11):  # pragma: no cover
+        import tomli as toml
+    else:  # pragma: no cover
+        import tomllib as toml
+        
     from config import config_from_toml
 except ImportError:
-    toml = None
+    toml = None # type: ignore
     config_from_toml = None  # type: ignore
 
 
@@ -30,7 +34,20 @@ DICT = {
 }
 
 if toml:
-    TOML = toml.dumps(DICT)
+    TOML = """
+"a1.b1.c1" = 1
+"a1.b1.c2" = 2
+"a1.b1.c3" = 3
+"a1.b2.c1" = "a"
+"a1.b2.c2" = true
+"a1.b2.c3" = 1.1
+"a2.b1.c1" = "f"
+"a2.b1.c2" = false
+"a2.b1.c3" = ""
+"a2.b2.c1" = 10
+"a2.b2.c2" = "YWJjZGVmZ2g="
+"a2.b2.c3" = "abcdefgh"
+"""
 
     TOML2 = """
 [owner]
@@ -104,6 +121,18 @@ def test_load_toml_filename_2():  # type: ignore
         f.file.write(TOML.encode())
         f.file.flush()
         cfg = config_from_toml(Path(f.name), read_from_file=True)
+    assert cfg["a1.b1.c1"] == 1
+    assert cfg["a1.b1"].as_dict() == {"c1": 1, "c2": 2, "c3": 3}
+    assert cfg["a1.b2"].as_dict() == {"c1": "a", "c2": True, "c3": 1.1}
+    assert cfg == config_from_dict(DICT)
+
+
+@pytest.mark.skipif("toml is None")
+def test_load_toml_filename_3():  # type: ignore
+    with tempfile.NamedTemporaryFile(suffix='.toml') as f:
+        f.file.write(TOML.encode())
+        f.file.flush()
+        cfg = config(f.name)
     assert cfg["a1.b1.c1"] == 1
     assert cfg["a1.b1"].as_dict() == {"c1": 1, "c2": 2, "c3": 3}
     assert cfg["a1.b2"].as_dict() == {"c1": "a", "c2": True, "c3": 1.1}

@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+
+## [0.12.0] - 2024-07-23
+
+### Added
+
+- Granular `strip_prefix` parameters across different config types
+
+### Fixed
+
+- Unit tests for .toml files
+
+### Changed
+
+- Enviroment files are now loaded from filenames with a suffix of `.env` or starting with `.env`
+
+
 ## [0.11.0] - 2024-04-23
 
 ### Changed

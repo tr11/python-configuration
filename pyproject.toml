@@ -28,7 +28,7 @@ Source = "https://github.com/tr11/python-configuration"
 [project.optional-dependencies]
 # cloud
 aws = ["boto3>=1.28.20"]
-azure = ["azure-keyvault>=5.0.0"]
+azure = ["azure-keyvault>=4.2.0", "azure-identity"]
 gcp = ["google-cloud-secret-manager>=2.16.3"]
 vault = ["hvac>=1.1.1"]
 # file formats
@@ -148,6 +148,7 @@ module = [
     'hvac.exceptions',
     'jsonschema',
     'jsonschema.exceptions',
+    'azure.identity',
 ]
 ignore_missing_imports = true
 

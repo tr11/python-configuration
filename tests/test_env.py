@@ -55,3 +55,19 @@ def test_reload():  # type: ignore
     d = DICT.copy()
     d["a2.b2.c3"] = "updated"
     assert cfg == config_from_dict(dict((k, str(v)) for k, v in d.items()))
+
+
+def test_reload_2():  # type: ignore
+    os.environ.update(
+        (PREFIX + "__" + k.replace(".", "__").upper(), str(v)) for k, v in DICT.items()
+    )
+
+    cfg = config_from_env(PREFIX, lowercase_keys=True, strip_prefix=False)
+    assert cfg == config_from_dict(dict((PREFIX.lower() + "." + k, str(v)) for k, v in DICT.items()))
+
+    os.environ[PREFIX + "__" + "A2__B2__C3"] = "updated"
+    assert cfg == config_from_dict(dict((PREFIX.lower() + "." + k, str(v)) for k, v in DICT.items()))
+    cfg.reload()
+    d = DICT.copy()
+    d["a2.b2.c3"] = "updated"
+    assert cfg == config_from_dict(dict((PREFIX.lower() + "." + k, str(v)) for k, v in d.items()))
