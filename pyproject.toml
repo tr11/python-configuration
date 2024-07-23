@@ -69,7 +69,7 @@ dependencies = ["mypy>=1.8.0", "pydocstyle>=6.3.0", "ruff>=0.2.2"]
 features = ["cloud", "file-formats", "validation"]
 
 [tool.hatch.envs.lint.scripts]
-lint = "ruff src"
+lint = "ruff check src"
 typing = "mypy src"
 docs = "pydocstyle src"
 

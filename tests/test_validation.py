@@ -1,11 +1,11 @@
+"""Validation tests."""
+
+# ruff: noqa: D103
+
+import pytest
 from config import (
-    Configuration,
-    ConfigurationSet,
-    EnvConfiguration,
-    config,
     config_from_dict,
 )
-import pytest
 
 try:
     import jsonschema
@@ -25,7 +25,7 @@ def test_validation_ok():  # type: ignore
                 "type": "array",
                 "items": {"enum": [1, 2, 3]},
                 "maxItems": 2,
-            }
+            },
         },
     }
 
@@ -43,7 +43,7 @@ def test_validation_fail():  # type: ignore
                 "type": "array",
                 "items": {"enum": [1, 2, 3]},
                 "maxItems": 2,
-            }
+            },
         },
     }
 
@@ -89,5 +89,36 @@ def test_validation_format():  # type: ignore
             raise_on_error=True,
             format_checker=Draft202012Validator.FORMAT_CHECKER,
         )
-    print(str(err))
     assert "'10' is not a 'ipv4'" in str(err)
+
+
+@pytest.mark.skipif("jsonschema is None")
+def test_validation_nested():  # type: ignore
+    d = {"item": {"sub1": 1, "sub2": "abc"}}
+    cfg = config_from_dict(d)
+
+    schema = {
+        "type": "object",
+        "properties": {
+            "item.sub1": {"type": "number"},
+            "item.sub2": {"type": "string"},
+        },
+        "required": ["item.sub1", "item.sub2"],
+    }
+    assert cfg.validate(schema)
+
+    schema = {
+        "type": "object",
+        "properties": {
+            "item": {
+                "type": "object",
+                "properties": {
+                    "sub1": {"type": "number"},
+                    "sub2": {"type": "string"},
+                },
+                "required": ["sub1", "sub2"],
+            },
+        },
+        "required": ["item"],
+    }
+    assert cfg.validate(schema, nested=True)
