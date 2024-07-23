@@ -402,6 +402,7 @@ class Configuration:
         self,
         schema: Any,
         raise_on_error: bool = False,
+        nested: bool = False,
         **kwargs: Mapping[str, Any],
     ) -> bool:
         """Validate the current config using JSONSchema."""
@@ -412,7 +413,7 @@ class Configuration:
                 "Validation requires the `jsonschema` library.",
             ) from None
         try:
-            validate(self.as_dict(), schema, **kwargs)
+            validate(self.as_attrdict() if nested else self.as_dict(), schema, **kwargs)
         except ValidationError as err:
             if raise_on_error:
                 raise err
