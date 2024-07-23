@@ -1,6 +1,11 @@
-import pytest
-from config import config, config_from_dotenv, config_from_dict
+"""Tests for dotenv files."""
+
+# ruff: noqa: D103,E501,SIM115
+
 import tempfile
+
+import pytest
+from config import config, config_from_dict, config_from_dotenv
 
 DOTENV = """
 KEY1 = abc
@@ -47,7 +52,7 @@ DICT_WITH_PREFIXES = {
 
 def test_load_dotenv():  # type: ignore
     cfg = config_from_dotenv(DOTENV, lowercase_keys=True)
-    assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+    assert cfg == config_from_dict({k: str(v) for k, v in DICT.items()})
 
 
 def test_load_dotenv_file():  # type: ignore
@@ -55,9 +60,11 @@ def test_load_dotenv_file():  # type: ignore
         f.file.write(DOTENV.encode())
         f.file.flush()
         cfg = config_from_dotenv(
-            open(f.name, "rt"), read_from_file=True, lowercase_keys=True
+            open(f.name, "rt"),
+            read_from_file=True,
+            lowercase_keys=True,
         )
-    assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+    assert cfg == config_from_dict({k: str(v) for k, v in DICT.items()})
 
 
 def test_load_dotenv_filename():  # type: ignore
@@ -65,19 +72,16 @@ def test_load_dotenv_filename():  # type: ignore
         f.file.write(DOTENV.encode())
         f.file.flush()
         cfg = config_from_dotenv(f.name, read_from_file=True, lowercase_keys=True)
-    assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+    assert cfg == config_from_dict({k: str(v) for k, v in DICT.items()})
 
 
 def test_load_dotenv_config():  # type: ignore
-    with tempfile.NamedTemporaryFile(suffix='.env') as f:
+    with tempfile.NamedTemporaryFile(suffix=".env") as f:
         f.file.write(DOTENV_WITH_PREFIXES.encode())
         f.file.flush()
         cfg = config(f.name, lowercase_keys=True, prefix="PREFIX")
 
-    print(cfg)
-    print(config_from_dict(DICT_WITH_PREFIXES))
     assert cfg == config_from_dict(DICT_WITH_PREFIXES)
-
 
 
 def test_reload():  # type: ignore
@@ -85,30 +89,33 @@ def test_reload():  # type: ignore
         f.file.write(DOTENV.encode())
         f.file.flush()
         cfg = config_from_dotenv(
-            open(f.name, "rt"), read_from_file=True, lowercase_keys=True
+            open(f.name, "rt"),
+            read_from_file=True,
+            lowercase_keys=True,
         )
 
-        assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+        assert cfg == config_from_dict({k: str(v) for k, v in DICT.items()})
 
         f.file.write(b"\nkey10 = 1\n")
         f.file.flush()
         cfg = config_from_dotenv(
-            open(f.name, "rt"), read_from_file=True, lowercase_keys=True
+            open(f.name, "rt"),
+            read_from_file=True,
+            lowercase_keys=True,
         )
-        cfg2 = config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+        cfg2 = config_from_dict({k: str(v) for k, v in DICT.items()})
         cfg2["key10"] = "1"
         assert cfg == cfg2
 
 
-def test_load_dotenv():  # type: ignore
+def test_load_dotenv_2():  # type: ignore
     cfg = config_from_dotenv(DOTENV_WITH_PREFIXES, lowercase_keys=True, prefix="PREFIX")
-    print(cfg.as_dict())
     assert cfg == config_from_dict(DICT_WITH_PREFIXES)
 
 
 def test_load_dotenv_comments():  # type: ignore
     cfg = config_from_dotenv(DOTENV_WITH_COMMENTS, lowercase_keys=True)
-    assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+    assert cfg == config_from_dict({k: str(v) for k, v in DICT.items()})
 
 
 def test_load_dotenv_comments_invalid():  # type: ignore
@@ -120,5 +127,4 @@ INVALID
 """
     with pytest.raises(ValueError) as err:
         config_from_dotenv(invalid, lowercase_keys=True)
-    assert 'Invalid line INVALID' in str(err)
-
+    assert "Invalid line INVALID" in str(err)

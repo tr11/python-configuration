@@ -1,14 +1,18 @@
+"""Tests for GCP support."""
+
+# ruff: noqa: D101,D102,D103,D107,E501
+
 from collections import namedtuple
 from typing import Any, Dict
+
 import pytest
+from config import config_from_dict
 from pytest import raises
 
-from config import config_from_dict
-
 try:
-    from google.cloud import secretmanager_v1
-    from google.api_core.exceptions import NotFound
     from config.contrib.gcp import GCPSecretManagerConfiguration
+    from google.api_core.exceptions import NotFound
+    from google.cloud import secretmanager_v1
 except ImportError:  # pragma: no cover
     secretmanager_v1 = None  # type: ignore
 
@@ -36,14 +40,14 @@ class FakeSecretClient:
         self._dict = dct
 
     def list_secrets(self, request: Dict[str, str]) -> list:
-        return [Secret(f"prefix/{x}", "") for x in self._dict.keys()]
+        return [Secret(f"prefix/{x}", "") for x in self._dict]
 
     def access_secret_version(self, request: Dict[str, str]) -> Secret:
         name = request["name"]
         try:
             return Secret(name, self._dict[name.split("/")[3]])
         except KeyError:
-            raise NotFound("")  # type: ignore
+            raise NotFound("") from None  # type: ignore
 
 
 def fake_client(val: dict) -> Any:

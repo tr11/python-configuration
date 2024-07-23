@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Enviroment files are now loaded from filenames with a suffix of `.env` or starting with `.env`
+- Environment files are now loaded from filenames with a suffix of `.env` or starting with `.env`
 
 
 ## [0.11.0] - 2024-04-23

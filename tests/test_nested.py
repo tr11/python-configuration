@@ -1,5 +1,8 @@
-from config import config_from_dict, config
+"""Tests for nested configs."""
 
+# ruff: noqa: D103
+
+from config import config, config_from_dict
 
 DICT = {
     "a1.B1.c1": 1,
@@ -17,7 +20,7 @@ DICT = {
 }
 
 NESTED = {
-    "a1": {"b1": {"c1": 1, "C2": 2, "c3": 3}, "b2": {"c1": "a", "c2": True, "c3": 1.1}}
+    "a1": {"b1": {"c1": 1, "C2": 2, "c3": 3}, "b2": {"c1": "a", "c2": True, "c3": 1.1}},
 }
 
 
@@ -25,6 +28,18 @@ def test_load_from_config():  # type: ignore
     cfg1 = config_from_dict(DICT, lowercase_keys=True)
     cfg2 = config_from_dict(NESTED, lowercase_keys=True)
 
-    assert config(DICT, NESTED, lowercase_keys=True ) == config(cfg1, NESTED, lowercase_keys=True )
-    assert config(DICT, NESTED, lowercase_keys=True ) == config(DICT, cfg2, lowercase_keys=True )
-    assert config(DICT, NESTED, lowercase_keys=True ) == config(cfg1, cfg2, lowercase_keys=True )
+    assert config(DICT, NESTED, lowercase_keys=True) == config(
+        cfg1,
+        NESTED,
+        lowercase_keys=True,
+    )
+    assert config(DICT, NESTED, lowercase_keys=True) == config(
+        DICT,
+        cfg2,
+        lowercase_keys=True,
+    )
+    assert config(DICT, NESTED, lowercase_keys=True) == config(
+        cfg1,
+        cfg2,
+        lowercase_keys=True,
+    )

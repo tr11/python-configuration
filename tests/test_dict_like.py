@@ -1,8 +1,9 @@
-from config import config_from_dict, ConfigurationSet
-from pytest import raises
-import pytest
-import json
+"""Tests configs for dictionary-like objects."""
 
+# ruff: noqa: D103,E501
+
+from config import ConfigurationSet, config_from_dict
+from pytest import raises
 
 DICT = {
     "a1.B1.c1": 1,
@@ -23,7 +24,7 @@ NESTED = {
     "a1": {
         "b1": {"c1": 10, "C2": 20, "c3": 30},
         "b2": {"c1": "a0", "c2": False, "c3": 10.1},
-    }
+    },
 }
 
 PROTECTED = {

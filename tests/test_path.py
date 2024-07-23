@@ -1,6 +1,10 @@
-from config import config_from_path, config_from_dict, create_path_from_config
+"""Tests for paths."""
+
+# ruff: noqa: D103
+
 import tempfile
 
+from config import config_from_dict, config_from_path, create_path_from_config
 
 DICT = {
     "a1.b1.c1": 1,
@@ -29,7 +33,9 @@ def _config_from_temp_path(dic, remove_level=0, trailing_slash=False):  # type: 
             os.makedirs(subfolder)
             lvl -= 1
         create_path_from_config(
-            subfolder, config_from_dict(dic), remove_level=remove_level
+            subfolder,
+            config_from_dict(dic),
+            remove_level=remove_level,
         )
         if trailing_slash:
             folder += "/"
@@ -41,7 +47,9 @@ def _config_from_temp_path(dic, remove_level=0, trailing_slash=False):  # type: 
         d = dic.copy()
         d["extra.value"] = 1
         create_path_from_config(
-            subfolder, config_from_dict(d), remove_level=remove_level
+            subfolder,
+            config_from_dict(d),
+            remove_level=remove_level,
         )
         cfg2.reload()
 
@@ -58,7 +66,9 @@ def test_load_path():  # type: ignore
 
 def test_load_path_with_trailing_slash():  # type: ignore
     cfg, folder, walk, _ = _config_from_temp_path(
-        DICT, remove_level=0, trailing_slash=True
+        DICT,
+        remove_level=0,
+        trailing_slash=True,
     )
     assert set(walk[0][2]) == set(DICT.keys())
     assert cfg["a1.b1"].get_int("c1") == 1
@@ -68,7 +78,7 @@ def test_load_path_with_trailing_slash():  # type: ignore
 
 def test_equality():  # type: ignore
     cfg, folder, walk, _ = _config_from_temp_path(DICT, remove_level=0)
-    assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+    assert cfg == config_from_dict({k: str(v) for k, v in DICT.items()})
 
 
 def test_load_path_level():  # type: ignore
@@ -95,6 +105,6 @@ def test_load_path_level_2():  # type: ignore
 
 def test_reload():  # type: ignore
     cfg, folder, walk, cfg2 = _config_from_temp_path(DICT, remove_level=0)
-    assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+    assert cfg == config_from_dict({k: str(v) for k, v in DICT.items()})
     cfg["extra.value"] = "1"
     assert cfg2 == cfg

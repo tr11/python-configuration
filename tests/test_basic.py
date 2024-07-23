@@ -1,8 +1,11 @@
-from config import config_from_dict
+"""Basic tests."""
+
+# ruff: noqa: D103,E501
+
 import json
 
 import pytest
-
+from config import config_from_dict
 
 DICT = {
     "a1.B1.c1": 1,
@@ -22,7 +25,7 @@ DICT = {
 RESERVED = {"keys": [1, 2, 3], "values": ["a", "b", "c"], "items": [1.1, 2.1, 3.1]}
 
 NESTED = {
-    "a1": {"b1": {"c1": 1, "C2": 2, "c3": 3}, "b2": {"c1": "a", "c2": True, "c3": 1.1}}
+    "a1": {"b1": {"c1": 1, "C2": 2, "c3": 3}, "b2": {"c1": "a", "c2": True, "c3": 1.1}},
 }
 
 PROTECTED = {
@@ -320,7 +323,7 @@ def test_dict_methods_values():  # type: ignore
                 },
                 sort_keys=True,
             ),
-        ]
+        ],
     )
 
     with cfg.dotted_iter() as cfg_:
@@ -364,7 +367,7 @@ def test_dict_methods_values():  # type: ignore
                 },
                 sort_keys=True,
             ),
-        ]
+        ],
     )
 
 

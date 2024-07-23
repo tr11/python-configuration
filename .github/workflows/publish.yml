@@ -35,4 +35,3 @@ jobs:
         run: hatch publish -y
         env:
           HATCH_INDEX_AUTH: ${{ secrets.HATCH_INDEX_AUTH }}
-          HATCH_INDEX_USER: ${{ secrets.HATCH_INDEX_USER }}

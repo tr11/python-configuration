@@ -1,5 +1,10 @@
-from config import config_from_ini, config_from_dict
+"""Tests for ini files."""
+
+# ruff: noqa: D103,E501,SIM115
+
 import tempfile
+
+from config import config_from_dict, config_from_ini
 
 INI = """
 [section1]
@@ -27,7 +32,7 @@ DICT = {
 
 def test_load_ini():  # type: ignore
     cfg = config_from_ini(INI)
-    assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+    assert cfg == config_from_dict({k: str(v) for k, v in DICT.items()})
 
 
 def test_load_ini_file():  # type: ignore
@@ -36,7 +41,7 @@ def test_load_ini_file():  # type: ignore
         f.file.flush()
         cfg = config_from_ini(open(f.name, "rt"), read_from_file=True)
 
-    assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+    assert cfg == config_from_dict({k: str(v) for k, v in DICT.items()})
 
 
 def test_load_ini_filename():  # type: ignore
@@ -45,7 +50,7 @@ def test_load_ini_filename():  # type: ignore
         f.file.flush()
         cfg = config_from_ini(f.name, read_from_file=True)
 
-    assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+    assert cfg == config_from_dict({k: str(v) for k, v in DICT.items()})
 
 
 def test_reload():  # type: ignore
@@ -54,19 +59,19 @@ def test_reload():  # type: ignore
         f.file.flush()
         cfg = config_from_ini(open(f.name, "rt"), read_from_file=True)
 
-        assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+        assert cfg == config_from_dict({k: str(v) for k, v in DICT.items()})
 
         f.file.write(b"\n[section4]\nkey10 = 1\n")
         f.file.flush()
         cfg = config_from_ini(open(f.name, "rt"), read_from_file=True)
-        cfg2 = config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+        cfg2 = config_from_dict({k: str(v) for k, v in DICT.items()})
         cfg2["section4.key10"] = "1"
         assert cfg == cfg2
 
 
 def test_reload_with_section_prefix():  # type: ignore
     with tempfile.NamedTemporaryFile() as f:
-        INI = """
+        ini = """
         [coverage:run]
         branch = False
         parallel = False
@@ -81,17 +86,19 @@ def test_reload_with_section_prefix():  # type: ignore
         key2 = 0
         """
 
-        f.file.write(INI.encode())
+        f.file.write(ini.encode())
         f.file.flush()
         cfg = config_from_ini(
-            open(f.name, "rt"), section_prefix="coverage:", read_from_file=True
+            open(f.name, "rt"),
+            section_prefix="coverage:",
+            read_from_file=True,
         )
 
         expected = config_from_dict(
             {
                 "run.branch": "False",
                 "run.parallel": "False",
-            }
+            },
         )
 
         assert cfg == expected
@@ -99,14 +106,16 @@ def test_reload_with_section_prefix():  # type: ignore
         f.file.write(b"\n[coverage:report]\nignore_errors = False\n")
         f.file.flush()
         cfg = config_from_ini(
-            open(f.name, "rt"), section_prefix="coverage:", read_from_file=True
+            open(f.name, "rt"),
+            section_prefix="coverage:",
+            read_from_file=True,
         )
         cfg2 = config_from_dict(
             {
                 "run.branch": "False",
                 "run.parallel": "False",
                 "report.ignore_errors": "False",
-            }
+            },
         )
 
         assert cfg == cfg2

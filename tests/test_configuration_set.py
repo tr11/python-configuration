@@ -1,29 +1,37 @@
+"""Tests for Configuration Sets."""
+
+# ruff: noqa: D103,E501
+
+import json
+import os
+import sys
+
 from config import (
+    ConfigurationSet,
+    config,
     config_from_dict,
     config_from_dotenv,
     config_from_env,
     config_from_ini,
+    config_from_json,
     config_from_path,
     config_from_python,
-    config_from_json,
     create_path_from_config,
-    Configuration,
-    ConfigurationSet,
-    config,
 )
-import os
-import json
 
 try:
     import yaml
 except ImportError:
     yaml = None
-try:
-    import toml
-except ImportError:
-    toml = None
-import pytest
+if sys.version_info < (3, 11):  # pragma: no cover
+    try:
+        import tomli as toml
 
+    except ImportError:
+        toml = None  # type: ignore
+else:  # pragma: no cover
+    import tomllib as toml
+import pytest
 
 DICT1 = {
     "a1.B1.c1": 1,
@@ -222,7 +230,7 @@ def test_get():  # type: ignore
     )
 
     assert cfg.get("a2.b2") == config_from_dict(
-        {"c1": 10, "c2": "YWJjZGVmZ2g=", "c3": "abcdefgh"}
+        {"c1": 10, "c2": "YWJjZGVmZ2g=", "c3": "abcdefgh"},
     )
     assert cfg.get("a2.b5", "1") == "1"
 
@@ -239,7 +247,6 @@ def test_get_dict():  # type: ignore
         "b1.c1": "f",
         "b1.c2": False,
         "b1.c3": None,
-        "b2.c1": 10,
         "b2.c2": "YWJjZGVmZ2g=",
         "b2.c3": "abcdefgh",
     }
@@ -319,7 +326,7 @@ def test_repr_and_str():  # type: ignore
         config_from_python(path, prefix="CONFIG", lowercase_keys=True),
     )
 
-    joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
+    joined_dicts = {k: str(v) for k, v in DICT1.items()}
     joined_dicts.update(DICT2_1)
     joined_dicts.update(DICT2_2)
     joined_dicts["sys.version"] = sys.hexversion
@@ -360,7 +367,7 @@ def test_alternate_set_loader():  # type: ignore
             entries.append(("toml", TOML))
         cfg = config(*entries, lowercase_keys=True)
 
-    joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
+    joined_dicts = {k: str(v) for k, v in DICT1.items()}
     joined_dicts.update(DICT2_1)
     joined_dicts.update(DICT2_2)
     joined_dicts.update(DICT3)
@@ -400,7 +407,7 @@ def test_alternate_set_loader_prefix():  # type: ignore
             lowercase_keys=True,
         )
 
-    joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
+    joined_dicts = {k: str(v) for k, v in DICT1.items()}
     joined_dicts.update(DICT2_1)
     joined_dicts.update(DICT2_2)
     joined_dicts.update(DICT3)
@@ -422,15 +429,15 @@ def test_alternate_set_loader_strings():  # type: ignore
     import tempfile
 
     with tempfile.TemporaryDirectory() as folder, tempfile.NamedTemporaryFile(
-        suffix=".json"
+        suffix=".json",
     ) as f1, tempfile.NamedTemporaryFile(
-        suffix=".ini"
+        suffix=".ini",
     ) as f2, tempfile.NamedTemporaryFile(
-        suffix=".yaml"
+        suffix=".yaml",
     ) as f3, tempfile.NamedTemporaryFile(
-        suffix=".toml"
+        suffix=".toml",
     ) as f4, tempfile.NamedTemporaryFile(
-        suffix=".env"
+        suffix=".env",
     ) as f5:
         # path
         subfolder = folder + "/sub"
@@ -467,7 +474,7 @@ def test_alternate_set_loader_strings():  # type: ignore
 
         cfg = config(*entries, prefix="CONFIG", lowercase_keys=True)
 
-    joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
+    joined_dicts = {k: str(v) for k, v in DICT1.items()}
     joined_dicts.update(DICT2_1)
     joined_dicts.update(DICT2_2)
     joined_dicts.update(DICT3)
@@ -493,13 +500,13 @@ def test_alternate_set_loader_strings_python_module():  # type: ignore
     import tempfile
 
     with tempfile.TemporaryDirectory() as folder, tempfile.NamedTemporaryFile(
-        suffix=".json"
+        suffix=".json",
     ) as f1, tempfile.NamedTemporaryFile(
-        suffix=".ini"
+        suffix=".ini",
     ) as f2, tempfile.NamedTemporaryFile(
-        suffix=".yaml"
+        suffix=".yaml",
     ) as f3, tempfile.NamedTemporaryFile(
-        suffix=".toml"
+        suffix=".toml",
     ) as f4:
         # path
         subfolder = folder + "/sub"
@@ -533,7 +540,7 @@ def test_alternate_set_loader_strings_python_module():  # type: ignore
 
         cfg = config(*entries, prefix="CONFIG", lowercase_keys=True)
 
-    joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
+    joined_dicts = {k: str(v) for k, v in DICT1.items()}
     joined_dicts.update(DICT2_1)
     joined_dicts.update(DICT2_2)
     joined_dicts.update(DICT3)
@@ -652,7 +659,8 @@ def test_allow_missing_paths_individually():  # type: ignore
                 ignore_missing_paths=True,
             ),
             config_from_python(
-                os.path.join(folder, "module.py"), ignore_missing_paths=True
+                os.path.join(folder, "module.py"),
+                ignore_missing_paths=True,
             ),
             config_from_python(folder, ignore_missing_paths=True),
             config_from_path(folder, ignore_missing_paths=True),
@@ -713,22 +721,20 @@ def test_dict_methods_items():  # type: ignore
     }
 
     with cfg.dotted_iter():
-        assert dict(cfg.items()) == dict(
-            [
-                ("a2.b2.c2", "YWJjZGVmZ2g="),
-                ("a1.b2.c2", "True"),
-                ("a1.b2.c1", "a"),
-                ("a1.b1.c2", "2"),
-                ("a2.b2.c3", "abcdefgh"),
-                ("a2.b1.c1", "f"),
-                ("a1.b1.c3", "3"),
-                ("a2.b1.c2", False),
-                ("a2.b1.c3", None),
-                ("a1.b1.c1", "1"),
-                ("a2.b2.c1", 10),
-                ("a1.b2.c3", "1.1"),
-            ]
-        )
+        assert dict(cfg.items()) == {
+            "a2.b2.c2": "YWJjZGVmZ2g=",
+            "a1.b2.c2": "True",
+            "a1.b2.c1": "a",
+            "a1.b1.c2": "2",
+            "a2.b2.c3": "abcdefgh",
+            "a2.b1.c1": "f",
+            "a1.b1.c3": "3",
+            "a2.b1.c2": False,
+            "a2.b1.c3": None,
+            "a1.b1.c1": "1",
+            "a2.b2.c1": 10,
+            "a1.b2.c3": "1.1",
+        }
 
 
 def test_dict_methods_keys_values():  # type: ignore
@@ -789,15 +795,15 @@ def test_reload():  # type: ignore
     import tempfile
 
     with tempfile.TemporaryDirectory() as folder, tempfile.NamedTemporaryFile(
-        suffix=".json"
+        suffix=".json",
     ) as f1, tempfile.NamedTemporaryFile(
-        suffix=".ini"
+        suffix=".ini",
     ) as f2, tempfile.NamedTemporaryFile(
-        suffix=".yaml"
+        suffix=".yaml",
     ) as f3, tempfile.NamedTemporaryFile(
-        suffix=".toml"
+        suffix=".toml",
     ) as f4, tempfile.NamedTemporaryFile(
-        suffix=".env"
+        suffix=".env",
     ) as f5:
         # path
         subfolder = folder + "/sub"
@@ -834,7 +840,7 @@ def test_reload():  # type: ignore
 
         cfg = config(*entries, prefix="CONFIG", lowercase_keys=True)
 
-        joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
+        joined_dicts = {k: str(v) for k, v in DICT1.items()}
         joined_dicts.update(DICT2_1)
         joined_dicts.update(DICT2_2)
         joined_dicts.update(DICT3)
@@ -900,7 +906,7 @@ def test_separator():  # type: ignore
         ]
         cfg = config(*entries, lowercase_keys=True)
 
-    joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
+    joined_dicts = {k: str(v) for k, v in DICT1.items()}
     joined_dicts.update(DICT2_1)
     joined_dicts.update(DICT2_2)
     joined_dicts["sys.version"] = sys.hexversion
@@ -923,7 +929,7 @@ def test_separator_override_default():  # type: ignore
         ]
         cfg = config(*entries, separator="_", lowercase_keys=True)
 
-    joined_dicts = dict((k, str(v)) for k, v in DICT1.items())
+    joined_dicts = {k: str(v) for k, v in DICT1.items()}
     joined_dicts.update(DICT2_1)
     joined_dicts.update(DICT2_2)
     joined_dicts["sys.version"] = sys.hexversion
@@ -950,12 +956,12 @@ def test_same_as_configuration():  # type: ignore
 
 
 def test_merging_values():  # type: ignore
-    DICT5_1 = {"a5.b1.c2": 3}
-    DICT5_2 = {"a5.b1.c1": 1, "a5.b1.c2": 2}
+    dict5_1 = {"a5.b1.c2": 3}
+    dict5_2 = {"a5.b1.c1": 1, "a5.b1.c2": 2}
 
     cfg = ConfigurationSet(
-        config_from_dict(DICT5_1),
-        config_from_dict(DICT5_2),
+        config_from_dict(dict5_1),
+        config_from_dict(dict5_2),
     )
 
     assert cfg["a5.b1"] == {"c1": 1, "c2": 3}

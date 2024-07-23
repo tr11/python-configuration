@@ -1,7 +1,12 @@
-from config import config_from_dict, config_from_json
-import tempfile
+"""Tests for json files."""
+
+# ruff: noqa: D103,E501,SIM115
+
 import json
+import tempfile
 from pathlib import Path
+
+from config import config_from_dict, config_from_json
 
 DICT = {
     "a1.b1.c1": 1,

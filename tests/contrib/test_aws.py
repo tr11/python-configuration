@@ -1,7 +1,11 @@
-import pytest
-import json
-from pytest import raises
+"""Tests for AWS Secrets support."""
 
+# ruff: noqa: D101,D102,D103,D106,D107,E501
+
+import json
+
+import pytest
+from pytest import raises
 
 try:
     import boto3 as aws
@@ -29,7 +33,7 @@ class MockSession:
         def __init__(self, val):  # type: ignore
             self._value = val
 
-        def get_secret_value(self, SecretId: str):  # type: ignore
+        def get_secret_value(self, SecretId: str):  # type: ignore  # noqa: N803
             return {"SecretString": json.dumps(self._value)}
 
     def client(self, *args, **kwargs):  # type: ignore
@@ -44,7 +48,7 @@ class MockSessionFail:
         def __init__(self, val):  # type: ignore
             self._value = val
 
-        def get_secret_value(self, SecretId: str):  # type: ignore
+        def get_secret_value(self, SecretId: str):  # type: ignore  # noqa: N803
             return self._value
 
     def client(self, *args, **kwargs):  # type: ignore
@@ -66,7 +70,9 @@ def test_expiration(mocker):  # type: ignore
     # with cache
     cfg = AWSSecretsManagerConfiguration(secret_name="test-secret")
     mocker.patch.object(
-        cfg._client, "get_secret_value", return_value={"SecretString": json.dumps(DICT)}
+        cfg._client,
+        "get_secret_value",
+        return_value={"SecretString": json.dumps(DICT)},
     )
     assert cfg["foo"] == "foo_val"
     cfg._client.get_secret_value.assert_called_once()
@@ -78,7 +84,9 @@ def test_expiration(mocker):  # type: ignore
     # without cache
     cfg = AWSSecretsManagerConfiguration(secret_name="test-secret", cache_expiration=0)
     mocker.patch.object(
-        cfg._client, "get_secret_value", return_value={"SecretString": json.dumps(DICT)}
+        cfg._client,
+        "get_secret_value",
+        return_value={"SecretString": json.dumps(DICT)},
     )
     assert cfg["foo"] == "foo_val"
     cfg._client.get_secret_value.assert_called()

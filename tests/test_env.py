@@ -1,6 +1,10 @@
-from config import config_from_dict, config_from_env
+"""Tests for environments."""
+
+# ruff: noqa: D103,E501,SIM115
+
 import os
 
+from config import config_from_dict, config_from_env
 
 DICT = {
     "a1.b1.c1": 1,
@@ -38,7 +42,7 @@ def test_equality():  # type: ignore
     )
 
     cfg = config_from_env(PREFIX, lowercase_keys=True)
-    assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+    assert cfg == config_from_dict({k: str(v) for k, v in DICT.items()})
 
 
 def test_reload():  # type: ignore
@@ -47,14 +51,14 @@ def test_reload():  # type: ignore
     )
 
     cfg = config_from_env(PREFIX, lowercase_keys=True)
-    assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+    assert cfg == config_from_dict({k: str(v) for k, v in DICT.items()})
 
     os.environ[PREFIX + "__" + "A2__B2__C3"] = "updated"
-    assert cfg == config_from_dict(dict((k, str(v)) for k, v in DICT.items()))
+    assert cfg == config_from_dict({k: str(v) for k, v in DICT.items()})
     cfg.reload()
     d = DICT.copy()
     d["a2.b2.c3"] = "updated"
-    assert cfg == config_from_dict(dict((k, str(v)) for k, v in d.items()))
+    assert cfg == config_from_dict({k: str(v) for k, v in d.items()})
 
 
 def test_reload_2():  # type: ignore
@@ -63,11 +67,17 @@ def test_reload_2():  # type: ignore
     )
 
     cfg = config_from_env(PREFIX, lowercase_keys=True, strip_prefix=False)
-    assert cfg == config_from_dict(dict((PREFIX.lower() + "." + k, str(v)) for k, v in DICT.items()))
+    assert cfg == config_from_dict(
+        {PREFIX.lower() + "." + k: str(v) for k, v in DICT.items()},
+    )
 
     os.environ[PREFIX + "__" + "A2__B2__C3"] = "updated"
-    assert cfg == config_from_dict(dict((PREFIX.lower() + "." + k, str(v)) for k, v in DICT.items()))
+    assert cfg == config_from_dict(
+        {PREFIX.lower() + "." + k: str(v) for k, v in DICT.items()},
+    )
     cfg.reload()
     d = DICT.copy()
     d["a2.b2.c3"] = "updated"
-    assert cfg == config_from_dict(dict((PREFIX.lower() + "." + k, str(v)) for k, v in d.items()))
+    assert cfg == config_from_dict(
+        {PREFIX.lower() + "." + k: str(v) for k, v in d.items()},
+    )

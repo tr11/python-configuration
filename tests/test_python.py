@@ -1,7 +1,11 @@
-from config import config_from_dict, config_from_python
-import sys
-import os
+"""Tests for paths."""
 
+# ruff: noqa: D103
+
+import os
+import sys
+
+from config import config_from_dict, config_from_python
 
 DICT = {
     "a1.B1.c1": 1,
@@ -72,6 +76,9 @@ def test_separator():  # type: ignore
     from . import python_config_2
 
     cfg = config_from_python(
-        python_config_2, prefix="CONFIG", separator="__", lowercase_keys=True
+        python_config_2,
+        prefix="CONFIG",
+        separator="__",
+        lowercase_keys=True,
     )
     assert cfg == config_from_dict(DICT, lowercase_keys=True)

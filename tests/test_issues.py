@@ -1,3 +1,7 @@
+"""Tests for github issues."""
+
+# ruff: noqa: D103,E501
+
 import pytest
 from config import (
     Configuration,
@@ -63,13 +67,12 @@ def test_issue_63_b():  # type: ignore
 
 def test_issue_77():  # type: ignore
     env = EnvConfiguration(prefix="whatever")
-    print(repr(env))
     assert repr(env).startswith("<EnvConfiguration")
 
 
 def test_issue_78():  # type: ignore
     c = Configuration({})
-    c == None
+    c == None  # noqa: B015, E711
 
 
 def test_issue_79():  # type: ignore
@@ -86,5 +89,4 @@ def test_issue_100():  # type: ignore
     invalid = """# key 1\nVALID=1\n## key2\nINVALID\n"""
     with pytest.raises(ValueError) as err:
         config_from_dotenv(invalid, lowercase_keys=True)
-    assert 'Invalid line INVALID' in str(err)
-
+    assert "Invalid line INVALID" in str(err)

@@ -1,3 +1,5 @@
+"""Example file to import as a config."""
+
 import sys
 
 CONFIG_SYS_VERSION = sys.hexversion

@@ -1,20 +1,23 @@
-from pathlib import Path
+"""Tests for toml files."""
+
+# ruff: noqa: D103,E501,SIM115
+
 import sys
 import tempfile
+from pathlib import Path
 
 import pytest
-
-from config import config_from_dict, config
+from config import config, config_from_dict
 
 try:
     if sys.version_info < (3, 11):  # pragma: no cover
         import tomli as toml
     else:  # pragma: no cover
         import tomllib as toml
-        
+
     from config import config_from_toml
 except ImportError:
-    toml = None # type: ignore
+    toml = None  # type: ignore
     config_from_toml = None  # type: ignore
 
 
@@ -129,7 +132,7 @@ def test_load_toml_filename_2():  # type: ignore
 
 @pytest.mark.skipif("toml is None")
 def test_load_toml_filename_3():  # type: ignore
-    with tempfile.NamedTemporaryFile(suffix='.toml') as f:
+    with tempfile.NamedTemporaryFile(suffix=".toml") as f:
         f.file.write(TOML.encode())
         f.file.flush()
         cfg = config(f.name)

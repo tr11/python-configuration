@@ -1,8 +1,12 @@
-from collections import namedtuple
-import pytest
-from pytest import raises
+"""Tests for Hashicorp Vault support."""
 
+# ruff: noqa: D101,D102,D103,D107,E501
+
+from collections import namedtuple
+
+import pytest
 from config import config_from_dict
+from pytest import raises
 
 try:
     import hvac

@@ -1,8 +1,13 @@
+"""Tests for yaml files."""
+
+# ruff: noqa: D103,E501,SIM115
+
+import tempfile
+from pathlib import Path
+
 import pytest
 from config import config_from_dict
 from pytest import raises
-from pathlib import Path
-import tempfile
 
 try:
     import yaml

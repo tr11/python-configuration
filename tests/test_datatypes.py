@@ -1,6 +1,9 @@
+"""Tests for data types."""
+
+# ruff: noqa: D103,E501
+
 from config import config, config_from_dict
 from config.helpers import AttributeDict
-
 from pytest import raises
 
 
@@ -58,6 +61,6 @@ def test_attribute_dict_1():  # type: ignore
 
 
 def test_tuple():  # type: ignore
-    DICT = {"a1": (1, 2)}
-    cfg = config_from_dict(DICT, interpolate=True)
+    d = {"a1": (1, 2)}
+    cfg = config_from_dict(d, interpolate=True)
     assert cfg["a1"] == (1, 2)

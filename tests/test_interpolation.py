@@ -1,7 +1,9 @@
-from config import config, config_from_dict, InterpolateEnumType
+"""Tests for interpolation."""
 
+# ruff: noqa: D103,E501
+
+from config import InterpolateEnumType, config, config_from_dict
 from pytest import raises
-
 
 VALUES = {"var1": "This {var2}", "var2": "is a {var3}", "var3": "test"}
 FAILS = {"var1": "This will fail {var2}", "var2": "{var3}", "var3": "{var1}"}
@@ -143,7 +145,8 @@ def test_interpolation_with_literals():  # type: ignore
     }
 
     cfg = config_from_dict(
-        values, interpolate={"literal": "abc", "another_literal": "xyz"}
+        values,
+        interpolate={"literal": "abc", "another_literal": "xyz"},
     )
 
     assert cfg.something == "value_of_something"

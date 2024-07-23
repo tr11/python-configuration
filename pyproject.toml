@@ -100,7 +100,7 @@ features = ["cloud", "file-formats", "validation"]
 
 [tool.ruff]
 line-length = 88
-exclude = ["tests", "docs", "src/config/_version.py"]
+exclude = ["docs", "src/config/_version.py"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
