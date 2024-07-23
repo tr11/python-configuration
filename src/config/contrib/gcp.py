@@ -35,7 +35,7 @@ class GCPSecretManagerConfiguration(Configuration):
     def __init__(
         self,
         project_id: str,
-        credentials: Credentials = None,
+        credentials: Optional[Credentials] = None,
         client_options: Optional[ClientOptions] = None,
         cache_expiration: int = 5 * 60,
         interpolate: InterpolateType = False,

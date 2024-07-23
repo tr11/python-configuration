@@ -154,6 +154,12 @@ dotenv2 = 1.2
 dotenv3 = xyz
 """
 
+DOTENV_PREFIX = """
+CONFIG__dotenv1 = abc
+CONFIG__dotenv2 = 1.2
+CONFIG__dotenv3 = xyz
+"""
+
 
 DICT_DOTENV = {
     "dotenv1": "abc",
@@ -437,7 +443,7 @@ def test_alternate_set_loader_strings():  # type: ignore
         f2.file.write(INI.encode())
         f2.file.flush()
         # ini
-        f5.file.write(DOTENV.encode())
+        f5.file.write(DOTENV_PREFIX.encode())
         f5.file.flush()
 
         entries = [
@@ -804,7 +810,7 @@ def test_reload():  # type: ignore
         f2.file.write(INI.encode())
         f2.file.flush()
         # ini
-        f5.file.write(DOTENV.encode())
+        f5.file.write(DOTENV_PREFIX.encode())
         f5.file.flush()
 
         entries = [

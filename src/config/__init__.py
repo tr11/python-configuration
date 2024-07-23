@@ -32,6 +32,7 @@ from .helpers import InterpolateEnumType, InterpolateType, parse_env_line
 def config(
     *configs: Iterable,
     prefix: str = "",
+    strip_prefix: bool = True,
     separator: Optional[str] = None,
     remove_level: int = 1,
     lowercase_keys: bool = False,
@@ -44,6 +45,7 @@ def config(
     Params:
        configs: iterable of configurations
        prefix: prefix to filter environment variables with
+       strip_prefix: whether to strip the prefix
        remove_level: how many levels to remove from the resulting config
        lowercase_keys: whether to convert every key to lower case.
        ignore_missing_paths: whether to ignore failures from missing files/folders.
@@ -71,6 +73,9 @@ def config(
         if isinstance(config_, Mapping):
             instances.append(config_from_dict(config_, **default_kwargs))
             continue
+        elif isinstance(config_, Configuration):
+            instances.append(config_)
+            continue
         elif isinstance(config_, str):
             if config_.endswith(".py"):
                 config_ = ("python", config_, *default_args)
@@ -82,8 +87,8 @@ def config(
                 config_ = ("toml", config_, True)
             elif config_.endswith(".ini"):
                 config_ = ("ini", config_, True)
-            elif config_.endswith(".env"):
-                config_ = ("dotenv", config_, True)
+            elif config_.endswith(".env") or config_.startswith(".env"):
+                config_ = ("dotenv", config_, True, *default_args)
             elif os.path.isdir(config_):
                 config_ = ("path", config_, remove_level)
             elif config_ in ("env", "environment"):
@@ -103,7 +108,13 @@ def config(
             instances.append(config_from_dict(*config_[1:], **default_kwargs))
         elif type_ in ("env", "environment"):
             params = list(config_[1:]) + default_args[(len(config_) - 1) :]
-            instances.append(config_from_env(*params, **default_kwargs))
+            instances.append(
+                config_from_env(
+                    *params,
+                    **default_kwargs,
+                    strip_prefix=strip_prefix,
+                ),
+            )
         elif type_ == "python":
             if len(config_) < 2:
                 raise ValueError("No path specified for python module")
@@ -113,6 +124,7 @@ def config(
                     *params,
                     **default_kwargs,
                     ignore_missing_paths=ignore_missing_paths,
+                    strip_prefix=strip_prefix,
                 ),
             )
         elif type_ == "json":
@@ -137,6 +149,7 @@ def config(
                     *config_[1:],
                     **default_kwargs,
                     ignore_missing_paths=ignore_missing_paths,
+                    strip_prefix=strip_prefix,
                 ),
             )
         elif type_ == "ini":
@@ -145,6 +158,7 @@ def config(
                     *config_[1:],
                     **default_kwargs,
                     ignore_missing_paths=ignore_missing_paths,
+                    strip_prefix=strip_prefix,
                 ),
             )
         elif type_ == "dotenv":
@@ -153,6 +167,7 @@ def config(
                     *config_[1:],
                     **default_kwargs,
                     ignore_missing_paths=ignore_missing_paths,
+                    strip_prefix=strip_prefix,
                 ),
             )
         elif type_ == "path":
@@ -178,9 +193,10 @@ class EnvConfiguration(Configuration):
 
     def __init__(
         self,
-        prefix: str,
+        prefix: str = "",
         separator: str = "__",
         *,
+        strip_prefix: bool = True,
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
@@ -189,9 +205,11 @@ class EnvConfiguration(Configuration):
 
         prefix: prefix to filter environment variables with
         separator: separator to replace by dots
+        strip_prefix: whether to include the prefix
         lowercase_keys: whether to convert every key to lower case.
         """
         self._prefix = prefix
+        self._strip_prefix = strip_prefix
         self._separator = separator
         super().__init__(
             {},
@@ -207,9 +225,12 @@ class EnvConfiguration(Configuration):
         for key, value in os.environ.items():
             if not key.startswith(self._prefix + self._separator):
                 continue
-            result[
-                key[len(self._prefix) :].replace(self._separator, ".").strip(".")
-            ] = value
+            if self._strip_prefix:
+                result[
+                    key[len(self._prefix) :].replace(self._separator, ".").strip(".")
+                ] = value
+            else:
+                result[key.replace(self._separator, ".").strip(".")] = value
         super().__init__(
             result,
             lowercase_keys=self._lowercase,
@@ -222,6 +243,7 @@ def config_from_env(
     prefix: str,
     separator: str = "__",
     *,
+    strip_prefix: bool = True,
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
@@ -231,6 +253,7 @@ def config_from_env(
     Params:
         prefix: prefix to filter environment variables with.
         separator: separator to replace by dots.
+        strip_prefix: whether to include the prefix
         lowercase_keys: whether to convert every key to lower case.
         interpolate: whether to apply string interpolation when looking for items.
 
@@ -240,6 +263,7 @@ def config_from_env(
     return EnvConfiguration(
         prefix,
         separator,
+        strip_prefix=strip_prefix,
         lowercase_keys=lowercase_keys,
         interpolate=interpolate,
         interpolate_type=interpolate_type,
@@ -463,6 +487,7 @@ class INIConfiguration(FileConfiguration):
         read_from_file: bool = False,
         *,
         section_prefix: str = "",
+        strip_prefix: bool = True,
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
@@ -470,6 +495,7 @@ class INIConfiguration(FileConfiguration):
     ):
         """Class Constructor."""
         self._section_prefix = section_prefix
+        self._strip_prefix = strip_prefix
         super().__init__(
             data=data,
             read_from_file=read_from_file,
@@ -502,8 +528,9 @@ class INIConfiguration(FileConfiguration):
         data = cast(str, data)
         cfg = ConfigParser()
         cfg.read_string(data)
+        n = len(self._section_prefix) if self._strip_prefix else 0
         result = {
-            section[len(self._section_prefix) :] + "." + k: v
+            section[n:] + "." + k: v
             for section, values in cfg.items()
             for k, v in values.items()
             if section.startswith(self._section_prefix)
@@ -516,6 +543,7 @@ def config_from_ini(
     read_from_file: bool = False,
     *,
     section_prefix: str = "",
+    strip_prefix: bool = True,
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
@@ -538,6 +566,7 @@ def config_from_ini(
         data,
         read_from_file,
         section_prefix=section_prefix,
+        strip_prefix=strip_prefix,
         lowercase_keys=lowercase_keys,
         interpolate=interpolate,
         interpolate_type=interpolate_type,
@@ -555,6 +584,7 @@ class DotEnvConfiguration(FileConfiguration):
         prefix: str = "",
         separator: str = "__",
         *,
+        strip_prefix: bool = True,
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
@@ -562,7 +592,9 @@ class DotEnvConfiguration(FileConfiguration):
     ):
         """Class Constructor."""
         self._prefix = prefix
+        self._strip_prefix = strip_prefix
         self._separator = separator
+
         super().__init__(
             data=data,
             read_from_file=read_from_file,
@@ -589,8 +621,9 @@ class DotEnvConfiguration(FileConfiguration):
             parse_env_line(x) for x in data.splitlines() if x and not x.startswith("#")
         )
 
+        n = len(self._prefix) if self._strip_prefix else 0
         result = {
-            k[len(self._prefix) :].replace(self._separator, ".").strip("."): v
+            k[n:].replace(self._separator, ".").strip("."): v
             for k, v in result.items()
             if k.startswith(self._prefix)
         }
@@ -604,6 +637,7 @@ def config_from_dotenv(
     prefix: str = "",
     separator: str = "__",
     *,
+    strip_prefix: bool = True,
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
@@ -629,6 +663,7 @@ def config_from_dotenv(
         read_from_file,
         prefix=prefix,
         separator=separator,
+        strip_prefix=strip_prefix,
         lowercase_keys=lowercase_keys,
         interpolate=interpolate,
         interpolate_type=interpolate_type,
@@ -645,6 +680,7 @@ class PythonConfiguration(Configuration):
         prefix: str = "",
         separator: str = "_",
         *,
+        strip_prefix: bool = True,
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
@@ -677,6 +713,7 @@ class PythonConfiguration(Configuration):
                     module = importlib.import_module(module)
             self._module: Optional[ModuleType] = module
             self._prefix = prefix
+            self._strip_prefix = strip_prefix
             self._separator = separator
         except (FileNotFoundError, ModuleNotFoundError):
             if not ignore_missing_paths:
@@ -699,10 +736,9 @@ class PythonConfiguration(Configuration):
                 for x in dir(self._module)
                 if not x.startswith("__") and x.startswith(self._prefix)
             ]
+            n = len(self._prefix) if self._strip_prefix else 0
             result = {
-                k[len(self._prefix) :]
-                .replace(self._separator, ".")
-                .strip("."): getattr(self._module, k)
+                k[n:].replace(self._separator, ".").strip("."): getattr(self._module, k)
                 for k in variables
             }
         else:
@@ -720,6 +756,7 @@ def config_from_python(
     prefix: str = "",
     separator: str = "_",
     *,
+    strip_prefix: bool = True,
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
@@ -741,6 +778,7 @@ def config_from_python(
         module,
         prefix,
         separator,
+        strip_prefix=strip_prefix,
         lowercase_keys=lowercase_keys,
         interpolate=interpolate,
         interpolate_type=interpolate_type,
@@ -882,6 +920,7 @@ class TOMLConfiguration(FileConfiguration):
         read_from_file: bool = False,
         *,
         section_prefix: str = "",
+        strip_prefix: bool = True,
         lowercase_keys: bool = False,
         interpolate: InterpolateType = False,
         interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
@@ -894,6 +933,7 @@ class TOMLConfiguration(FileConfiguration):
             )
 
         self._section_prefix = section_prefix
+        self._strip_prefix = strip_prefix
         super().__init__(
             data=data,
             read_from_file=read_from_file,
@@ -920,8 +960,9 @@ class TOMLConfiguration(FileConfiguration):
             loaded = toml.loads(data)
         loaded = cast(dict, loaded)
 
+        n = len(self._section_prefix) if self._section_prefix else 0
         result = {
-            k[len(self._section_prefix) :]: v
+            k[n:]: v
             for k, v in self._flatten_dict(loaded).items()
             if k.startswith(self._section_prefix)
         }
@@ -934,6 +975,7 @@ def config_from_toml(
     read_from_file: bool = False,
     *,
     section_prefix: str = "",
+    strip_prefix: bool = True,
     lowercase_keys: bool = False,
     interpolate: InterpolateType = False,
     interpolate_type: InterpolateEnumType = InterpolateEnumType.STANDARD,
@@ -955,6 +997,7 @@ def config_from_toml(
         data,
         read_from_file,
         section_prefix=section_prefix,
+        strip_prefix=strip_prefix,
         lowercase_keys=lowercase_keys,
         interpolate=interpolate,
         interpolate_type=interpolate_type,

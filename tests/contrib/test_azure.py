@@ -5,12 +5,12 @@ from pytest import raises
 from config import config_from_dict
 
 try:
-    import azure
     from config.contrib.azure import AzureKeyVaultConfiguration
     from azure.core.exceptions import ResourceNotFoundError
+    azure = True
 except ImportError:  # pragma: no cover
     azure = None  # type: ignore
-
+    raise
 
 DICT = {
     "foo": "foo_val",
