@@ -30,6 +30,7 @@ The `python-configuration` library supports the following configuration formats 
   - AWS Secrets Manager credentials: requires `boto3`
   - GCP Secret Manager credentials: requires `google-cloud-secret-manager`
   - Hashicorp Vault credentials: requires `hvac`
+  - Doppler secrets: requires `doppler`
 
 
 ## Installing
@@ -374,6 +375,14 @@ The `config.contrib` package contains extra implementations of the `Configuratio
 
   ```shell
   pip install python-configuration[vault]
+  ```
+
+* `DopplerConfiguration` in `config.contrib.doppler`, produces a
+  `Configuration`-compatible instance connected to a Doppler project config. To install
+  the needed dependencies execute:
+
+  ```shell
+  pip install python-configuration[doppler]
   ```
 
 ## Features

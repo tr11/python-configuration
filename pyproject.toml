@@ -14,6 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
@@ -29,6 +30,7 @@ Source = "https://github.com/tr11/python-configuration"
 # cloud
 aws = ["boto3>=1.28.20"]
 azure = ["azure-keyvault>=4.2.0", "azure-identity"]
+doppler = ["doppler-sdk>=1.3.0"]
 gcp = ["google-cloud-secret-manager>=2.16.3"]
 vault = ["hvac>=1.1.1"]
 # file formats
@@ -37,7 +39,7 @@ yaml = ["pyyaml>=6.0"]
 # utilities
 validation = ["jsonschema>=4.21.1"]
 # groups
-cloud = ["python-configuration[aws,azure,gcp,vault]"]
+cloud = ["python-configuration[aws,azure,doppler,gcp,vault]"]
 file-formats = ["python-configuration[toml,yaml]"]
 
 [tool.hatch.version]
@@ -91,7 +93,7 @@ description = "Testing Environment to run all\nthe tests across different\nPytho
 template = "test"
 
 [[tool.hatch.envs.testing.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
 
 [tool.hatch.envs.dev]
 template = "test"
@@ -149,6 +151,9 @@ module = [
     'jsonschema',
     'jsonschema.exceptions',
     'azure.identity',
+    'dopplersdk',
+    'dopplersdk.models',
+    'dopplersdk.services.secrets',
 ]
 ignore_missing_imports = true
 
